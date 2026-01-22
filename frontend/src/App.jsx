@@ -1,9 +1,9 @@
-import "./App.css";
+import { RouterProvider } from 'react-router-dom';
+import router from './router/rootRouter';
+import './App.css';
+
 function App() {
-  return (
-    <>
-      <h1 className="text-3xl font-bold underline">Vite + React Hello!!</h1>
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
+
 export default App;
