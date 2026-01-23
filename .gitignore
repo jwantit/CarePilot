@@ -27,3 +27,10 @@ replay_pid*
 .env.*
 *.pem
 *.key
+.idea/.name
+.idea/compiler.xml
+.idea/gradle.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/workspace.xml
+.idea/modules/carepilot.main.iml
