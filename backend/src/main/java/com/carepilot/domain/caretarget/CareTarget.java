@@ -31,6 +31,9 @@ public class CareTarget extends SoftDeleteEntity {
     @Column(name = "age")
     private Integer age;
 
+    @Column(name = "gender")
+    private String gender;
+
     @Column(name = "disease")
     private String disease;
 
