@@ -11,6 +11,7 @@ const CallPage = lazy(() => import('../pages/call/CallPage'));
 const TaskPage = lazy(() => import('../pages/task/TaskPage'));
 const ReportPage = lazy(() => import('../pages/report/ReportPage'));
 const SettingPage = lazy(() => import('../pages/setting/SettingPage'));
+const NoticePage = lazy(() => import('../pages/notice/NoticePage'));
 const NotificationPage = lazy(() => import('../pages/notification/NotificationPage'));
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const UserManagementPage = lazy(() => import('../pages/usermanagement/UserManagementPage'));
@@ -78,6 +79,14 @@ const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <SettingPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'notice',
+        element: (
+          <SuspenseWrapper>
+            <NoticePage />
           </SuspenseWrapper>
         ),
       },

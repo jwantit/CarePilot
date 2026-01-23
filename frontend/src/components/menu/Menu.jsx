@@ -14,6 +14,7 @@ function Menu() {
     { path: '/task', label: '작업' },
     { path: '/report', label: '보고서' },
     { path: '/setting', label: '설정' },
+    { path: '/notice', label: '공지사항' },
     { path: '/notification', label: '알림' },
   ];
 
