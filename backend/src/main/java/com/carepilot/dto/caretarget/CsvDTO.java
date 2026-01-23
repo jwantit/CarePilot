@@ -1,4 +1,4 @@
-package com.carepilot.dto;
+package com.carepilot.dto.caretarget;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

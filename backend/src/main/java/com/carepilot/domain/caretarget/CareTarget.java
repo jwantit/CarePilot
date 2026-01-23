@@ -60,7 +60,7 @@ public class CareTarget extends SoftDeleteEntity {
     @Builder
     public CareTarget(Organization organization, String name, Integer age, String disease,
                      Boolean careStatus, String targetPhone, String guardianName,
-                     String guardianPhone, String guardianRelationship, Doctor doctor) {
+                     String guardianPhone, String guardianRelationship, Doctor doctor, String gender) {
         this.organization = organization;
         this.name = name;
         this.age = age;
@@ -71,6 +71,7 @@ public class CareTarget extends SoftDeleteEntity {
         this.guardianPhone = guardianPhone;
         this.guardianRelationship = guardianRelationship;
         this.doctor = doctor;
+        this.gender = gender;
     }
 }
 
