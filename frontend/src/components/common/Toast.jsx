@@ -22,6 +22,11 @@ function Toast() {
             primary: '#ef4444',
             secondary: '#fff',
           },
+          style: {
+            background: '#FEE2E2',
+            color: '#991B1B',
+            border: '1px solid #FCA5A5',
+          },
         },
       }}
     />

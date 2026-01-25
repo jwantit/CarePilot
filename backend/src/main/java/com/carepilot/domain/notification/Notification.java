@@ -8,6 +8,7 @@ import com.carepilot.domain.enums.NotificationType;
 import com.carepilot.domain.enums.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 @Table(name = "notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Notification extends BaseEntity {
 
     @Id
@@ -92,6 +94,13 @@ public class Notification extends BaseEntity {
         this.status = status != null ? status : NotificationStatus.ACTIVE;
         this.occurredAt = occurredAt;
         this.resolvedAt = resolvedAt;
+        this.resolvedBy = resolvedBy;
+    }
+
+    // 알림 읽음 처리
+    public void markAsRead(User resolvedBy) {
+        this.status = NotificationStatus.RESOLVED;
+        this.resolvedAt = LocalDateTime.now();
         this.resolvedBy = resolvedBy;
     }
 }
