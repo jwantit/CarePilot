@@ -4,6 +4,7 @@ import com.carepilot.domain.common.SoftDeleteEntity;
 import com.carepilot.domain.enums.UserRole;
 import com.carepilot.domain.enums.UserStatus;
 import com.carepilot.domain.organization.Organization;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User extends SoftDeleteEntity {
 
     @Id

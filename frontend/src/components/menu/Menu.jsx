@@ -1,10 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getUnreadCount } from '../../api/notificationApi';
 
 function Menu() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // 테스트용 userId (실제로는 인증된 사용자 정보에서 가져와야 함)
+  const userId = 1;
+
+  // 읽지 않은 알림 개수 조회
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await getUnreadCount(userId);
+        setUnreadCount(count);
+      } catch (error) {
+        console.error('읽지 않은 알림 개수 조회 실패:', error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // 새 알림이 도착하거나 읽음 처리되면 개수 업데이트
+    const handleNotificationReceived = () => {
+      fetchUnreadCount();
+    };
+
+    const handleNotificationUpdated = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notification-received', handleNotificationReceived);
+    window.addEventListener('notification-updated', handleNotificationUpdated);
+
+    // 주기적으로 개수 업데이트 (30초마다)
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => {
+      window.removeEventListener('notification-received', handleNotificationReceived);
+      window.removeEventListener('notification-updated', handleNotificationUpdated);
+      clearInterval(interval);
+    };
+  }, [userId]);
 
   const menuItems = [
     { path: '/', label: '대시보드' },
@@ -15,7 +55,7 @@ function Menu() {
     { path: '/report', label: '보고서' },
     { path: '/setting', label: '설정' },
     { path: '/notice', label: '공지사항' },
-    { path: '/notification', label: '알림' },
+    { path: '/notification', label: '알림', isIcon: true },
   ];
 
   const isActive = (path) => {
@@ -52,14 +92,39 @@ function Menu() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`px-4 py-2 text-base font-semibold transition-colors ${
+                className={`px-4 py-2 text-base font-semibold transition-colors relative ${
                   isActive(item.path)
                     ? 'text-teal-600'
                     : 'hover:text-teal-600'
                 }`}
                 style={{ color: isActive(item.path) ? undefined : '#333' }}
               >
-                {item.label}
+                {item.isIcon ? (
+                  <div className="relative">
+                    {/* 벨 아이콘 */}
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+                    {/* 읽지 않은 알림 개수 배지 */}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  item.label
+                )}
               </Link>
             ))}
           </div>
