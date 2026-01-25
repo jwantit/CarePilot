@@ -129,7 +129,7 @@ public class AuthController {
     
     //USER 소셜 회원가입 (organization_number 필요, status = WAITING)
     @PostMapping("/oauth2/signup/user")
-    public ResponseEntity<OAuth2LoginResponseDTO> signupUser(
+    public ResponseEntity<OAuth2LoginResponseDTO> signupUserOAuth2(
             @RequestBody OAuth2SignupRequestDTO request) {
         log.info("POST /auth/oauth2/signup/user 요청 수신: email={}, name={}, organizationNumber={}", 
                 request.getEmail(), request.getName(), request.getOrganizationNumber());
