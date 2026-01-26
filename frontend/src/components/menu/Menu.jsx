@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getUnreadCount } from '../../api/notificationApi';
+import { useAuth } from '../../hooks/useAuth';
 
 function Menu() {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // 테스트용 userId (실제로는 인증된 사용자 정보에서 가져와야 함)
-  const userId = 1;
+  // Redux에서 사용자 정보 가져오기
+  const userId = user?.userId;
 
   // 읽지 않은 알림 개수 조회
   useEffect(() => {
+    if (!userId) return;
+
     const fetchUnreadCount = async () => {
       try {
         const count = await getUnreadCount(userId);
@@ -138,7 +141,7 @@ function Menu() {
                 className="flex items-center space-x-2 px-4 py-2 text-base font-semibold hover:text-teal-600 transition-colors"
                 style={{ color: '#333' }}
               >
-                <span>유저</span>
+                <span>{user?.name || user?.email || '유저'}</span>
                 <svg
                   className={`w-4 h-4 transition-transform ${
                     isUserMenuOpen ? 'rotate-180' : ''
@@ -182,8 +185,8 @@ function Menu() {
                     <hr className="my-2 border-gray-100" />
                     <button
                       onClick={() => {
-                        console.log('로그아웃');
                         setIsUserMenuOpen(false);
+                        logout();
                       }}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
                     >

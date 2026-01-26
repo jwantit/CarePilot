@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import Layout from '../components/menu/Layout';
 import Loading from '../components/common/Loading';
+import RequireLoginRoute from './RequireLoginRoute';
 
 // Lazy load pages
 const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
@@ -16,24 +17,76 @@ const NotificationPage = lazy(() => import('../pages/notification/NotificationPa
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const UserManagementPage = lazy(() => import('../pages/usermanagement/UserManagementPage'));
 
+// Lazy load auth pages
+const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
+const SignupPage = lazy(() => import('../pages/auth/SignupPage'));
+const OAuth2CallbackPage = lazy(() => import('../pages/auth/OAuth2CallbackPage'));
+const OAuth2CompletePage = lazy(() => import('../pages/auth/OAuth2CompletePage'));
+const ApprovalPage = lazy(() => import('../pages/auth/ApprovalPage'));
+
 // Wrapper component for Suspense
 const SuspenseWrapper = ({ children }) => (
   <Suspense fallback={<Loading />}>{children}</Suspense>
 );
 
 const router = createBrowserRouter([
+  // 인증 페이지 (로그인 불필요)
+  {
+    path: '/login',
+    element: (
+      <SuspenseWrapper>
+        <LoginPage />
+      </SuspenseWrapper>
+    ),
+  },
+  {
+    path: '/signup',
+    element: (
+      <SuspenseWrapper>
+        <SignupPage />
+      </SuspenseWrapper>
+    ),
+  },
+  {
+    path: '/oauth2/callback',
+    element: (
+      <SuspenseWrapper>
+        <OAuth2CallbackPage />
+      </SuspenseWrapper>
+    ),
+  },
+  {
+    path: '/oauth2/complete',
+    element: (
+      <SuspenseWrapper>
+        <OAuth2CompletePage />
+      </SuspenseWrapper>
+    ),
+  },
+  {
+    path: '/approve',
+    element: (
+      <SuspenseWrapper>
+        <ApprovalPage />
+      </SuspenseWrapper>
+    ),
+  },
+  // 보호된 라우트 (로그인 필요)
   {
     path: '/',
-    element: <Layout />,
+    element: <RequireLoginRoute />,
     children: [
       {
-        index: true,
-        element: (
-          <SuspenseWrapper>
-            <DashboardPage />
-          </SuspenseWrapper>
-        ),
-      },
+        element: <Layout />,
+        children: [
+          {
+            index: true,
+            element: (
+              <SuspenseWrapper>
+                <DashboardPage />
+              </SuspenseWrapper>
+            ),
+          },
       {
         path: 'care-target',
         element: (
@@ -113,6 +166,8 @@ const router = createBrowserRouter([
             <UserManagementPage />
           </SuspenseWrapper>
         ),
+      },
+        ],
       },
     ],
   },

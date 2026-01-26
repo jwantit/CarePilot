@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.user;
 
 public enum UserStatus {
     ACTIVE,      // 정상 사용 가능 (승인 완료)
