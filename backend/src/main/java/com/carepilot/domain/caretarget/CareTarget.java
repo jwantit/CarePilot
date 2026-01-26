@@ -3,11 +3,9 @@ package com.carepilot.domain.caretarget;
 import com.carepilot.domain.common.SoftDeleteEntity;
 import com.carepilot.domain.config.Doctor;
 import com.carepilot.domain.organization.Organization;
+import com.carepilot.dto.caretarget.CareTargetUpdateRequestDTO;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "care_targets")
@@ -72,6 +70,19 @@ public class CareTarget extends SoftDeleteEntity {
         this.guardianRelationship = guardianRelationship;
         this.doctor = doctor;
         this.gender = gender;
+    }
+
+
+    public void changeDetailInfo(CareTargetUpdateRequestDTO dto, Doctor doctor) {
+        this.name = dto.getName();
+        this.age = dto.getAge();
+        this.gender = dto.getGender();
+        this.disease = dto.getDisease();
+        this.targetPhone = dto.getTargetPhone();
+        this.guardianName = dto.getGuardianName();
+        this.guardianPhone = dto.getGuardianPhone();
+        this.guardianRelationship = dto.getGuardianRelationship();
+        this.doctor = doctor;
     }
 }
 

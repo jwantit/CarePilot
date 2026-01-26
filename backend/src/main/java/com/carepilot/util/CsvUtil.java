@@ -29,8 +29,18 @@ import java.util.List;
 @Slf4j
 public class CsvUtil {
 
+    //요청시 files 구조
 
-    //CsvDTO 지켜야하는 형식 빈값으로 처리 가능
+    //엑셀 - Csv공통
+    //row 1(자동스킵)이름  나이   성별   전화번호   질환   보호자이름   보호자 번호   보호자 관계
+    //row 2         a     3     남    010-...  감염     b           010-..     자녀
+    //row 3....
+
+    //*순서지켜야함 -> a -> 3
+    //*빈값허용
+
+    //응답시
+    //반환CsvDTO
 //    private String name;        // 이름
 //    private int age;        // 나이
 //    private String gender;      // 성별

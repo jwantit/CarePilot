@@ -3,6 +3,8 @@ import { createBrowserRouter } from 'react-router-dom';
 import Layout from '../components/menu/Layout';
 import Loading from '../components/common/Loading';
 import RequireLoginRoute from './RequireLoginRoute';
+import careTargetRouter from './caretarget/careTargetRouter';
+
 
 // Lazy load pages
 const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
@@ -88,13 +90,15 @@ const router = createBrowserRouter([
             ),
           },
       {
-        path: 'care-target',
+
+        index: true,
         element: (
           <SuspenseWrapper>
-            <CareTargetPage />
+            <DashboardPage />
           </SuspenseWrapper>
         ),
       },
+      ...careTargetRouter(),
       {
         path: 'care-target-group',
         element: (

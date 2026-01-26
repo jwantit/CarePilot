@@ -52,6 +52,8 @@ public class SecurityConfig {
 
             // 인증/인가 설정
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**").permitAll()      // 인증 API 허용
+                .requestMatchers("/display/**").permitAll()
                 // OAuth2 인증 엔드포인트 허용
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                     // WebSocket 엔드포인트 허용

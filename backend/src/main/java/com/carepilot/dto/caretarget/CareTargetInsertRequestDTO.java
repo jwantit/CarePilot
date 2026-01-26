@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CareRequestDTO {
+public class CareTargetInsertRequestDTO {
     private String name; //케대 이름
     private int age; //케대 나이
     private String gender;
@@ -19,6 +19,6 @@ public class CareRequestDTO {
     private String guardianName;
     private String guardianPhone;
     private String guardianRelationship;//케대 - 보호자 관계
-    private String doctorId;//담당 의료진ID
+    private Long doctorId;//담당 의료진ID
     private Long organizationId; //업체ID
 }
