@@ -7,15 +7,18 @@ import com.carepilot.dto.config.DoctorDTO;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Log4j2
 public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
@@ -90,6 +93,40 @@ public class DoctorServiceImpl implements DoctorService {
 
         Doctor saved = doctorRepository.save(doctor);
         return toDoctorDTO(saved);
+    }
+
+    @Override
+    @Transactional
+    public List<DoctorDTO> bulkCreateDoctors(Long organizationId,
+                                             List<DoctorDTO> dtos,
+                                             Boolean defaultIsActive) {
+
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new RuntimeException("Organization not found"));
+
+        boolean finalDefault = defaultIsActive != null ? defaultIsActive : true;
+
+        List<DoctorDTO> inserted = new ArrayList<>();
+
+        for (DoctorDTO dto : dtos) {
+
+            int result = doctorRepository.insertIgnore(
+                    dto.getEmail(),
+                    dto.getName(),
+                    dto.getPhone(),
+                    dto.getSpecialty(),
+                    dto.getMemo(),
+                    (dto.getRole() != null ? dto.getRole() : DoctorRole.DOCTOR).name(),
+                    dto.getIsActive() != null ? dto.getIsActive() : finalDefault,
+                    organization.getOrganizationId()
+            );
+
+            if (result == 1) {
+                inserted.add(dto); // 실제 저장된 것만
+            }
+        }
+
+        return inserted;
     }
 
     @Override

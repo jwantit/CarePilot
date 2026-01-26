@@ -1,8 +1,14 @@
 package com.carepilot.controller;
 
-import com.carepilot.dto.caretarget.*;
+import com.carepilot.domain.enums.Gender;
+import com.carepilot.dto.caretarget.CareTargetInsertRequestDTO;
+import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
+import com.carepilot.dto.caretarget.CareTargetDetailResponseDTO;
+import com.carepilot.dto.caretarget.CareTargetUpdateRequestDTO;
+import com.carepilot.dto.caretarget.CareTargetDoctorResponseDTO;
 import com.carepilot.service.caretarget.CareService;
 import com.carepilot.util.CsvUtil;
+import com.carepilot.util.RowMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
@@ -25,13 +31,33 @@ public class CareTargetController {
     @PostMapping(value = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<CareTargetListResponseDTO>> csvCareTarget(
             @RequestPart(value = "files") List<MultipartFile> files,
-            @RequestParam("organizationId") Long organizationId, // @RequestParam 명시
-            @RequestParam("careStatus") Boolean careStatus // @RequestParam 명시
+            @RequestParam("organizationId") Long organizationId,
+            @RequestParam("careStatus") Boolean careStatus
     ) {
         log.info("CSV 업로드 컨트롤러 진입 - 조직ID: {}", organizationId);
 
-        List<CsvDTO> csvs = csvUtil.csvOrEx(files);
-        List<CareTargetListResponseDTO> result = careService.csvOrExcelCareTargetSave(csvs, organizationId, careStatus);
+        // CSV 컬럼 순서: 이름, 나이, 성별, 전화번호, 질환, 보호자이름, 보호자번호, 보호자관계 (8개)
+        RowMapper<CareTargetInsertRequestDTO> mapper = cols -> {
+            int age = safeParseInt(cols[1]);
+            String gender = normalizeGender(cols[2]);
+
+            return CareTargetInsertRequestDTO.builder()
+                    .name(cols[0])
+                    .age(age)
+                    .gender(gender)
+                    .targetPhone(cols[3])
+                    .disease(cols[4])
+                    .guardianName(cols[5])
+                    .guardianPhone(cols[6])
+                    .guardianRelationship(cols[7])
+                    .organizationId(organizationId)
+                    .careStatus(careStatus)
+                    .doctorId(null) // CSV에는 의료진 정보 없음
+                    .build();
+        };
+
+        List<CareTargetInsertRequestDTO> requests = csvUtil.csvOrEx(files, mapper, 8);
+        List<CareTargetListResponseDTO> result = careService.csvOrExcelCareTargetSave(requests);
 
         return ResponseEntity.ok(result);
     }
@@ -53,7 +79,7 @@ public class CareTargetController {
             @RequestParam("organizationId") Long organizationId,
             @RequestParam("status") String status,
             @RequestParam(value = "keyword", required = false) String keyword
-            ) {
+    ) {
 
         log.info("상태는" + status);
         List<CareTargetListResponseDTO> result = careService.getCareTargetList(organizationId, status, keyword);
@@ -99,9 +125,27 @@ public class CareTargetController {
         return ResponseEntity.ok(result);
     }
 
+    // 헬퍼 메서드들 (도메인 변환 로직)
+    private String normalizeGender(String gender) {
+        if (gender == null || gender.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Gender.find(gender.trim()).getKoName();
+        } catch (Exception e) {
+            log.warn("성별 변환 실패: {}", gender);
+            return gender.trim();
+        }
+    }
 
-
-
+    private int safeParseInt(String str) {
+        if (str == null || str.trim().isEmpty()) return 0;
+        try {
+            // 25.0 처럼 소수점이 붙어오는 엑셀 숫자 대응
+            String value = str.trim().split("\\.")[0];
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
 }
-
-

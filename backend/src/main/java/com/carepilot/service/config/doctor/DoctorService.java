@@ -10,6 +10,7 @@ public interface DoctorService {
     List<DoctorDTO> getDoctorsByFilter(Long organizationId, DoctorRole role, Boolean isActive, String name);
     DoctorDTO getDoctorById(Long doctorId);
     DoctorDTO createDoctor(Long organizationId, DoctorDTO dto);
+    List<DoctorDTO> bulkCreateDoctors(Long organizationId, List<DoctorDTO> dtos, Boolean defaultIsActive);
     DoctorDTO updateDoctor(Long doctorId, DoctorDTO dto);
     void deleteDoctor(Long doctorId);
 }
