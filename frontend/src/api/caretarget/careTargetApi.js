@@ -1,14 +1,13 @@
-import apiClient from '../apiClient'; // 기본 export된 apiClient 사용
+import apiClient from '../apiClient'; 
 import { addTokenToRequest } from '../apiClient';
 
-// apiClient의 baseURL이 이미 /api까지 포함하고 있으므로, 그 이후 경로만 설정합니다.
 const host = `/caretarget`; 
 
 /**
  * 케어 대상자 전체 조회
  */
 export const getCareTargetAllList = async (organizationId, filterStatus, keyword) => {
-  // 토큰이 필요한 요청이므로 config에 추가
+ 
   const config = addTokenToRequest({
     params: { 
       organizationId: organizationId,

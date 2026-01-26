@@ -4,7 +4,7 @@ import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.config.Doctor;
-import com.carepilot.domain.enums.UploadTargetType;
+import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.*;
 import com.carepilot.dto.upload.TargetFileDTO;

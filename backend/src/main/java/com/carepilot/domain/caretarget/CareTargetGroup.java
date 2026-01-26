@@ -36,6 +36,10 @@ public class CareTargetGroup extends BaseEntity {
     @Column(name = "group_status")
     private Boolean groupStatus = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "group_content_type")
+    private GroupType groupType = GroupType.CUSTOM;
+
     @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "created_by", nullable = false)
     @JoinColumn(name = "created_by")
@@ -43,12 +47,13 @@ public class CareTargetGroup extends BaseEntity {
 
     @Builder
     public CareTargetGroup(Organization organization, String groupName, String groupDescription,
-                          Boolean groupStatus, User createdBy) {
+                          Boolean groupStatus, User createdBy, GroupType groupType) {
         this.organization = organization;
         this.groupName = groupName;
         this.groupDescription = groupDescription;
         this.groupStatus = groupStatus != null ? groupStatus : true;
         this.createdBy = createdBy;
+        this.groupType = (groupType != null) ? groupType : GroupType.CUSTOM;
     }
 }
 

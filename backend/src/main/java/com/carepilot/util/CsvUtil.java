@@ -1,6 +1,6 @@
 package com.carepilot.util;
 
-import com.carepilot.domain.enums.Gender;
+import com.carepilot.domain.caretarget.Gender;
 import com.carepilot.dto.caretarget.CsvDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

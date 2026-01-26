@@ -18,7 +18,7 @@ const careTargetRouter = () => {
           element: <SuspenseWrapper><CareTargetPage /></SuspenseWrapper>,
         },
         {
-          path: 'detail/:targetId/:organizationId',
+          path: 'detail/:targetId',
           element: <SuspenseWrapper><CareTargetDetailPage /></SuspenseWrapper>,
         }
       ]

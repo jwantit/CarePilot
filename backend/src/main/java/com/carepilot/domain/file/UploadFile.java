@@ -3,8 +3,6 @@ package com.carepilot.domain.file;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
-import com.carepilot.domain.enums.UploadFileType;
-import com.carepilot.domain.enums.UploadTargetType;
 import com.carepilot.domain.notice.Notice;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;

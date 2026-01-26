@@ -3,8 +3,8 @@ package com.carepilot.service.upload;
 
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.caretarget.CareTarget;
-import com.carepilot.domain.enums.UploadFileType;
-import com.carepilot.domain.enums.UploadTargetType;
+import com.carepilot.domain.file.UploadFileType;
+import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.notice.Notice;
 import com.carepilot.domain.organization.Organization;
