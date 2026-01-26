@@ -5,7 +5,6 @@ import {
   logoutAsync,
   signupOrganizationAsync,
   signupUserAsync,
-  signupAdminOAuth2Async,
   signupUserOAuth2Async,
   approveUserAsync,
 } from '../store/slices/authSlice';
@@ -99,33 +98,6 @@ export const useAuth = () => {
   };
 
   /**
-   * ADMIN 소셜 회원가입
-   */
-  const signupAdminOAuth2 = async (data) => {
-    if (!data.email || !data.name) {
-      toast.error('이메일과 이름을 입력해주세요.');
-      return null;
-    }
-
-    try {
-      const result = await dispatch(signupAdminOAuth2Async(data)).unwrap();
-      
-      if (result.success) {
-        toast.success('회원가입이 완료되었습니다.');
-        navigate('/');
-        return result;
-      } else if (result.requiresAdditionalInfo) {
-        toast.error(result.message || '추가 정보가 필요합니다.');
-        return result;
-      }
-      return null;
-    } catch (err) {
-      console.error('ADMIN 소셜 회원가입 실패:', err);
-      return null;
-    }
-  };
-
-  /**
    * USER 소셜 회원가입
    */
   const signupUserOAuth2 = async (data) => {
@@ -183,7 +155,6 @@ export const useAuth = () => {
     logout,
     signupOrganization,
     signupUser,
-    signupAdminOAuth2,
     signupUserOAuth2,
     approveUser,
   };

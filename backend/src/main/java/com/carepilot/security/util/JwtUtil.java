@@ -133,5 +133,13 @@ public class JwtUtil {
         Claims claims = extractClaims(token);
         return claims.get("status", String.class);
     }
+    
+    /** TTL 조회
+     * Refresh Token 유효 시간을 초 단위로 반환
+     * @return Refresh Token 유효 시간 (초)
+     */
+    public long getRefreshTokenValidityInSeconds() {
+        return refreshTokenValidityInMilliseconds / 1000;
+    }
 }
 

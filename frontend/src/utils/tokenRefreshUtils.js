@@ -10,26 +10,23 @@ export const refreshAccessToken = async () => {
   const refreshToken = getRefreshToken();
   
   if (!refreshToken) {
+    console.error('Refresh token이 없습니다.');
     throw new Error('Refresh token이 없습니다.');
   }
   
   try {
-    // TODO: Redis 반영 후 백엔드 API 구현 필요
-    // POST /auth/refresh
-    // Request: { refreshToken: string }
-    // Response: { accessToken: string, refreshToken: string }
+    console.log('Refresh Token으로 새 Access Token 요청 중...');
+    const response = await authClient.post('/refresh', {
+      refreshToken: refreshToken
+    });
     
-    // const response = await authClient.post('/refresh', {
-    //   refreshToken: refreshToken
-    // });
-    // 
-    // const { accessToken, refreshToken: newRefreshToken } = response.data;
-    // setTokens(accessToken, newRefreshToken);
-    // 
-    // return accessToken;
+    const { accessToken, refreshToken: newRefreshToken } = response.data;
+    setTokens(accessToken, newRefreshToken);
+    console.log('새 토큰 발급 및 저장 완료');
     
-    throw new Error('Refresh Token API가 아직 구현되지 않았습니다.');
+    return accessToken;
   } catch (error) {
+    console.error('Refresh Token 갱신 실패:', error);
     // Refresh Token도 만료된 경우
     removeTokens();
     throw error;

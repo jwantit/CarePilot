@@ -88,26 +88,6 @@ export const approveUserAsync = createAsyncThunk(
   }
 );
 
-// 비동기 액션: ADMIN 소셜 회원가입
-export const signupAdminOAuth2Async = createAsyncThunk(
-  'auth/signupAdminOAuth2',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await authApi.signupAdminOAuth2(data);
-      // 성공 시 토큰 저장
-      if (response.success && response.accessToken) {
-        setTokens(response.accessToken, response.refreshToken);
-        const user = getUserFromToken();
-        return { user, response };
-      }
-      return response;
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
 // 비동기 액션: USER 소셜 회원가입
 export const signupUserOAuth2Async = createAsyncThunk(
   'auth/signupUserOAuth2',
@@ -231,25 +211,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(approveUserAsync.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-
-    // ADMIN 소셜 회원가입
-    builder
-      .addCase(signupAdminOAuth2Async.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(signupAdminOAuth2Async.fulfilled, (state, action) => {
-        state.loading = false;
-        if (action.payload.user) {
-          state.user = action.payload.user;
-          state.isAuthenticated = true;
-        }
-        state.error = null;
-      })
-      .addCase(signupAdminOAuth2Async.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -17,14 +17,6 @@ public interface OAuth2Service {
     OAuth2LoginResponseDTO processKakaoLogin(String email, String name, String providerId);
     
     /**
-     * ADMIN 소셜 회원가입 (즉시 ACTIVE)
-     * @param email 카카오 이메일
-     * @param name 카카오 닉네임
-     * @return 로그인 응답 (JWT 토큰)
-     */
-    OAuth2LoginResponseDTO signupAdmin(String email, String name);
-    
-    /**
      * USER 소셜 회원가입 (organization_number 필요, status = WAITING)
      * @param email 카카오 이메일
      * @param name 카카오 닉네임

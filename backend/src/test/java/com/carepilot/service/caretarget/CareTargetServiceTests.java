@@ -2,10 +2,13 @@ package com.carepilot.service.caretarget;
 
 
 import com.carepilot.domain.call.Call;
+import com.carepilot.domain.call.CallDirection;
 import com.carepilot.domain.call.CallSchedule;
+import com.carepilot.domain.call.CallType;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.enums.*;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.carepilot.domain.user.UserRole;

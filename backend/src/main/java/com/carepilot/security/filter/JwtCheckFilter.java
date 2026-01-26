@@ -1,7 +1,7 @@
 package com.carepilot.security.filter;
 
 import com.carepilot.security.util.JwtUtil;
-//import com.carepilot.service.auth.TokenRedisService;
+import com.carepilot.service.auth.TokenRedisService;
 import com.google.gson.Gson;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class JwtCheckFilter extends OncePerRequestFilter {
     
     private final JwtUtil jwtUtil;
-//    private final TokenRedisService tokenRedisService;
+    private final TokenRedisService tokenRedisService;
     private final Gson gson = new Gson();
     
     @Override
@@ -85,12 +85,17 @@ public class JwtCheckFilter extends OncePerRequestFilter {
         }
         
         try {
-            // 1. 블랙리스트 확인
-//            if (tokenRedisService.isBlacklisted(accessToken)) {
-//                log.warn("블랙리스트된 Access Token 발견: path={}", request.getRequestURI());
-//                sendErrorResponse(response, "ERROR_ACCESS_TOKEN");
-//                return;
-//            }
+            // 1. 블랙리스트 확인 (Redis 연결 실패 시 스킵)
+            try {
+                if (tokenRedisService.isBlacklisted(accessToken)) {
+                    log.warn("블랙리스트된 Access Token 발견: path={}", request.getRequestURI());
+                    sendErrorResponse(response, "ERROR_ACCESS_TOKEN");
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn("Redis 연결 실패, 블랙리스트 확인 스킵: {}", e.getMessage());
+                // Redis 연결 실패 시 블랙리스트 확인을 스킵하고 계속 진행
+            }
             
             // 2. JWT 토큰 검증
             if (!jwtUtil.validateToken(accessToken)) {

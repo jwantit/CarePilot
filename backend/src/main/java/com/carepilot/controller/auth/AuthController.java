@@ -8,6 +8,7 @@ import com.carepilot.dto.auth.OAuth2LoginResponseDTO;
 import com.carepilot.dto.auth.OAuth2SignupRequestDTO;
 import com.carepilot.dto.auth.OrganizationSignupRequestDTO;
 import com.carepilot.dto.auth.OrganizationSignupResponseDTO;
+import com.carepilot.dto.auth.RefreshTokenRequestDTO;
 import com.carepilot.dto.auth.UserSignupRequestDTO;
 import com.carepilot.dto.auth.UserSignupResponseDTO;
 import com.carepilot.service.auth.AuthService;
@@ -16,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -96,10 +99,12 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<LogoutResponseDTO> logout() {
+    public ResponseEntity<LogoutResponseDTO> logout(HttpServletRequest request) {
         log.info("POST /auth/logout 요청 수신");
         try {
-            LogoutResponseDTO response = authService.logout();
+            // Authorization 헤더에서 Access Token 추출
+            String accessToken = extractToken(request);
+            LogoutResponseDTO response = authService.logout(accessToken);
             log.info("POST /auth/logout 성공");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -108,21 +113,34 @@ public class AuthController {
         }
     }
     
-    //ADMIN 소셜 회원가입 (즉시 ACTIVE)
-    @PostMapping("/oauth2/signup/admin")
-    public ResponseEntity<OAuth2LoginResponseDTO> signupAdmin(
-            @RequestBody OAuth2SignupRequestDTO request) {
-        log.info("POST /auth/oauth2/signup/admin 요청 수신: email={}, name={}", 
-                request.getEmail(), request.getName());
+    /**
+     * Authorization 헤더에서 Bearer 토큰 추출
+     * @param request HTTP 요청
+     * @return JWT 토큰 (없으면 null)
+     */
+    private String extractToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        
+        return null;
+    }
+    
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponseDTO> refreshToken(
+            @RequestBody RefreshTokenRequestDTO request) {
+        log.info("POST /auth/refresh 요청 수신");
         try {
-            OAuth2LoginResponseDTO response = oAuth2Service.signupAdmin(request.getEmail(), request.getName());
-            log.info("POST /auth/oauth2/signup/admin 성공: email={}", request.getEmail());
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            LoginResponseDTO response = authService.refreshToken(request.getRefreshToken());
+            log.info("POST /auth/refresh 성공");
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            log.warn("POST /auth/oauth2/signup/admin 실패 (잘못된 요청): {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+            log.warn("POST /auth/refresh 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (Exception e) {
-            log.error("POST /auth/oauth2/signup/admin 실패 (서버 오류): {}", e.getMessage(), e);
+            log.error("POST /auth/refresh 실패: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
