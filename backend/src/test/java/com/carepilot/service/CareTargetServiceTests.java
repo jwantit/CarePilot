@@ -3,7 +3,7 @@ package com.carepilot.service;
 
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.CareRequestDTO;
-import com.carepilot.repository.OrgenizationRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.service.notice.caretarget.CareService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ public class CareTargetServiceTests {
     private CareService careService;
 
     @Autowired
-    private OrgenizationRepository orgenizationRepository;
+    private OrganizationRepository organizationRepository;
 
 
 
@@ -27,7 +27,7 @@ public class CareTargetServiceTests {
     @Commit
     public void testInsertCareTargetOne() {
 
-        Organization organization = orgenizationRepository.findById(1L).orElseThrow();
+        Organization organization = organizationRepository.findById(1L).orElseThrow();
 
         for (int i = 0; i <= 9; i++ ){
             CareRequestDTO careRequestDTO = CareRequestDTO.builder()

@@ -135,7 +135,7 @@ public class AuthController {
                 request.getEmail(), request.getName(), request.getOrganizationNumber());
         try {
             OAuth2LoginResponseDTO response = oAuth2Service.signupUser(
-                    request.getEmail(), request.getName(), request.getOrganizationNumber());
+                    request.getEmail(), request.getName(), request.getPassword(), request.getOrganizationNumber());
             log.info("POST /auth/oauth2/signup/user 성공: email={}, status=WAITING", request.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {

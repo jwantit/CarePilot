@@ -7,8 +7,8 @@ import com.carepilot.domain.enums.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.carepilot.repository.NotificationRepository;
-import com.carepilot.repository.OrganizationRepository;
-import com.carepilot.repository.UserRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,7 +27,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final OrganizationRepository organizationRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override

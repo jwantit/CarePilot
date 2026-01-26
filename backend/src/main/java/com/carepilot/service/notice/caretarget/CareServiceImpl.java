@@ -5,7 +5,7 @@ import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.CsvDTO;
 import com.carepilot.dto.caretarget.CareRequestDTO;
 import com.carepilot.repository.CareRepository;
-import com.carepilot.repository.OrgenizationRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
 public class CareServiceImpl implements CareService {
 
     private final CareRepository careRepository;
-    private final OrgenizationRepository orgenizationRepository;
+    private final OrganizationRepository organizationRepository;
 
 
     //대량 환자등록 ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ public class CareServiceImpl implements CareService {
     public List<CsvDTO> csvOrExcelCareTargetSave(List<CsvDTO> csvs, Long organizationId) {
 
         //업체 가져오기
-        Organization organization = orgenizationRepository.findById(organizationId)
+        Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow();
 
        log.info("진입 서비스");
@@ -57,7 +57,7 @@ public class CareServiceImpl implements CareService {
     @Override
     public void careTargetInsert(CareRequestDTO careRequestDTO) {
 
-        Organization organization = orgenizationRepository.findById(careRequestDTO.getOrganizationId())
+        Organization organization = organizationRepository.findById(careRequestDTO.getOrganizationId())
                 .orElseThrow();
 
         CareTarget ct = CareTarget.builder()

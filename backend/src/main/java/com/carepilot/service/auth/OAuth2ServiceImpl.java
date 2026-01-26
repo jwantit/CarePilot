@@ -8,9 +8,9 @@ import com.carepilot.dto.auth.OAuth2LoginResponseDTO;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.security.util.JwtUtil;
-import com.carepilot.service.auth.ApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +30,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
     private final OrganizationRepository organizationRepository;
     private final JwtUtil jwtUtil;
     private final ApprovalService approvalService;
+    private final PasswordEncoder passwordEncoder;
     
     @Override
     public OAuth2LoginResponseDTO processKakaoLogin(String email, String name, String providerId) {
@@ -142,10 +143,11 @@ public class OAuth2ServiceImpl implements OAuth2Service {
      * USER 소셜 회원가입 (organization_number 필요, status = WAITING)
      * @param email 카카오 이메일
      * @param name 카카오 닉네임
+     * @param password 비밀번호
      * @param organizationNumber 조직 번호
      * @return 로그인 응답 (승인 대기)
      */
-    public OAuth2LoginResponseDTO signupUser(String email, String name, String organizationNumber) {
+    public OAuth2LoginResponseDTO signupUser(String email, String name, String password, String organizationNumber) {
         log.info("USER 소셜 회원가입: email={}, name={}, organizationNumber={}", 
                 email, name, organizationNumber);
         
@@ -158,10 +160,10 @@ public class OAuth2ServiceImpl implements OAuth2Service {
         Organization organization = organizationRepository.findByOrganizationNumber(organizationNumber)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 조직 번호입니다."));
         
-        // USER 사용자 생성 (password 없음, status = WAITING)
+        // USER 사용자 생성 (password 암호화, status = WAITING)
         User user = User.builder()
             .email(email)
-            .password(null)  // 소셜 로그인은 password 없음
+            .password(passwordEncoder.encode(password))  // 비밀번호 암호화
             .name(name)
             .role(UserRole.USER)
             .organization(organization)

@@ -35,6 +35,9 @@ dependencies {
     //웹소켓
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    //메일 발송
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'

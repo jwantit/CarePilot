@@ -28,9 +28,10 @@ public interface OAuth2Service {
      * USER 소셜 회원가입 (organization_number 필요, status = WAITING)
      * @param email 카카오 이메일
      * @param name 카카오 닉네임
+     * @param password 비밀번호
      * @param organizationNumber 조직 번호
      * @return 로그인 응답 (승인 대기)
      */
-    OAuth2LoginResponseDTO signupUser(String email, String name, String organizationNumber);
+    OAuth2LoginResponseDTO signupUser(String email, String name, String password, String organizationNumber);
 }
 
