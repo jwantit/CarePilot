@@ -36,6 +36,20 @@ export const addTokenToRequest = (config) => {
   return config;
 };
 
+// 요청 인터셉터: 모든 요청에 토큰 자동 추가
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // TODO: Redis 반영 후 Refresh Token 갱신 인터셉터 추가
 // apiClient.interceptors.response.use(
 //   (response) => response,

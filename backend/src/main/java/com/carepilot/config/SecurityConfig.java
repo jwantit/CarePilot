@@ -56,8 +56,8 @@ public class SecurityConfig {
                 .requestMatchers("/display/**").permitAll()
                 // OAuth2 인증 엔드포인트 허용
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                    // WebSocket 엔드포인트 허용
-                    .requestMatchers("/ws/**").permitAll()
+                // WebSocket 엔드포인트 허용
+                .requestMatchers("/ws/**").permitAll()
                 // 로그아웃은 인증 필요
                 .requestMatchers("/auth/logout").authenticated()
                 // 나머지 인증 엔드포인트는 모두 허용
