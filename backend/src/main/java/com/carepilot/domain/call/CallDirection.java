@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.call;
 
 public enum CallDirection {
     INBOUND,    // 수신

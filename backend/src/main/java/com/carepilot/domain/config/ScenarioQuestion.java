@@ -43,5 +43,11 @@ public class ScenarioQuestion extends BaseEntity {
         this.questionOrder = questionOrder;
         this.isRequired = isRequired != null ? isRequired : false;
     }
+
+    public void update(String questionText, Integer questionOrder, Boolean isRequired) {
+        this.questionText = questionText;
+        this.questionOrder = questionOrder;
+        this.isRequired = isRequired != null ? isRequired : false;
+    }
 }
 

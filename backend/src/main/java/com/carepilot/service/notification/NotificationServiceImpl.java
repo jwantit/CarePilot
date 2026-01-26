@@ -3,10 +3,10 @@ package com.carepilot.service.notification;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.enums.NotificationStatus;
 import com.carepilot.domain.enums.NotificationType;
-import com.carepilot.domain.enums.RiskLevel;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
-import com.carepilot.repository.NotificationRepository;
+import com.carepilot.repository.notification.NotificationRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override

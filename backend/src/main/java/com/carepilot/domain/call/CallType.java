@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.call;
 
 /**
  * 통화 목적/성격

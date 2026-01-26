@@ -78,5 +78,25 @@ public class NotificationConfig extends BaseEntity {
         this.nightRestrictionStart = nightRestrictionStart;
         this.nightRestrictionEnd = nightRestrictionEnd;
     }
+
+    public void updateSettings(
+            Boolean smsEnabled,
+            Boolean kakaoEnabled,
+            Boolean emailEnabled,
+            Boolean riskDetectionEnabled,
+            Boolean callFailureEnabled,
+            Boolean emergencyEventEnabled,
+            LocalTime nightRestrictionStart,
+            LocalTime nightRestrictionEnd
+    ) {
+        this.smsEnabled = smsEnabled != null ? smsEnabled : false;
+        this.kakaoEnabled = kakaoEnabled != null ? kakaoEnabled : false;
+        this.emailEnabled = emailEnabled != null ? emailEnabled : false;
+        this.riskDetectionEnabled = riskDetectionEnabled != null ? riskDetectionEnabled : true;
+        this.callFailureEnabled = callFailureEnabled != null ? callFailureEnabled : true;
+        this.emergencyEventEnabled = emergencyEventEnabled != null ? emergencyEventEnabled : true;
+        this.nightRestrictionStart = nightRestrictionStart;
+        this.nightRestrictionEnd = nightRestrictionEnd;
+    }
 }
 

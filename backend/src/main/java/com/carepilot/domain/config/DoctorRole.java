@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.config;
 
 public enum DoctorRole {
     ADMIN,      // 관리자

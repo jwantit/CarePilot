@@ -43,5 +43,9 @@ public class AIConfig extends BaseEntity {
         this.isEnabled = isEnabled != null ? isEnabled : false;
         this.configValue = configValue;
     }
+
+    public void changeEnabled(Boolean isEnabled) {
+        this.isEnabled = isEnabled != null ? isEnabled : false;
+    }
 }
 

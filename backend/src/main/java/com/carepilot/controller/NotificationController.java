@@ -1,6 +1,7 @@
 package com.carepilot.controller;
 
 import com.carepilot.domain.notification.Notification;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -67,10 +68,10 @@ public class NotificationController {
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam(required = false) String severity) {
-        com.carepilot.domain.enums.RiskLevel riskLevel = null;
+        RiskLevel riskLevel = null;
         if (severity != null && !severity.isEmpty()) {
             try {
-                riskLevel = com.carepilot.domain.enums.RiskLevel.valueOf(severity.toUpperCase());
+                riskLevel = RiskLevel.valueOf(severity.toUpperCase());
             } catch (IllegalArgumentException e) {
                 log.warn("Invalid severity value: {}", severity);
             }

@@ -5,7 +5,6 @@ import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.enums.NotificationStatus;
 import com.carepilot.domain.enums.NotificationType;
-import com.carepilot.domain.enums.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

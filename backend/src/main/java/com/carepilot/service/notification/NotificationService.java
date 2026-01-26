@@ -2,7 +2,7 @@ package com.carepilot.service.notification;
 
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.enums.NotificationType;
-import com.carepilot.domain.enums.RiskLevel;
+import com.carepilot.domain.notification.RiskLevel;
 
 import java.util.List;
 
@@ -14,4 +14,5 @@ public interface NotificationService {
     void markAsRead(Long notificationId, Long resolvedByUserId);
     long getUnreadCount(Long userId);
 }
+
 

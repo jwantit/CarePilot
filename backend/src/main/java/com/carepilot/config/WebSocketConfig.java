@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer { //Web
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") // addEndpoint : 프론트가 연결할 주소 ex) ws://localhost:8080/ws (React에서 여기로 접속)
-                .setAllowedOriginPatterns("*") // setAllowedOriginPatterns("*")  : CORS 허용, 개발중이므로 일단 전체 허용
+                .setAllowedOriginPatterns("http://localhost:3000") // setAllowedOriginPatterns("*")  : CORS 허용, 개발중이므로 일단 전체 허용
                 .withSockJS(); //websocketdl 막힌 환경에서도 HTTP 기반 fallback 가능 (기업망, 구형 브라우저 대비)
     }
 }

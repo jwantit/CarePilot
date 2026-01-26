@@ -1,7 +1,6 @@
-package com.carepilot.domain.doctor;
+package com.carepilot.domain.config;
 
 import com.carepilot.domain.common.BaseEntity;
-import com.carepilot.domain.enums.DoctorRole;
 import com.carepilot.domain.organization.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -54,6 +53,17 @@ public class Doctor extends BaseEntity {
     public Doctor(Organization organization, String name, String email, String phone,
                  String specialty, DoctorRole role, Boolean isActive, String memo) {
         this.organization = organization;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.specialty = specialty;
+        this.role = role;
+        this.isActive = isActive != null ? isActive : true;
+        this.memo = memo;
+    }
+
+    public void update(String name, String email, String phone, String specialty,
+                      DoctorRole role, Boolean isActive, String memo) {
         this.name = name;
         this.email = email;
         this.phone = phone;

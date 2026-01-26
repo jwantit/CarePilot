@@ -1,4 +1,4 @@
-package com.carepilot.repository;
+package com.carepilot.repository.notification;
 
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.enums.NotificationStatus;

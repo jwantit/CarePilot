@@ -1,7 +1,7 @@
 package com.carepilot.domain.config;
 
 import com.carepilot.domain.common.BaseEntity;
-import com.carepilot.domain.enums.RiskLevel;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
@@ -64,6 +64,21 @@ public class Scenario extends BaseEntity {
         this.enabled = enabled != null ? enabled : false;
         this.riskCriteria = riskCriteria;
         this.createdBy = createdBy;
+    }
+
+    public void update(String name, String description, String category,
+                      RiskLevel riskLevel, Boolean enabled, String riskCriteria) {
+        this.name = name;
+        this.description = description;
+        this.category = category;
+        this.riskLevel = riskLevel;
+        this.enabled = enabled != null ? enabled : false;
+        this.riskCriteria = riskCriteria;
+    }
+
+    public void changeEnabled(boolean enabled)
+    {
+        this.enabled = enabled;
     }
 }
 

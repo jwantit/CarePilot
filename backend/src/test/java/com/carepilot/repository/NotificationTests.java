@@ -2,13 +2,13 @@ package com.carepilot.repository;
 
 import com.carepilot.domain.enums.NotificationStatus;
 import com.carepilot.domain.enums.NotificationType;
-import com.carepilot.domain.enums.RiskLevel;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.user.UserRole;
 import com.carepilot.domain.user.UserStatus;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
-import com.carepilot.repository.NotificationRepository;
+import com.carepilot.repository.notification.NotificationRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.service.notification.NotificationService;
@@ -26,12 +26,12 @@ import java.util.List;
 
 /**
  * 알림 관련 더미 데이터 생성 테스트
- *
+ * 
  * 사용 방법:
  * 1. insertUser() - User와 Organization 생성
  * 2. insertNotification() - 알림 생성 (직접 Repository 사용)
  * 3. insertNotificationSimple() - 알림 생성 (NotificationService 사용)
- *
+ * 
  * @Commit 어노테이션으로 실제 DB에 저장됩니다.
  */
 @SpringBootTest
@@ -159,7 +159,7 @@ class NotificationTests {
 
     /**
      * 알림 더미 데이터 생성 테스트 (직접 Repository 사용)
-     *
+     * 
      * 사용 방법:
      * 1. 이 테스트를 실행하면 DB에 더미 데이터가 생성됩니다.
      * 2. @Commit 어노테이션으로 실제 DB에 저장됩니다.
@@ -178,16 +178,16 @@ class NotificationTests {
                         Constructor<Organization> constructor = Organization.class.getDeclaredConstructor();
                         constructor.setAccessible(true);
                         Organization org = constructor.newInstance();
-
+                        
                         // 리플렉션을 사용하여 필드 설정
                         java.lang.reflect.Field nameField = Organization.class.getDeclaredField("name");
                         nameField.setAccessible(true);
                         nameField.set(org, "테스트 기관");
-
+                        
                         java.lang.reflect.Field orgNumberField = Organization.class.getDeclaredField("organizationNumber");
                         orgNumberField.setAccessible(true);
                         orgNumberField.set(org, "ORG-001");
-
+                        
                         return organizationRepository.save(org);
                     } catch (Exception e) {
                         throw new RuntimeException("Organization 생성 실패: " + e.getMessage(), e);
@@ -330,10 +330,10 @@ class NotificationTests {
 
     /**
      * 간단한 알림 더미 데이터 생성 테스트 (NotificationService 사용)
-     *
+     * 
      * NotificationService를 사용하여 알림을 생성합니다.
      * User ID가 1인 사용자에게 알림을 생성합니다.
-     *
+     * 
      * 사용 방법:
      * 1. 먼저 User가 DB에 존재해야 합니다.
      * 2. 이 테스트를 실행하면 DB에 더미 데이터가 생성됩니다.

@@ -1,7 +1,7 @@
 package com.carepilot.domain.caretarget;
 
 import com.carepilot.domain.common.SoftDeleteEntity;
-import com.carepilot.domain.doctor.Doctor;
+import com.carepilot.domain.config.Doctor;
 import com.carepilot.domain.organization.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

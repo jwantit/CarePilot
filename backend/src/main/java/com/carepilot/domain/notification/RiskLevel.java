@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.notification;
 
 public enum RiskLevel {
     LOW,
