@@ -46,7 +46,7 @@ public class Notice extends BaseEntity {
 
     @Builder
     public Notice(Organization organization, User user, String title,
-                 String content, Integer viewCount, Boolean isPinned) {
+                  String content, Integer viewCount, Boolean isPinned) {
         this.organization = organization;
         this.user = user;
         this.title = title;
@@ -54,5 +54,14 @@ public class Notice extends BaseEntity {
         this.viewCount = viewCount != null ? viewCount : 0;
         this.isPinned = isPinned != null ? isPinned : false;
     }
+    // 공지사항 수정 로직
+    public void update(String title, String content, Boolean isPinned) {
+        this.title = title;
+        this.content = content;
+        this.isPinned = isPinned;
+    }
+    // 조회수 증가 로직
+    public void setViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
+    }
 }
-
