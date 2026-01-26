@@ -1,6 +1,7 @@
 package com.carepilot.controller;
 
-import com.carepilot.security.util.SecurityUtil;
+import com.carepilot.security.util.UserUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,11 @@ import java.util.Map;
 //Spring Security 및 JWT 필터 테스트용 컨트롤러
 @RestController
 @RequestMapping("/test")
+@RequiredArgsConstructor
 @Log4j2
 public class TestController {
+
+    private final UserUtil userUtil;
 
     //인증이 필요한 엔드포인트 (모든 인증된 사용자 접근 가능)
     @GetMapping("/protected")
@@ -70,16 +74,17 @@ public class TestController {
     public ResponseEntity<Map<String, Object>> organizationEndpoint(
             @PathVariable Long organizationId) {
         
-        Long currentUserId = SecurityUtil.getCurrentUserId();
-        String currentRole = SecurityUtil.getCurrentUserRole();
-        Long currentOrgId = SecurityUtil.getCurrentUserOrganizationId();
+        com.carepilot.dto.auth.UserDTO userDTO = userUtil.getCurrentUserDTO();
+        Long currentUserId = userDTO.getUserId();
+        String currentRole = userDTO.getRole();
+        Long currentOrgId = userDTO.getOrganizationId();
         
         log.info("조직 접근 시도: userId={}, role={}, currentOrgId={}, targetOrgId={}",
                 currentUserId, currentRole, currentOrgId, organizationId);
         
         // MANAGER는 자기 조직만 접근 가능
         if ("MANAGER".equals(currentRole)) {
-            if (!SecurityUtil.belongsToOrganization(organizationId)) {
+            if (currentOrgId == null || !currentOrgId.equals(organizationId)) {
                 log.warn("MANAGER가 다른 조직 접근 시도: currentOrgId={}, targetOrgId={}",
                         currentOrgId, organizationId);
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "다른 조직의 데이터에 접근할 수 없습니다.");

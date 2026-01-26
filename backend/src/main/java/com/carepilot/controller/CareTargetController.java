@@ -1,6 +1,6 @@
 package com.carepilot.controller;
 
-import com.carepilot.domain.enums.Gender;
+import com.carepilot.domain.caretarget.Gender;
 import com.carepilot.dto.caretarget.CareTargetInsertRequestDTO;
 import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
 import com.carepilot.dto.caretarget.CareTargetDetailResponseDTO;

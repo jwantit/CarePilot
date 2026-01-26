@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+---
+
+This project follows PRD_AUTH.md and AUTH_TODO.md as the source of truth.
+
+Core rules:
+- Authentication uses HTTP + JWT only. Do NOT use WebSocket for authentication.
+- User approval is controlled only by users.status enum. There is NO isApproved field.
+- Roles are strictly: ADMIN, MANAGER, USER.
+- MANAGER can manage only users and data within the same organization_id.
+- organization_number is UNIQUE and used only for signup, not for authorization.
+- Follow AUTH_TODO.md order strictly.
+- Implement one step at a time. Stop after completing each step and wait for confirmation.

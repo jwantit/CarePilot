@@ -1,24 +1,33 @@
 package com.carepilot.service.auth;
 
 import com.carepilot.dto.auth.ApprovalResponseDTO;
-import com.carepilot.dto.auth.LoginRequestDTO;
 import com.carepilot.dto.auth.LoginResponseDTO;
 import com.carepilot.dto.auth.LogoutResponseDTO;
-import com.carepilot.dto.auth.OrganizationSignupRequestDTO;
-import com.carepilot.dto.auth.OrganizationSignupResponseDTO;
-import com.carepilot.dto.auth.UserSignupRequestDTO;
-import com.carepilot.dto.auth.UserSignupResponseDTO;
 
+/**
+ * 인증 서비스
+ * 로그아웃, 토큰 갱신, 토큰 생성/저장 처리
+ */
 public interface AuthService {
-    
-    OrganizationSignupResponseDTO signupOrganization(OrganizationSignupRequestDTO request);
-    
-    UserSignupResponseDTO signupUser(UserSignupRequestDTO request);
     
     ApprovalResponseDTO approveUser(String token);
     
-    LoginResponseDTO login(LoginRequestDTO request);
+    LogoutResponseDTO logout(String accessToken);
     
-    LogoutResponseDTO logout();
+    LoginResponseDTO refreshToken(String refreshToken);
+    
+    /**
+     * JWT 토큰 생성 (Access Token + Refresh Token)
+     * @param userDTO 사용자 DTO
+     * @return 토큰 정보 (accessToken, refreshToken, tokenType)
+     */
+    LoginResponseDTO generateTokens(com.carepilot.dto.auth.UserDTO userDTO);
+    
+    /**
+     * Refresh Token을 Redis에 저장
+     * @param userId 사용자 ID
+     * @param refreshToken Refresh Token
+     */
+    void saveRefreshToken(Long userId, String refreshToken);
 }
 

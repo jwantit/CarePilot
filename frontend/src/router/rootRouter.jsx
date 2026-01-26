@@ -22,7 +22,6 @@ const UserManagementPage = lazy(() => import('../pages/usermanagement/UserManage
 // Lazy load auth pages
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('../pages/auth/SignupPage'));
-const OAuth2CallbackPage = lazy(() => import('../pages/auth/OAuth2CallbackPage'));
 const OAuth2CompletePage = lazy(() => import('../pages/auth/OAuth2CompletePage'));
 const ApprovalPage = lazy(() => import('../pages/auth/ApprovalPage'));
 
@@ -46,14 +45,6 @@ const router = createBrowserRouter([
     element: (
       <SuspenseWrapper>
         <SignupPage />
-      </SuspenseWrapper>
-    ),
-  },
-  {
-    path: '/oauth2/callback',
-    element: (
-      <SuspenseWrapper>
-        <OAuth2CallbackPage />
       </SuspenseWrapper>
     ),
   },

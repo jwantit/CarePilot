@@ -12,7 +12,7 @@ import { Line } from 'react-chartjs-2';
 
 import { getCareTargetDetail, doctorList, updateCareTargetDetail } from '../../api/caretarget/careTargetApi';
 import { getFileUrl } from '../../components/common/fileHelper';
-import { getUserFromToken }from'../../utils/authTokenUtils';
+import { useSelector } from 'react-redux';
 
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -20,8 +20,8 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 function CareTargetDetailPage() {
   const { targetId } = useParams();
 
-  const user = getUserFromToken();
-  const organizationId = user.organizationId;
+  const user = useSelector((state) => state.auth.user);
+  const organizationId = user?.organizationId;
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 

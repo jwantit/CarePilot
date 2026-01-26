@@ -1,30 +1,47 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from '../../api/authApi';
-import { setTokens, removeTokens, getUserFromToken } from '../../utils/authTokenUtils';
-import { handleApiError } from '../../utils/errorUtils';
+import { extractUserInfo } from '../../utils/authUtils';
 
 // 초기 상태
 const initialState = {
   user: null, // { userId, role, organizationId, status }
   isAuthenticated: false,
+  isInitialized: false, // 앱 초기화 여부
   loading: false,
   error: null,
 };
 
-// 비동기 액션: 로그인
+// 비동기 액션: 로그인 (에러 처리는 호출부에서)
 export const loginAsync = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await authApi.login(credentials);
-      // 토큰 저장
-      setTokens(response.accessToken, response.refreshToken);
-      // 사용자 정보 추출
-      const user = getUserFromToken();
-      return { user, tokens: response };
+      // 로그인 요청 (토큰은 쿠키로 설정됨)
+      await authApi.login(credentials);
+      
+      // 로그인 성공 후 실제 사용자 정보를 다시 가져옴 (쿠키가 설정된 후)
+      const userInfo = await authApi.getCurrentUserInfo();
+      const user = extractUserInfo(userInfo);
+      
+      if (!user) {
+        return rejectWithValue({
+          message: '사용자 정보를 가져올 수 없습니다.',
+          code: 'INVALID_USER_INFO',
+        });
+      }
+      
+      return { user };
     } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
+      // 로그인 실패는 일반 에러로 처리 (리다이렉트 없음)
+      const message = error.response?.data?.message 
+        || error.message 
+        || '로그인에 실패했습니다.';
+      
+      return rejectWithValue({
+        message,
+        code: error.response?.status === 401 ? 'INVALID_CREDENTIALS' : 'LOGIN_ERROR',
+        status: error.response?.status,
+      });
     }
   }
 );
@@ -35,13 +52,11 @@ export const logoutAsync = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authApi.logout();
-      removeTokens();
       return null;
     } catch (error) {
-      // 로그아웃 실패해도 토큰은 제거
-      removeTokens();
-      handleApiError(error);
-      return rejectWithValue(error.message);
+      // 로그아웃 실패해도 상태는 초기화
+      console.error('로그아웃 실패:', error);
+      return null;
     }
   }
 );
@@ -54,8 +69,8 @@ export const signupOrganizationAsync = createAsyncThunk(
       const response = await authApi.signupOrganization(data);
       return response;
     } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
+      const message = error.response?.data?.message || error.message || '회원가입에 실패했습니다.';
+      return rejectWithValue({ message, code: 'SIGNUP_ERROR' });
     }
   }
 );
@@ -68,8 +83,8 @@ export const signupUserAsync = createAsyncThunk(
       const response = await authApi.signupUser(data);
       return response;
     } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
+      const message = error.response?.data?.message || error.message || '회원가입에 실패했습니다.';
+      return rejectWithValue({ message, code: 'SIGNUP_ERROR' });
     }
   }
 );
@@ -82,28 +97,8 @@ export const approveUserAsync = createAsyncThunk(
       const response = await authApi.approveUser(token);
       return response;
     } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-// 비동기 액션: ADMIN 소셜 회원가입
-export const signupAdminOAuth2Async = createAsyncThunk(
-  'auth/signupAdminOAuth2',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await authApi.signupAdminOAuth2(data);
-      // 성공 시 토큰 저장
-      if (response.success && response.accessToken) {
-        setTokens(response.accessToken, response.refreshToken);
-        const user = getUserFromToken();
-        return { user, response };
-      }
-      return response;
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
+      const message = error.response?.data?.message || error.message || '승인에 실패했습니다.';
+      return rejectWithValue({ message, code: 'APPROVE_ERROR' });
     }
   }
 );
@@ -116,8 +111,56 @@ export const signupUserOAuth2Async = createAsyncThunk(
       const response = await authApi.signupUserOAuth2(data);
       return response;
     } catch (error) {
-      const errorMessage = handleApiError(error);
-      return rejectWithValue(errorMessage);
+      const message = error.response?.data?.message || error.message || '회원가입에 실패했습니다.';
+      return rejectWithValue({ message, code: 'SIGNUP_ERROR' });
+    }
+  }
+);
+
+// 비동기 액션: 인증 상태 초기화 (앱 시작 시)
+export const initializeAuthAsync = createAsyncThunk(
+  'auth/initialize',
+  async (_, { rejectWithValue, getState }) => {
+    // 이미 초기화 완료된 경우에만 스킵 (loading 체크 제거 - pending 상태에서 항상 true이므로)
+    const state = getState();
+    
+    // isInitialized만 체크 (loading은 pending 상태에서 항상 true이므로 제외)
+    if (state.auth.isInitialized) {
+      return state.auth.user ? { user: state.auth.user } : { user: null };
+    }
+
+    try {
+      const userInfo = await authApi.getCurrentUserInfo();
+      const user = extractUserInfo(userInfo);
+      
+      if (!user) {
+        console.error('[initializeAuthAsync] 사용자 정보 추출 실패');
+        return rejectWithValue({
+          message: '사용자 정보를 가져올 수 없습니다.',
+          code: 'INVALID_USER_INFO',
+        });
+      }
+      
+      return { user };
+    } catch (error) {
+      // 401은 정상 (로그인 안 된 상태)
+      if (error.response?.status === 401) {
+        return { user: null };
+      }
+      
+      // 기타 에러는 로그 출력
+      console.error('[initializeAuthAsync] 인증 상태 확인 실패', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        url: error.config?.url,
+      });
+      
+      return rejectWithValue({
+        message: '인증 상태 확인에 실패했습니다.',
+        code: 'AUTH_CHECK_ERROR',
+      });
     }
   }
 );
@@ -127,18 +170,10 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // 로컬 스토리지에서 사용자 정보 복원
-    restoreAuth: (state) => {
-      const user = getUserFromToken();
-      if (user) {
-        state.user = user;
-        state.isAuthenticated = true;
-      }
-    },
-    // 인증 정보 설정 (OAuth2 콜백 등에서 사용)
+    // 인증 정보 설정 (직접 사용자 정보를 설정할 때 사용)
     setCredentials: (state, action) => {
       state.user = action.payload.user;
-      state.isAuthenticated = action.payload.isAuthenticated || true;
+      state.isAuthenticated = action.payload.isAuthenticated ?? true;
       state.error = null;
     },
     // 인증 상태 초기화
@@ -146,7 +181,13 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
-      removeTokens();
+    },
+    // 인증 상태 리셋 (resetAuth로 이름 변경)
+    resetAuth: (state) => {
+      console.warn('[authSlice] resetAuth 호출됨 - 로그아웃 처리');
+      state.user = null;
+      state.isAuthenticated = false;
+      state.error = null;
     },
     // 에러 초기화
     clearError: (state) => {
@@ -165,11 +206,16 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
+        console.log('[authSlice] 로그인 성공', {
+          userId: action.payload.user?.userId,
+          role: action.payload.user?.role,
+        });
       })
       .addCase(loginAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
+        console.warn('[authSlice] 로그인 실패', action.payload);
       });
 
     // 로그아웃
@@ -182,6 +228,7 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
+        console.log('[authSlice] 로그아웃 완료');
       })
       .addCase(logoutAsync.rejected, (state, action) => {
         state.loading = false;
@@ -235,25 +282,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       });
 
-    // ADMIN 소셜 회원가입
-    builder
-      .addCase(signupAdminOAuth2Async.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(signupAdminOAuth2Async.fulfilled, (state, action) => {
-        state.loading = false;
-        if (action.payload.user) {
-          state.user = action.payload.user;
-          state.isAuthenticated = true;
-        }
-        state.error = null;
-      })
-      .addCase(signupAdminOAuth2Async.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-
     // USER 소셜 회원가입
     builder
       .addCase(signupUserOAuth2Async.pending, (state) => {
@@ -268,9 +296,40 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
+
+    // 인증 초기화
+    builder
+      .addCase(initializeAuthAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(initializeAuthAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isInitialized = true;
+        if (action.payload.user) {
+          state.user = action.payload.user;
+          state.isAuthenticated = true;
+          console.log('[authSlice] 인증 초기화 완료 - 로그인 상태 유지', {
+            userId: action.payload.user.userId,
+            role: action.payload.user.role,
+          });
+        } else {
+          state.user = null;
+          state.isAuthenticated = false;
+          console.log('[authSlice] 인증 초기화 완료 - 로그인 안 된 상태');
+        }
+        state.error = null;
+      })
+      .addCase(initializeAuthAsync.rejected, (state, action) => {
+        console.error('[authSlice] 인증 초기화 실패', action.payload);
+        state.loading = false;
+        state.isInitialized = true;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export const { restoreAuth, setCredentials, clearAuth, clearError } = authSlice.actions;
+export const { setCredentials, clearAuth, resetAuth, clearError } = authSlice.actions;
 export default authSlice.reducer;
 

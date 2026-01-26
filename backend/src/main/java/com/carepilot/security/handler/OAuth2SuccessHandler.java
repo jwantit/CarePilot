@@ -1,6 +1,7 @@
 package com.carepilot.security.handler;
 
 import com.carepilot.dto.auth.OAuth2LoginResponseDTO;
+import com.carepilot.security.util.CookieUtil;
 import com.carepilot.service.auth.OAuth2Service;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,14 +19,18 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-//OAuth2 인증 성공 핸들러
-//카카오 소셜 로그인 성공 시 처리
+/**
+ * OAuth2 인증 성공 핸들러
+ * 카카오 소셜 로그인 성공 시 처리
+ * 토큰은 httpOnly 쿠키로 설정하고 프론트엔드로 리다이렉트
+ */
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final OAuth2Service oAuth2Service;
+    private final CookieUtil cookieUtil;
     
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -53,16 +58,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         
         // 로그인 성공 시 (기존 사용자 또는 ADMIN 회원가입 완료)
         if (loginResponse.isSuccess()) {
-            // JWT 토큰을 쿼리 파라미터로 전달하여 프론트엔드로 리다이렉트
-            String redirectUrl = String.format("%s/oauth2/callback?accessToken=%s&refreshToken=%s&role=%s&status=%s",
-                    frontendUrl,
-                    URLEncoder.encode(loginResponse.getAccessToken(), StandardCharsets.UTF_8),
-                    URLEncoder.encode(loginResponse.getRefreshToken(), StandardCharsets.UTF_8),
-                    URLEncoder.encode(loginResponse.getRole(), StandardCharsets.UTF_8),
-                    URLEncoder.encode(loginResponse.getStatus(), StandardCharsets.UTF_8));
+            // 토큰을 httpOnly 쿠키로 설정
+            cookieUtil.setAuthCookies(response, loginResponse.getAccessToken(), loginResponse.getRefreshToken());
             
-            log.info("OAuth2 로그인 성공, 프론트엔드로 리다이렉트");
-            response.sendRedirect(redirectUrl);
+            // 프론트엔드 홈으로 리다이렉트 (토큰은 쿠키로 전달됨)
+            log.info("OAuth2 로그인 성공, 토큰을 쿠키로 설정하고 프론트엔드 홈으로 리다이렉트");
+            response.sendRedirect(frontendUrl + "/");
             return;
         }
         

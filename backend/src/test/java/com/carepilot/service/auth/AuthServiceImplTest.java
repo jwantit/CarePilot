@@ -1,5 +1,6 @@
 package com.carepilot.service.auth;
 
+import com.carepilot.common.exception.ApiException;
 import com.carepilot.domain.user.UserRole;
 import com.carepilot.domain.user.UserStatus;
 import com.carepilot.dto.auth.OrganizationSignupRequestDTO;
@@ -23,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AuthServiceImplTest {
 
     @Autowired
-    private AuthService authService;
+    private SignupService signupService;
 
     @Autowired
     private OrganizationRepository organizationRepository;
@@ -42,7 +43,7 @@ class AuthServiceImplTest {
         request.setName("관리자");
 
         // when
-        OrganizationSignupResponseDTO response = authService.signupOrganization(request);
+        OrganizationSignupResponseDTO response = signupService.signupOrganization(request);
         String organizationNumber = response.getOrganizationNumber();
 
         // then
@@ -61,7 +62,7 @@ class AuthServiceImplTest {
         request.setName("관리자");
 
         // when
-        OrganizationSignupResponseDTO response = authService.signupOrganization(request);
+        OrganizationSignupResponseDTO response = signupService.signupOrganization(request);
 
         // then
         // Organization 확인
@@ -100,10 +101,10 @@ class AuthServiceImplTest {
         request2.setName("관리자2");
 
         // when & then
-        authService.signupOrganization(request1);
+        signupService.signupOrganization(request1);
         org.junit.jupiter.api.Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> authService.signupOrganization(request2)
+                ApiException.class,
+                () -> signupService.signupOrganization(request2)
         );
         log.info("✅ 이메일 중복 검증 통과: 중복 이메일로 예외 발생");
     }
@@ -118,7 +119,7 @@ class AuthServiceImplTest {
         orgRequest.setEmail("manager@test.com");
         orgRequest.setPassword("password123");
         orgRequest.setName("관리자");
-        OrganizationSignupResponseDTO orgResponse = authService.signupOrganization(orgRequest);
+        OrganizationSignupResponseDTO orgResponse = signupService.signupOrganization(orgRequest);
         
         // 2. 직원 회원가입
         UserSignupRequestDTO userRequest = new UserSignupRequestDTO();
@@ -128,7 +129,7 @@ class AuthServiceImplTest {
         userRequest.setName("직원");
         
         // when
-        UserSignupResponseDTO response = authService.signupUser(userRequest);
+        UserSignupResponseDTO response = signupService.signupUser(userRequest);
         
         // then
         assertThat(response.getStatus()).isEqualTo("WAITING");
@@ -164,8 +165,8 @@ class AuthServiceImplTest {
         
         // when & then
         org.junit.jupiter.api.Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> authService.signupUser(request)
+                ApiException.class,
+                () -> signupService.signupUser(request)
         );
         log.info("✅ 잘못된 organization_number 검증 통과: 예외 발생");
     }

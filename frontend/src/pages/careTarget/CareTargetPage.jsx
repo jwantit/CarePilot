@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Plus, FileUp, Search, RotateCcw } from 'lucide-react'; // RotateCcw 아이콘 추가
 import CareTarget from '../../components/caretarget/CareTarget';
 import CareTargetUploadModal from '../../components/caretarget/CareTargetUploadModal';
 import CareTargetInsertModal from '../../components/caretarget/CareTargetInsertModal';
 // uploadOneCareTarget(단일등록) 추가
 import { uploadCsvCareTarget, uploadOneCareTarget } from '../../api/caretarget/careTargetApi';
-import { getUserFromToken }from'../../utils/authTokenUtils';
 
 function CareTargetPage() {
 
-  const user = getUserFromToken();
+  const user = useSelector((state) => state.auth.user);
 
-  const organizationId = user.organizationId;
+  const organizationId = user?.organizationId;
 
 
   // 필터 및 검색 파라미터 관리

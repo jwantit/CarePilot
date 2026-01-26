@@ -5,9 +5,9 @@ import {
   logoutAsync,
   signupOrganizationAsync,
   signupUserAsync,
-  signupAdminOAuth2Async,
   signupUserOAuth2Async,
   approveUserAsync,
+  clearError,
 } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
 
@@ -17,7 +17,9 @@ import toast from 'react-hot-toast';
 export const useAuth = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, isAuthenticated, loading, error } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, loading, error, isInitialized } = useSelector(
+    (state) => state.auth
+  );
 
   /**
    * 로그인
@@ -25,7 +27,7 @@ export const useAuth = () => {
   const login = async (credentials) => {
     if (!credentials.email || !credentials.password) {
       toast.error('이메일과 비밀번호를 입력해주세요.');
-      return null;
+      return { success: false };
     }
 
     try {
@@ -34,12 +36,15 @@ export const useAuth = () => {
       if (result.user) {
         toast.success('로그인 성공');
         navigate('/');
-        return result;
+        return { success: true, user: result.user };
       }
-      return null;
+      
+      return { success: false };
     } catch (err) {
-      console.error('로그인 실패:', err);
-      return null;
+      // authSlice는 { message, code } 형태로 반환하므로 수정 필요
+      const errorMessage = err?.message || err?.payload?.message || '로그인에 실패했습니다.';
+      toast.error(errorMessage);
+      return { success: false, error: err };
     }
   };
 
@@ -99,33 +104,6 @@ export const useAuth = () => {
   };
 
   /**
-   * ADMIN 소셜 회원가입
-   */
-  const signupAdminOAuth2 = async (data) => {
-    if (!data.email || !data.name) {
-      toast.error('이메일과 이름을 입력해주세요.');
-      return null;
-    }
-
-    try {
-      const result = await dispatch(signupAdminOAuth2Async(data)).unwrap();
-      
-      if (result.success) {
-        toast.success('회원가입이 완료되었습니다.');
-        navigate('/');
-        return result;
-      } else if (result.requiresAdditionalInfo) {
-        toast.error(result.message || '추가 정보가 필요합니다.');
-        return result;
-      }
-      return null;
-    } catch (err) {
-      console.error('ADMIN 소셜 회원가입 실패:', err);
-      return null;
-    }
-  };
-
-  /**
    * USER 소셜 회원가입
    */
   const signupUserOAuth2 = async (data) => {
@@ -179,13 +157,14 @@ export const useAuth = () => {
     isAuthenticated,
     loading,
     error,
+    isInitialized,
     login,
     logout,
     signupOrganization,
     signupUser,
-    signupAdminOAuth2,
     signupUserOAuth2,
     approveUser,
+    clearError: () => dispatch(clearError()),
   };
 };
 
