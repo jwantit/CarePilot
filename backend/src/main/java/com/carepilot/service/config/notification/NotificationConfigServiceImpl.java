@@ -26,17 +26,20 @@ public class NotificationConfigServiceImpl implements NotificationConfigService 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        //해당 유저의 config 데이터가 없으면 orElse() 에서 메모리에서 builder만 하지말고 실제 알람 설정 데이터를 생성 (save)
         NotificationConfig config = notificationConfigRepository.findByUser(user)
-                .orElse(NotificationConfig.builder()
-                        .organization(user.getOrganization())
-                        .user(user)
-                        .smsEnabled(false)
-                        .kakaoEnabled(false)
-                        .emailEnabled(false)
-                        .riskDetectionEnabled(true)
-                        .callFailureEnabled(true)
-                        .emergencyEventEnabled(true)
-                        .build());
+                .orElseGet(() -> notificationConfigRepository.save(
+                        NotificationConfig.builder()
+                                .organization(user.getOrganization())
+                                .user(user)
+                                .smsEnabled(false)
+                                .kakaoEnabled(false)
+                                .emailEnabled(false)
+                                .riskDetectionEnabled(true)
+                                .callFailureEnabled(true)
+                                .emergencyEventEnabled(true)
+                                .build()
+                ));
 
         return NotificationConfigDTO.builder()
                 .notificationConfigId(config.getNotificationConfigId())

@@ -40,6 +40,7 @@ public class JwtUtil {
         
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
+                .claim("userId", userId)
                 .claim("role", role)
                 .claim("organizationId", organizationId)
                 .claim("status", status)
