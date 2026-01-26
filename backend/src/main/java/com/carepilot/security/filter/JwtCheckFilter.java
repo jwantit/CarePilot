@@ -1,6 +1,8 @@
 package com.carepilot.security.filter;
 
 import com.carepilot.security.util.JwtUtil;
+import com.carepilot.service.auth.TokenRedisService;
+import com.google.gson.Gson;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,11 +13,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collections;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -23,9 +26,37 @@ import java.util.Collections;
 public class JwtCheckFilter extends OncePerRequestFilter {
     
     private final JwtUtil jwtUtil;
+    private final TokenRedisService tokenRedisService;
+    private final Gson gson = new Gson();
     
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // OPTIONS 요청(CORS preflight)은 필터링 제외
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+        
+        String path = request.getRequestURI();
+        log.info("check uri......................." + path);
+        
+        // 인증이 필요 없는 경로는 필터링 제외
+        // SecurityConfig에서 permitAll로 설정된 경로들
+        if (path.startsWith("/auth/") && !path.equals("/auth/logout")) {
+            return true;
+        }
+        
+        // OAuth2 인증 엔드포인트
+        if (path.startsWith("/oauth2/") || path.startsWith("/login/oauth2/")) {
+            return true;
+        }
+        
+        // WebSocket 엔드포인트 (SockJS는 /ws/info 같은 HTTP 요청을 먼저 보냄)
+        if (path.startsWith("/ws")) {
+            return true;
+        }
+        
+        return false;
+    }
     
     @Override
     protected void doFilterInternal(
@@ -33,70 +64,88 @@ public class JwtCheckFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         
-        log.debug("JwtCheckFilter 실행: method={}, path={}", request.getMethod(), request.getRequestURI());
+        log.info("------------------------JwtCheckFilter------------------");
         
-        // 1. Authorization 헤더에서 토큰 추출
-        String token = extractToken(request);
+        String accessToken = null;
         
-        // 2. 토큰이 있으면 검증 및 인증 정보 설정
-        if (StringUtils.hasText(token)) {
-            log.debug("JWT 토큰 발견: path={}", request.getRequestURI());
-            if (jwtUtil.validateToken(token)) {
-            try {
-                // 3. 토큰에서 사용자 정보 추출
-                Long userId = jwtUtil.getUserId(token);
-                String role = jwtUtil.getRole(token);
-                Long organizationId = jwtUtil.getOrganizationId(token);
-                String status = jwtUtil.getStatus(token);
-                
-                log.debug("JWT 토큰 검증 성공: userId={}, role={}, organizationId={}", 
-                        userId, role, organizationId);
-                
-                // 4. SecurityContext에 인증 정보 설정
-                UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(
-                                userId,  // principal (사용자 식별자)
-                                null,    // credentials (비밀번호는 필요 없음)
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))  // 권한
-                        );
-                
-                // 추가 정보를 details에 저장 (선택사항)
-                authentication.setDetails(new JwtAuthenticationDetails(userId, role, organizationId, status));
-                
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                
-            } catch (Exception e) {
-                log.warn("JWT 토큰 처리 중 오류 발생: {}", e.getMessage());
-                // 인증 실패 시 SecurityContext를 비움
-                SecurityContextHolder.clearContext();
-            }
-            } else {
-                log.debug("JWT 토큰 검증 실패: path={}", request.getRequestURI());
-            }
-        } else {
-            log.debug("JWT 토큰 없음: path={}", request.getRequestURI());
+        // Authorization 헤더에서 JWT 추출
+        String authHeaderStr = request.getHeader("Authorization");
+        log.info("Authorization header: {}", authHeaderStr != null ? (authHeaderStr.length() > 20 ? authHeaderStr.substring(0, 20) + "..." : authHeaderStr) : "null");
+        
+        if (authHeaderStr != null && authHeaderStr.startsWith("Bearer ")) {
+            accessToken = authHeaderStr.substring(7);
+            log.info("JWT found in Authorization header, token length: {}", accessToken.length());
         }
         
-        // 5. 다음 필터로 전달
-        filterChain.doFilter(request, response);
+        // JWT가 없으면 에러 응답
+        if (accessToken == null) {
+            log.error("JWT not found in Authorization header. Path: {}, Method: {}", request.getRequestURI(), request.getMethod());
+            sendErrorResponse(response, "ERROR_ACCESS_TOKEN");
+            return;
+        }
+        
+        try {
+            // 1. 블랙리스트 확인
+            if (tokenRedisService.isBlacklisted(accessToken)) {
+                log.warn("블랙리스트된 Access Token 발견: path={}", request.getRequestURI());
+                sendErrorResponse(response, "ERROR_ACCESS_TOKEN");
+                return;
+            }
+            
+            // 2. JWT 토큰 검증
+            if (!jwtUtil.validateToken(accessToken)) {
+                log.error("JWT validation failed");
+                sendErrorResponse(response, "ERROR_ACCESS_TOKEN");
+                return;
+            }
+            
+            // 3. 토큰에서 사용자 정보 추출
+            Long userId = jwtUtil.getUserId(accessToken);
+            String role = jwtUtil.getRole(accessToken);
+            Long organizationId = jwtUtil.getOrganizationId(accessToken);
+            String status = jwtUtil.getStatus(accessToken);
+            
+            log.info("JWT claims: userId={}, role={}, organizationId={}, status={}", 
+                    userId, role, organizationId, status);
+            
+            // 4. SecurityContext에 인증 정보 설정
+            UsernamePasswordAuthenticationToken authentication = 
+                    new UsernamePasswordAuthenticationToken(
+                            userId,
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                    );
+            
+            // 추가 정보를 details에 저장
+            authentication.setDetails(new JwtAuthenticationDetails(userId, role, organizationId, status));
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            log.info("-----------------------------------");
+            log.info("Authentication set for userId: {}", userId);
+            
+            filterChain.doFilter(request, response);
+            
+        } catch (Exception e) {
+            log.error("JWT Check Error..............");
+            log.error(e.getMessage(), e);
+            sendErrorResponse(response, "ERROR_ACCESS_TOKEN");
+        }
     }
     
     /**
-     * Authorization 헤더에서 Bearer 토큰 추출
-     * @param request HTTP 요청
-     * @return JWT 토큰 (없으면 null)
+     * 에러 응답 전송
      */
-    private String extractToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(BEARER_PREFIX.length());
-        }
-        
-        return null;
+    private void sendErrorResponse(HttpServletResponse response, String error) throws IOException {
+        String msg = gson.toJson(Map.of("error", error));
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        PrintWriter printWriter = response.getWriter();
+        printWriter.println(msg);
+        printWriter.close();
     }
     
-    //JWT 인증 상세 정보를 저장하는 내부 클래스
+    // JWT 인증 상세 정보를 저장하는 내부 클래스
     public static class JwtAuthenticationDetails {
         private final Long userId;
         private final String role;
@@ -127,4 +176,3 @@ public class JwtCheckFilter extends OncePerRequestFilter {
         }
     }
 }
-
