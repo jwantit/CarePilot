@@ -1,32 +1,39 @@
-import { useState, useEffect } from 'react';
-import { getScenariosByFilter, createScenario, updateScenario, deleteScenario, getScenarioById } from '../../api/scenarioApi';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import {
+  getScenariosByFilter,
+  createScenario,
+  updateScenario,
+  deleteScenario,
+  getScenarioById,
+} from "../../api/scenarioApi";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 function ScenarioSetting() {
+  const auth = useSelector((state) => state.auth);
+  const organizationId = auth.user?.organizationId;
+  const currentUserId = auth.user?.userId;
+
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    status: '전체',
-    riskLevel: '전체',
-    category: '전체',
+    status: "전체",
+    riskLevel: "전체",
+    category: "전체",
   });
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingScenario, setEditingScenario] = useState(null);
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    category: '',
-    riskLevel: 'MEDIUM',
+    name: "",
+    description: "",
+    category: "",
+    riskLevel: "MEDIUM",
     enabled: false,
-    riskCriteria: '',
+    riskCriteria: "",
     questions: [],
   });
-
-  // 테스트용 organizationId (실제로는 인증에서 가져와야 함)
-  const organizationId = 1;
-  const currentUserId = 1;
 
   useEffect(() => {
     loadScenarios();
@@ -39,19 +46,19 @@ function ScenarioSetting() {
         organizationId,
         filters.status,
         filters.riskLevel,
-        filters.category
+        filters.category,
       );
       setScenarios(data);
     } catch (error) {
-      console.error('시나리오 목록 조회 실패:', error);
-      toast.error('시나리오 목록을 불러오는데 실패했습니다.');
+      console.error("시나리오 목록 조회 실패:", error);
+      toast.error("시나리오 목록을 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -64,28 +71,29 @@ function ScenarioSetting() {
         const fullScenario = await getScenarioById(scenario.scenarioId);
         setEditingScenario(fullScenario);
         setFormData({
-          name: fullScenario.name || '',
-          description: fullScenario.description || '',
-          category: fullScenario.category || '',
-          riskLevel: fullScenario.riskLevel || 'MEDIUM',
-          enabled: fullScenario.enabled !== undefined ? fullScenario.enabled : false,
-          riskCriteria: fullScenario.riskCriteria || '',
+          name: fullScenario.name || "",
+          description: fullScenario.description || "",
+          category: fullScenario.category || "",
+          riskLevel: fullScenario.riskLevel || "MEDIUM",
+          enabled:
+            fullScenario.enabled !== undefined ? fullScenario.enabled : false,
+          riskCriteria: fullScenario.riskCriteria || "",
           questions: fullScenario.questions || [],
         });
       } catch (error) {
-        console.error('시나리오 상세 조회 실패:', error);
-        toast.error('시나리오 정보를 불러오는데 실패했습니다.');
+        console.error("시나리오 상세 조회 실패:", error);
+        toast.error("시나리오 정보를 불러오는데 실패했습니다.");
         return;
       }
     } else {
       setEditingScenario(null);
       setFormData({
-        name: '',
-        description: '',
-        category: '',
-        riskLevel: 'MEDIUM',
+        name: "",
+        description: "",
+        category: "",
+        riskLevel: "MEDIUM",
         enabled: true, // 새로 등록할 때는 기본적으로 활성
-        riskCriteria: '',
+        riskCriteria: "",
         questions: [],
       });
     }
@@ -96,12 +104,12 @@ function ScenarioSetting() {
     setShowModal(false);
     setEditingScenario(null);
     setFormData({
-      name: '',
-      description: '',
-      category: '',
-      riskLevel: 'MEDIUM',
+      name: "",
+      description: "",
+      category: "",
+      riskLevel: "MEDIUM",
       enabled: false,
-      riskCriteria: '',
+      riskCriteria: "",
       questions: [],
     });
   };
@@ -112,8 +120,8 @@ function ScenarioSetting() {
       setSelectedScenario(scenario);
       setShowDetailModal(true);
     } catch (error) {
-      console.error('시나리오 상세 조회 실패:', error);
-      toast.error('시나리오 상세 정보를 불러오는데 실패했습니다.');
+      console.error("시나리오 상세 조회 실패:", error);
+      toast.error("시나리오 상세 정보를 불러오는데 실패했습니다.");
     }
   };
 
@@ -133,34 +141,38 @@ function ScenarioSetting() {
 
       if (editingScenario) {
         await updateScenario(editingScenario.scenarioId, scenarioData);
-        toast.success('시나리오가 수정되었습니다.');
+        toast.success("시나리오가 수정되었습니다.");
       } else {
         await createScenario(organizationId, scenarioData);
-        toast.success('시나리오가 등록되었습니다.');
+        toast.success("시나리오가 등록되었습니다.");
       }
       handleCloseModal();
       loadScenarios();
     } catch (error) {
-      console.error('시나리오 저장 실패:', error);
-      toast.error(editingScenario ? '시나리오 수정에 실패했습니다.' : '시나리오 등록에 실패했습니다.');
+      console.error("시나리오 저장 실패:", error);
+      toast.error(
+        editingScenario
+          ? "시나리오 수정에 실패했습니다."
+          : "시나리오 등록에 실패했습니다.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (scenarioId) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) {
+    if (!window.confirm("정말 삭제하시겠습니까?")) {
       return;
     }
 
     try {
       setLoading(true);
       await deleteScenario(scenarioId);
-      toast.success('시나리오가 삭제되었습니다.');
+      toast.success("시나리오가 삭제되었습니다.");
       loadScenarios();
     } catch (error) {
-      console.error('시나리오 삭제 실패:', error);
-      toast.error('시나리오 삭제에 실패했습니다.');
+      console.error("시나리오 삭제 실패:", error);
+      toast.error("시나리오 삭제에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -168,10 +180,10 @@ function ScenarioSetting() {
 
   const getRiskLevelLabel = (riskLevel) => {
     const levelMap = {
-      'LOW': '낮음',
-      'MEDIUM': '보통',
-      'HIGH': '높음',
-      'CRITICAL': '긴급',
+      LOW: "낮음",
+      MEDIUM: "보통",
+      HIGH: "높음",
+      CRITICAL: "긴급",
     };
     return levelMap[riskLevel] || riskLevel;
   };
@@ -181,32 +193,34 @@ function ScenarioSetting() {
       setLoading(true);
       // 1. 현재 시나리오 데이터를 가져옵니다. (updateScenario가 전체 DTO를 요구하므로)
       const currentScenario = await getScenarioById(scenarioId);
-  
+
       // 2. enabled 상태만 업데이트하고 나머지 데이터는 유지합니다.
       const updatedScenarioData = {
         ...currentScenario,
         enabled: newEnabledStatus,
       };
-  
+
       // 3. updateScenario 함수를 호출합니다.
       await updateScenario(scenarioId, updatedScenarioData);
-      toast.success(`시나리오가 ${newEnabledStatus ? '활성화' : '비활성화'}되었습니다.`);
+      toast.success(
+        `시나리오가 ${newEnabledStatus ? "활성화" : "비활성화"}되었습니다.`,
+      );
       loadScenarios(); // 목록 새로고침
     } catch (error) {
-      console.error('시나리오 상태 업데이트 실패:', error);
-      toast.error('시나리오 상태 업데이트에 실패했습니다.');
+      console.error("시나리오 상태 업데이트 실패:", error);
+      toast.error("시나리오 상태 업데이트에 실패했습니다.");
     } finally {
       setLoading(false); // Ensure loading state is reset even on error
     }
   };
 
   const addQuestion = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       questions: [
         ...prev.questions,
         {
-          questionText: '',
+          questionText: "",
           questionOrder: prev.questions.length + 1,
           isRequired: false,
         },
@@ -215,20 +229,22 @@ function ScenarioSetting() {
   };
 
   const removeQuestion = (index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      questions: prev.questions.filter((_, i) => i !== index).map((q, i) => ({
-        ...q,
-        questionOrder: i + 1,
-      })),
+      questions: prev.questions
+        .filter((_, i) => i !== index)
+        .map((q, i) => ({
+          ...q,
+          questionOrder: i + 1,
+        })),
     }));
   };
 
   const updateQuestion = (index, field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       questions: prev.questions.map((q, i) =>
-        i === index ? { ...q, [field]: value } : q
+        i === index ? { ...q, [field]: value } : q,
       ),
     }));
   };
@@ -249,10 +265,12 @@ function ScenarioSetting() {
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              상태
+            </label>
             <select
               value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
+              onChange={(e) => handleFilterChange("status", e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="전체">전체</option>
@@ -261,10 +279,12 @@ function ScenarioSetting() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">위험 단계</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              위험 단계
+            </label>
             <select
               value={filters.riskLevel}
-              onChange={(e) => handleFilterChange('riskLevel', e.target.value)}
+              onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="전체">전체</option>
@@ -276,10 +296,12 @@ function ScenarioSetting() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              카테고리
+            </label>
             <select
               value={filters.category}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
+              onChange={(e) => handleFilterChange("category", e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="전체">전체</option>
@@ -321,7 +343,10 @@ function ScenarioSetting() {
             <tbody className="bg-white divide-y divide-gray-200">
               {scenarios.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan="5"
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     등록된 시나리오가 없습니다.
                   </td>
                 </tr>
@@ -342,7 +367,12 @@ function ScenarioSetting() {
                         <input
                           type="checkbox"
                           checked={scenario.enabled}
-                          onChange={(e) => handleToggleEnabled(scenario.scenarioId, e.target.checked)}
+                          onChange={(e) =>
+                            handleToggleEnabled(
+                              scenario.scenarioId,
+                              e.target.checked,
+                            )
+                          }
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
@@ -350,7 +380,9 @@ function ScenarioSetting() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
-                        onClick={() => handleOpenDetailModal(scenario.scenarioId)}
+                        onClick={() =>
+                          handleOpenDetailModal(scenario.scenarioId)
+                        }
                         className="text-teal-600 hover:text-teal-900"
                       >
                         상세
@@ -381,25 +413,33 @@ function ScenarioSetting() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
             <h2 className="text-2xl font-bold mb-4">
-              {editingScenario ? '시나리오 수정' : '시나리오 등록'}
+              {editingScenario ? "시나리오 수정" : "시나리오 등록"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">시나리오명</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  시나리오명
+                </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">설명</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  설명
+                </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   rows="3"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
@@ -407,20 +447,28 @@ function ScenarioSetting() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    카테고리
+                  </label>
                   <input
                     type="text"
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">위험 레벨</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    위험 레벨
+                  </label>
                   <select
                     value={formData.riskLevel}
-                    onChange={(e) => setFormData({ ...formData, riskLevel: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, riskLevel: e.target.value })
+                    }
                     required
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   >
@@ -433,20 +481,25 @@ function ScenarioSetting() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">위험 기준</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  위험 기준
+                </label>
                 <textarea
                   value={formData.riskCriteria}
-                  onChange={(e) => setFormData({ ...formData, riskCriteria: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, riskCriteria: e.target.value })
+                  }
                   rows="2"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
-
               {/* 질문 리스트 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">질문 리스트</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    질문 리스트
+                  </label>
                   <button
                     type="button"
                     onClick={addQuestion}
@@ -457,12 +510,21 @@ function ScenarioSetting() {
                 </div>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {formData.questions.map((question, index) => (
-                    <div key={index} className="flex items-start space-x-2 p-2 border border-gray-200 rounded-md">
+                    <div
+                      key={index}
+                      className="flex items-start space-x-2 p-2 border border-gray-200 rounded-md"
+                    >
                       <div className="flex-1">
                         <input
                           type="text"
                           value={question.questionText}
-                          onChange={(e) => updateQuestion(index, 'questionText', e.target.value)}
+                          onChange={(e) =>
+                            updateQuestion(
+                              index,
+                              "questionText",
+                              e.target.value,
+                            )
+                          }
                           placeholder="질문 내용"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 mb-2"
                         />
@@ -470,7 +532,13 @@ function ScenarioSetting() {
                           <input
                             type="number"
                             value={question.questionOrder}
-                            onChange={(e) => updateQuestion(index, 'questionOrder', parseInt(e.target.value))}
+                            onChange={(e) =>
+                              updateQuestion(
+                                index,
+                                "questionOrder",
+                                parseInt(e.target.value),
+                              )
+                            }
                             placeholder="순서"
                             className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                           />
@@ -478,7 +546,13 @@ function ScenarioSetting() {
                             <input
                               type="checkbox"
                               checked={question.isRequired}
-                              onChange={(e) => updateQuestion(index, 'isRequired', e.target.checked)}
+                              onChange={(e) =>
+                                updateQuestion(
+                                  index,
+                                  "isRequired",
+                                  e.target.checked,
+                                )
+                              }
                               className="mr-1"
                             />
                             필수
@@ -510,7 +584,7 @@ function ScenarioSetting() {
                   disabled={loading}
                   className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 disabled:opacity-50"
                 >
-                  {loading ? '저장 중...' : '저장'}
+                  {loading ? "저장 중..." : "저장"}
                 </button>
               </div>
             </form>
@@ -525,44 +599,71 @@ function ScenarioSetting() {
             <h2 className="text-2xl font-bold mb-4">시나리오 상세</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">시나리오명</label>
-                <p className="text-base text-gray-900">{selectedScenario.name}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  시나리오명
+                </label>
+                <p className="text-base text-gray-900">
+                  {selectedScenario.name}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">설명</label>
-                <p className="text-base text-gray-900">{selectedScenario.description}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  설명
+                </label>
+                <p className="text-base text-gray-900">
+                  {selectedScenario.description}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-                  <p className="text-base text-gray-900">{selectedScenario.category || '-'}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    카테고리
+                  </label>
+                  <p className="text-base text-gray-900">
+                    {selectedScenario.category || "-"}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">위험 레벨</label>
-                  <p className="text-base text-gray-900">{getRiskLevelLabel(selectedScenario.riskLevel)}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    위험 레벨
+                  </label>
+                  <p className="text-base text-gray-900">
+                    {getRiskLevelLabel(selectedScenario.riskLevel)}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">위험 기준</label>
-                <p className="text-base text-gray-900">{selectedScenario.riskCriteria || '-'}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  위험 기준
+                </label>
+                <p className="text-base text-gray-900">
+                  {selectedScenario.riskCriteria || "-"}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">질문 리스트</label>
-                {selectedScenario.questions && selectedScenario.questions.length > 0 ? (
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  질문 리스트
+                </label>
+                {selectedScenario.questions &&
+                selectedScenario.questions.length > 0 ? (
                   <div className="space-y-2">
                     {selectedScenario.questions.map((question, index) => (
-                      <div key={question.questionId || index} className="p-3 border border-gray-200 rounded-md">
+                      <div
+                        key={question.questionId || index}
+                        className="p-3 border border-gray-200 rounded-md"
+                      >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <p className="text-sm text-gray-900">
                               {index + 1}. {question.questionText}
                             </p>
                             <div className="mt-1 text-xs text-gray-500">
-                              순서: {question.questionOrder} | {question.isRequired ? '필수' : '선택'}
+                              순서: {question.questionOrder} |{" "}
+                              {question.isRequired ? "필수" : "선택"}
                             </div>
                           </div>
                         </div>
@@ -570,7 +671,9 @@ function ScenarioSetting() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">등록된 질문이 없습니다.</p>
+                  <p className="text-sm text-gray-500">
+                    등록된 질문이 없습니다.
+                  </p>
                 )}
               </div>
             </div>
