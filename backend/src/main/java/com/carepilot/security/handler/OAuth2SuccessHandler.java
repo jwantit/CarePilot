@@ -93,18 +93,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     //카카오 사용자 정보에서 이메일 추출
     private String extractEmail(Map<String, Object> attributes) {
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        if (kakaoAccount != null) {
-            return (String) kakaoAccount.get("email");
+        Object kakaoAccountObj = attributes.get("kakao_account");
+        if (kakaoAccountObj instanceof Map<?, ?> kakaoAccount) {
+            Object email = kakaoAccount.get("email");
+            return email instanceof String ? (String) email : null;
         }
         return null;
     }
 
     //카카오 사용자 정보에서 이름 추출
     private String extractName(Map<String, Object> attributes) {
-        Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
-        if (properties != null) {
-            return (String) properties.get("nickname");
+        Object propertiesObj = attributes.get("properties");
+        if (propertiesObj instanceof Map<?, ?> properties) {
+            Object nickname = properties.get("nickname");
+            return nickname instanceof String ? (String) nickname : null;
         }
         return null;
     }

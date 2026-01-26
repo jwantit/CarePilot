@@ -3,6 +3,7 @@ package com.carepilot.config;
 import com.carepilot.security.filter.JwtCheckFilter;
 import com.carepilot.security.handler.JwtAccessDeniedHandler;
 import com.carepilot.security.handler.JwtAuthenticationFailHandler;
+import com.carepilot.security.handler.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,14 +37,14 @@ public class SecurityConfig {
         http
             // CSRF 비활성화 (JWT 사용하므로)
             .csrf(AbstractHttpConfigurer::disable)
-            
+
             // CORS 설정
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
+
             // Stateless 설정 (세션 사용 안 함)
-            .sessionManagement(session -> 
+            .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
+
             // OAuth2 설정
             .oauth2Login(oauth2 -> oauth2
                 .successHandler(oAuth2SuccessHandler)  // OAuth2 인증 성공 핸들러
@@ -76,25 +77,25 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // 모든 origin 허용 (개발용)
-        configuration.setAllowedOrigins(List.of("*"));
-        
+
+        // 구체적인 origin 허용
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+
         // 허용할 HTTP 메서드
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        
+
         // 허용할 헤더
         configuration.setAllowedHeaders(List.of("*"));
-        
-        // 인증 정보 허용 (JWT 토큰 전송용)
-        configuration.setAllowCredentials(false); // * origin 사용 시 false
-        
+
+        // 인증 정보 허용 (구체적인 origin 사용 시 true 가능)
+        configuration.setAllowCredentials(true);
+
         // preflight 요청 캐시 시간
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
     }
 }
