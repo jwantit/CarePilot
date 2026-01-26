@@ -4,9 +4,11 @@ import {
   createDoctor,
   updateDoctor,
   deleteDoctor,
+  uploadDoctorCsv,
 } from "../../api/doctorApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import BulkUploadModal from "../../components/common/BulkUploadModal";
 
 function DoctorManagement() {
   const auth = useSelector((state) => state.auth);
@@ -20,6 +22,10 @@ function DoctorManagement() {
   });
   const [showModal, setShowModal] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [defaultActive, setDefaultActive] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -130,6 +136,35 @@ function DoctorManagement() {
     }
   };
 
+  const handleUploadDoctors = async () => {
+    if (!organizationId) {
+      toast.error("조직 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+    if (selectedFiles.length === 0) return;
+
+    const formData = new FormData();
+    selectedFiles.forEach((file) => {
+      formData.append("files", file);
+    });
+    formData.append("organizationId", organizationId);
+    formData.append("isActive", defaultActive);
+
+    setIsUploading(true);
+    try {
+      await uploadDoctorCsv(formData);
+      toast.success("의료진 업로드가 완료되었습니다.");
+      setIsUploadModalOpen(false);
+      setSelectedFiles([]);
+      loadDoctors();
+    } catch (error) {
+      console.error("의료진 업로드 실패:", error);
+      toast.error("업로드 중 오류가 발생했습니다. 파일 내용을 확인해주세요.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleDelete = async (doctorId) => {
     if (!window.confirm("정말 삭제하시겠습니까?")) {
       return;
@@ -166,12 +201,20 @@ function DoctorManagement() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">의료진 관리</h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
-        >
-          의료진 등록
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-semibold"
+          >
+            CSV/EXCEL 업로드
+          </button>
+          <button
+            onClick={() => handleOpenModal()}
+            className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
+          >
+            의료진 등록
+          </button>
+        </div>
       </div>
 
       {/* 필터 섹션 */}
@@ -450,6 +493,54 @@ function DoctorManagement() {
           </div>
         </div>
       )}
+
+      <BulkUploadModal
+        isOpen={isUploadModalOpen}
+        title="의료진 대량 등록"
+        description="CSV/Excel 파일로 의료진을 일괄 등록합니다."
+        onClose={() => {
+          setIsUploadModalOpen(false);
+          setSelectedFiles([]);
+        }}
+        selectedFiles={selectedFiles}
+        setSelectedFiles={setSelectedFiles}
+        onUpload={handleUploadDoctors}
+        isUploading={isUploading}
+        optionSlot={
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-gray-700 mb-3">
+              등록 의료진 기본 상태 설정
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDefaultActive(true)}
+                className={`flex-1 py-2.5 rounded-lg font-medium border flex items-center justify-center gap-2 transition-all ${
+                  defaultActive
+                    ? "bg-[#008080] text-white border-[#008080]"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                활성 등록
+              </button>
+              <button
+                type="button"
+                onClick={() => setDefaultActive(false)}
+                className={`flex-1 py-2.5 rounded-lg font-medium border flex items-center justify-center gap-2 transition-all ${
+                  !defaultActive
+                    ? "bg-red-500 text-white border-red-500"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                비활성 등록
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-gray-400">
+              ※ 업로드되는 모든 의료진에게 해당 상태가 일괄 적용됩니다.
+            </p>
+          </div>
+        }
+      />
     </div>
   );
 }

@@ -6,9 +6,14 @@ import CareTargetUploadModal from '../../components/caretarget/CareTargetUploadM
 import CareTargetInsertModal from '../../components/caretarget/CareTargetInsertModal';
 // uploadOneCareTarget(단일등록) 추가
 import { uploadCsvCareTarget, uploadOneCareTarget } from '../../api/caretarget/careTargetApi';
+import { getUserFromToken }from'../../utils/authTokenUtils';
 
 function CareTargetPage() {
-  const organizationId = 1;
+
+  const user = getUserFromToken();
+
+  const organizationId = user.organizationId;
+
 
   // 필터 및 검색 파라미터 관리
   const [searchParams, setSearchParams] = useSearchParams();

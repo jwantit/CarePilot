@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.caretarget;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

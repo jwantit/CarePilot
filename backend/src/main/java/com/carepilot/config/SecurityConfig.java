@@ -66,7 +66,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
 
-            // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞에 추가)
+//            // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞에 추가)
             .addFilterBefore(jwtCheckFilter, UsernamePasswordAuthenticationFilter.class)
 
             // 예외 처리

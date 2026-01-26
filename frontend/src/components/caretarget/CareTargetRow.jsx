@@ -12,11 +12,9 @@ function CareTargetRow({ data, organizationId }) {
   //관리페이지 이동
   const navigate = useNavigate();
 
-
-
   const handleDetailGo = () => {
     if (data?.careTargetId) {
-      navigate(`/care-target/detail/${data.careTargetId}/${organizationId}`);
+      navigate(`/care-target/detail/${data.careTargetId}`);
     } else {
       alert("환자 정보를 찾을 수 없습니다.");
     }

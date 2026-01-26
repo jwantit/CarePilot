@@ -12,11 +12,16 @@ import { Line } from 'react-chartjs-2';
 
 import { getCareTargetDetail, doctorList, updateCareTargetDetail } from '../../api/caretarget/careTargetApi';
 import { getFileUrl } from '../../components/common/fileHelper';
+import { getUserFromToken }from'../../utils/authTokenUtils';
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 function CareTargetDetailPage() {
-  const { targetId, organizationId } = useParams();
+  const { targetId } = useParams();
+
+  const user = getUserFromToken();
+  const organizationId = user.organizationId;
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 

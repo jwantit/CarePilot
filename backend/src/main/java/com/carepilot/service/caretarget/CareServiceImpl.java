@@ -4,7 +4,7 @@ import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.config.Doctor;
-import com.carepilot.domain.enums.UploadTargetType;
+import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.*;
 import com.carepilot.dto.upload.TargetFileDTO;
@@ -40,38 +40,45 @@ public class CareServiceImpl implements CareService {
     private final CallRepository callRepository;
     private final RiskScoreRepository riskScoreRepository;
 
-
     //대량 환자등록 ---------------------------------------------------------------------------
     @Override
     @Transactional
-    public List<CareTargetListResponseDTO> csvOrExcelCareTargetSave(List<CsvDTO> csvs, Long organizationId, Boolean careStatus) {
+    public List<CareTargetListResponseDTO> csvOrExcelCareTargetSave(List<CareTargetInsertRequestDTO> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return getCareTargetList(requests.get(0).getOrganizationId(), "", "");
+        }
 
-        //업체 가져오기
-        Organization organization = organizationRepository.findById(organizationId)
-                .orElseThrow();
+        Organization organization = organizationRepository.findById(requests.get(0).getOrganizationId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 조직입니다."));
 
-       log.info("진입 서비스");
-       //Csv에 대량 등록
-        for (CsvDTO dto : csvs ){
+        log.info("대량 등록 서비스 진입 - 건수: {}", requests.size());
+
+        for (CareTargetInsertRequestDTO dto : requests) {
+            Doctor doctor = null;
+            if (dto.getDoctorId() != null) {
+                doctor = doctorRepository.findById(dto.getDoctorId()).orElse(null);
+            }
+
             CareTarget ct = CareTarget.builder()
                     .organization(organization)
                     .name(dto.getName())
                     .age(dto.getAge())
                     .gender(dto.getGender())
                     .disease(dto.getDisease())
-                    .careStatus(careStatus)
-                    .targetPhone(dto.getPhone())
+                    .careStatus(dto.getCareStatus())
+                    .targetPhone(dto.getTargetPhone())
                     .guardianName(dto.getGuardianName())
                     .guardianPhone(dto.getGuardianPhone())
                     .guardianRelationship(dto.getGuardianRelationship())
+                    .doctor(doctor)
                     .build();
 
-            log.info("저장중");
+            log.info("저장중: {}", dto.getName());
             careTargetRepository.save(ct);
-            log.info("저장 완료");
-
         }
-        return getCareTargetList(organizationId, "","");
+
+        log.info("대량 등록 완료");
+        return getCareTargetList(organization.getOrganizationId(), "", "");
     }
     //END-------------------------------------------------------------------------------------------
 

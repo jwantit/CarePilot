@@ -49,6 +49,10 @@ public class JwtCheckFilter extends OncePerRequestFilter {
         if (path.startsWith("/oauth2/") || path.startsWith("/login/oauth2/")) {
             return true;
         }
+
+        if (path.startsWith("/display/") || path.startsWith("/api/display/")) {
+            return true;
+        }
         
         // WebSocket 엔드포인트 (SockJS는 /ws/info 같은 HTTP 요청을 먼저 보냄)
         if (path.startsWith("/ws")) {

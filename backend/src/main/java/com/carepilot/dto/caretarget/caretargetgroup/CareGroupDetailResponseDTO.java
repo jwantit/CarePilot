@@ -1,0 +1,27 @@
+package com.carepilot.dto.caretarget.caretargetgroup;
+
+
+import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CareGroupDetailResponseDTO {
+    private String groupName; //그룹이름 | 당뇨병 환자 그룹
+    private String groupDescription; //그룹 설명 | 당뇨병 진단을 받은 환자들
+    private String groupStatus; // 활성화 상태
+    private String groupType; // 질병별 -> 이넘 그룹타입 set
+    private String createAt;
+    private String careTargetCount; //환자수
+    private int low;  //일반환자
+    private int medium; //주의 환자
+    private int high; //위험환자
+    private int critical; //긴급환자
+    private List<CareTargetListResponseDTO> careList;
+
+}

@@ -49,3 +49,20 @@ export const deleteDoctor = async (doctorId) => {
   const res = await apiClient.delete(`${host}/${doctorId}`);
   return res.data;
 };
+
+/**
+ * 의료진 대량 등록 (CSV/EXCEL)
+ * formData: files(List), organizationId, isActive(기본 상태)
+ */
+export const uploadDoctorCsv = async (formData) => {
+  const res = await apiClient.post(
+    `${host}/organization/${formData.get("organizationId")}/csv`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return res.data;
+};

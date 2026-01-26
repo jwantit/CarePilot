@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.file;
 
 public enum UploadFileType {
     IMAGE,      // 이미지

@@ -1,6 +1,6 @@
 package com.carepilot.dto.upload;
 
-import com.carepilot.domain.enums.UploadTargetType;
+import com.carepilot.domain.file.UploadTargetType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.carepilot.repository.upload;
 
-import com.carepilot.domain.enums.UploadTargetType;
+import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.file.UploadFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
