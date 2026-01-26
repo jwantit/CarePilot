@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.task;
 
 /**
  * AI 작업 타입

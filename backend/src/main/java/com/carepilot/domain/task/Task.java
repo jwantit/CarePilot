@@ -3,8 +3,6 @@ package com.carepilot.domain.task;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.enums.Priority;
-import com.carepilot.domain.enums.TaskStatus;
-import com.carepilot.domain.enums.TaskType;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;

@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.task;
 
 public enum AITaskStatus {
     WAITING,    // 대기

@@ -1,12 +1,18 @@
 package com.carepilot.config;
 
+import com.carepilot.security.filter.JwtCheckFilter;
+import com.carepilot.security.handler.JwtAccessDeniedHandler;
+import com.carepilot.security.handler.JwtAuthenticationFailHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -16,7 +22,14 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtCheckFilter jwtCheckFilter;
+    private final JwtAuthenticationFailHandler jwtAuthenticationFailHandler;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,13 +44,30 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             
+            // OAuth2 설정
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2SuccessHandler)  // OAuth2 인증 성공 핸들러
+            )
+
             // 인증/인가 설정
             .authorizeHttpRequests(auth -> auth
-                // 인증 엔드포인트는 모두 허용
+                // OAuth2 인증 엔드포인트 허용
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                // 로그아웃은 인증 필요
+                .requestMatchers("/auth/logout").authenticated()
+                // 나머지 인증 엔드포인트는 모두 허용
                 .requestMatchers("/auth/**").permitAll()
-                // 나머지는 인증 필요 (추후 JWT 필터 추가 시 활성화)
-                .anyRequest().permitAll() // 개발 단계: 모든 요청 허용
-                // .anyRequest().authenticated() // 프로덕션: 인증 필요
+                // 나머지는 인증 필요
+                .anyRequest().authenticated()
+            )
+
+            // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞에 추가)
+            .addFilterBefore(jwtCheckFilter, UsernamePasswordAuthenticationFilter.class)
+
+            // 예외 처리
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(jwtAuthenticationFailHandler)  // 401 처리 (인증 실패)
+                .accessDeniedHandler(jwtAccessDeniedHandler)             // 403 처리 (권한 부족)
             );
 
         return http.build();

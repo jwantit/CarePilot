@@ -5,8 +5,6 @@ import com.carepilot.domain.caretarget.CareTargetGroup;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.common.BaseEntity;
-import com.carepilot.domain.enums.AITaskStatus;
-import com.carepilot.domain.enums.AITaskType;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.organization.Organization;
 import jakarta.persistence.*;

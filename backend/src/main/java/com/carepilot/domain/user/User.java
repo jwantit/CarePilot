@@ -1,8 +1,6 @@
 package com.carepilot.domain.user;
 
 import com.carepilot.domain.common.SoftDeleteEntity;
-import com.carepilot.domain.enums.UserRole;
-import com.carepilot.domain.enums.UserStatus;
 import com.carepilot.domain.organization.Organization;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -53,20 +51,39 @@ public class User extends SoftDeleteEntity {
     // @Column(name = "status", nullable = false, length = 20)
     @Column(name = "status", length = 20)
     private UserStatus status = UserStatus.WAITING;
+    
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
 
     @Column(name = "approval_requested_at")
     private LocalDateTime approvalRequestedAt;
+    
+    public void setApprovalRequestedAt(LocalDateTime approvalRequestedAt) {
+        this.approvalRequestedAt = approvalRequestedAt;
+    }
 
     @Column(name = "approval_processed_at")
     private LocalDateTime approvalProcessedAt;
+    
+    public void setApprovalProcessedAt(LocalDateTime approvalProcessedAt) {
+        this.approvalProcessedAt = approvalProcessedAt;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
     private User approvedBy;
+    
+    public void setApprovedBy(User approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    @Column(name = "is_social")
+    private Boolean isSocial = false;
 
     @Builder
     public User(String email, String password, String name, String phone, 
-                UserRole role, Organization organization, UserStatus status) {
+                UserRole role, Organization organization, UserStatus status, Boolean isSocial) {
         this.email = email;
         this.password = password;
         this.name = name;
@@ -74,6 +91,7 @@ public class User extends SoftDeleteEntity {
         this.role = role;
         this.organization = organization;
         this.status = status != null ? status : UserStatus.WAITING;
+        this.isSocial = isSocial != null ? isSocial : false;
     }
 }
 
