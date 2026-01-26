@@ -3,7 +3,7 @@ package com.carepilot.service.config.risk;
 import com.carepilot.domain.config.RiskConfig;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.config.RiskConfigDTO;
-import com.carepilot.repository.OrganizationRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.config.RiskConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

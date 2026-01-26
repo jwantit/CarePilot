@@ -5,7 +5,7 @@ import com.carepilot.domain.config.DoctorRole;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.config.DoctorDTO;
 import com.carepilot.repository.config.DoctorRepository;
-import com.carepilot.repository.OrganizationRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

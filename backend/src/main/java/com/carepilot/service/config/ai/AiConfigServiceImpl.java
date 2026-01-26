@@ -4,7 +4,7 @@ import com.carepilot.domain.config.AIConfig;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.config.AIConfigDTO;
 import com.carepilot.repository.config.AIConfigRepository;
-import com.carepilot.repository.OrganizationRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
