@@ -77,6 +77,21 @@ export const approveUser = async (token) => {
 };
 
 /**
+ * ADMIN 소셜 회원가입 (즉시 ACTIVE)
+ * @param {Object} data - 회원가입 정보
+ * @param {string} data.email - 카카오 이메일
+ * @param {string} data.name - 카카오 닉네임
+ * @returns {Promise<Object>} OAuth2LoginResponseDTO
+ */
+export const signupAdminOAuth2 = async (data) => {
+  const response = await authClient.post('/oauth2/signup/admin', {
+    email: data.email,
+    name: data.name,
+  });
+  return response.data;
+};
+
+/**
  * USER 소셜 회원가입 (organization_number 필요, status = WAITING)
  * @param {Object} data - 회원가입 정보
  * @param {string} data.email - 카카오 이메일

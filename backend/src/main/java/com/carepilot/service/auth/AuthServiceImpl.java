@@ -37,7 +37,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ApprovalService approvalService;
     private final JwtUtil jwtUtil;
-    private final TokenRedisService tokenRedisService;
     
     private static final Random RANDOM = new Random();
     private static final String PREFIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -299,127 +298,22 @@ public class AuthServiceImpl implements AuthService {
         
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
         
-        // 5. Refresh Token을 Redis에 저장 (24시간) - Redis 연결 실패 시에도 로그인은 성공
-        try {
-            long refreshTokenTtl = jwtUtil.getRefreshTokenValidityInSeconds();
-            tokenRedisService.saveRefreshToken(user.getUserId(), refreshToken, refreshTokenTtl);
-            log.info("로그인 성공: userId={}, email={}, role={}, refreshToken Redis 저장 완료", 
-                    user.getUserId(), user.getEmail(), user.getRole());
-        } catch (Exception e) {
-            log.warn("Redis 연결 실패, Refresh Token 저장 스킵: {}", e.getMessage());
-            log.info("로그인 성공: userId={}, email={}, role={} (Redis 미사용)", 
-                    user.getUserId(), user.getEmail(), user.getRole());
-        }
+        log.info("로그인 성공: userId={}, email={}, role={}", 
+                user.getUserId(), user.getEmail(), user.getRole());
         
-        // 6. LoginResponseDTO 반환
+        // 5. LoginResponseDTO 반환
         return new LoginResponseDTO(accessToken, refreshToken, "Bearer");
     }
 
     @Override
-    public LogoutResponseDTO logout(String accessToken) {
+    public LogoutResponseDTO logout() {
+        // Stateless 방식이므로 서버에서는 특별한 처리가 필요 없음
+        // 프론트엔드에서 토큰을 삭제하면 됨
+        
         Long currentUserId = com.carepilot.security.util.SecurityUtil.getCurrentUserId();
         log.info("로그아웃 요청: userId={}", currentUserId);
         
-        if (currentUserId != null) {
-            // Refresh Token 삭제 (Redis 연결 실패 시에도 로그아웃은 성공)
-            try {
-                tokenRedisService.deleteRefreshToken(currentUserId);
-                log.debug("Refresh Token 삭제 완료: userId={}", currentUserId);
-            } catch (Exception e) {
-                log.warn("Redis 연결 실패, Refresh Token 삭제 스킵: {}", e.getMessage());
-            }
-        }
-        
-        // Access Token을 블랙리스트에 추가 (남은 만료 시간만큼)
-        if (accessToken != null && jwtUtil.validateToken(accessToken)) {
-            try {
-                io.jsonwebtoken.Claims claims = jwtUtil.extractClaims(accessToken);
-                long expirationTime = claims.getExpiration().getTime();
-                long currentTime = System.currentTimeMillis();
-                long ttlSeconds = (expirationTime - currentTime) / 1000;
-                
-                if (ttlSeconds > 0) {
-                    tokenRedisService.addToBlacklist(accessToken, ttlSeconds);
-                    log.debug("Access Token 블랙리스트 추가 완료: ttl={}초", ttlSeconds);
-                } else {
-                    log.debug("Access Token이 이미 만료되어 블랙리스트 추가 불필요");
-                }
-            } catch (Exception e) {
-                log.warn("Access Token 블랙리스트 추가 실패: {}", e.getMessage());
-            }
-        } else {
-            log.debug("Access Token이 없거나 유효하지 않아 블랙리스트 추가 스킵");
-        }
-        
         return new LogoutResponseDTO("로그아웃되었습니다.");
-    }
-    
-    @Override
-    public LoginResponseDTO refreshToken(String refreshToken) {
-        log.info("Refresh Token 갱신 요청");
-        
-        // 1. Refresh Token 검증 (JWT)
-        if (!jwtUtil.validateToken(refreshToken)) {
-            log.warn("유효하지 않은 Refresh Token");
-            throw new IllegalArgumentException("유효하지 않은 Refresh Token입니다.");
-        }
-        
-        // 2. Refresh Token에서 사용자 ID 추출
-        Long userId = jwtUtil.getUserId(refreshToken);
-        log.debug("Refresh Token에서 userId 추출: userId={}", userId);
-        
-        // 3. Redis에서 Refresh Token 검증 (Redis 연결 실패 시 JWT 검증만으로 진행)
-        try {
-            if (!tokenRedisService.validateRefreshToken(userId, refreshToken)) {
-                log.warn("Redis에 저장된 Refresh Token과 일치하지 않음: userId={}", userId);
-                throw new IllegalArgumentException("저장된 Refresh Token과 일치하지 않습니다.");
-            }
-        } catch (IllegalArgumentException e) {
-            throw e; // 검증 실패는 그대로 전달
-        } catch (Exception e) {
-            log.warn("Redis 연결 실패, Refresh Token 검증 스킵 (JWT 검증만으로 진행): {}", e.getMessage());
-            // Redis 연결 실패 시 JWT 검증만으로 진행 (기본 기능 유지)
-        }
-        
-        // 4. 사용자 정보 조회
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> {
-                log.warn("사용자를 찾을 수 없음: userId={}", userId);
-                return new IllegalArgumentException("사용자를 찾을 수 없습니다.");
-            });
-        
-        log.debug("사용자 조회 성공: userId={}, email={}, status={}", 
-                user.getUserId(), user.getEmail(), user.getStatus());
-        
-        // 5. 사용자 상태 검증 (ACTIVE만 허용)
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            log.warn("승인되지 않은 사용자: userId={}, status={}", user.getUserId(), user.getStatus());
-            throw new IllegalArgumentException("승인되지 않은 사용자입니다.");
-        }
-        
-        // 6. 새로운 토큰 생성
-        String newAccessToken = jwtUtil.generateAccessToken(
-            user.getUserId(),
-            user.getRole().name(),
-            user.getOrganization() != null ? user.getOrganization().getOrganizationId() : null,
-            user.getStatus().name()
-        );
-        
-        String newRefreshToken = jwtUtil.generateRefreshToken(user.getUserId());
-        
-        // 7. 기존 Refresh Token 삭제 및 새 Refresh Token 저장 (Redis 연결 실패 시에도 갱신은 성공)
-        try {
-            tokenRedisService.deleteRefreshToken(userId);
-            long refreshTokenTtl = jwtUtil.getRefreshTokenValidityInSeconds();
-            tokenRedisService.saveRefreshToken(userId, newRefreshToken, refreshTokenTtl);
-        } catch (Exception e) {
-            log.warn("Redis 연결 실패, Refresh Token 저장 스킵: {}", e.getMessage());
-            // Redis 연결 실패 시에도 토큰 갱신은 성공 (기본 기능 유지)
-        }
-        
-        log.info("Refresh Token 갱신 성공: userId={}, email={}", user.getUserId(), user.getEmail());
-        
-        return new LoginResponseDTO(newAccessToken, newRefreshToken, "Bearer");
     }
 }
 

@@ -59,7 +59,6 @@ dependencies {
 
     // Redis 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.apache.commons:commons-pool2' // Connection Pool
 
 
     //JWT 관련 라이브러리

@@ -31,7 +31,6 @@ public class OAuth2ServiceImpl implements OAuth2Service {
     private final JwtUtil jwtUtil;
     private final ApprovalService approvalService;
     private final PasswordEncoder passwordEncoder;
-    private final TokenRedisService tokenRedisService;
     
     @Override
     public OAuth2LoginResponseDTO processKakaoLogin(String email, String name, String providerId) {
@@ -58,14 +57,6 @@ public class OAuth2ServiceImpl implements OAuth2Service {
                 
                 String refreshToken = jwtUtil.generateRefreshToken(existingUser.getUserId());
                 
-                // Refresh Token을 Redis에 저장 (Redis 연결 실패 시에도 로그인은 성공)
-                try {
-                    long refreshTokenTtl = jwtUtil.getRefreshTokenValidityInSeconds();
-                    tokenRedisService.saveRefreshToken(existingUser.getUserId(), refreshToken, refreshTokenTtl);
-                } catch (Exception e) {
-                    log.warn("Redis 연결 실패, Refresh Token 저장 스킵: {}", e.getMessage());
-                }
-                
                 return OAuth2LoginResponseDTO.success(
                     accessToken,
                     refreshToken,
@@ -88,13 +79,63 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             );
         }
         
-        // 3. 신규 사용자 - USER만 소셜 회원가입 가능
+        // 3. 신규 사용자 - Role 판단 필요
+        // 카카오 로그인 시 Role을 알 수 없으므로, 추가 정보 입력이 필요함
+        // ADMIN은 즉시 ACTIVE로 회원가입 가능하지만, 
         // USER는 organization_number 입력이 필요함
         // MANAGER는 소셜 로그인 불가
         
         log.info("신규 카카오 사용자: email={}, name={}", email, name);
         return OAuth2LoginResponseDTO.requiresAdditionalInfo(
-            "추가 정보 입력이 필요합니다. 비밀번호와 organization_number를 입력해주세요."
+            "추가 정보 입력이 필요합니다. Role과 organization_number를 입력해주세요."
+        );
+    }
+    
+    /**
+     * ADMIN 소셜 회원가입 (즉시 ACTIVE)
+     * @param email 카카오 이메일
+     * @param name 카카오 닉네임
+     * @return 로그인 응답 (JWT 토큰)
+     */
+    public OAuth2LoginResponseDTO signupAdmin(String email, String name) {
+        log.info("ADMIN 소셜 회원가입: email={}, name={}", email, name);
+        
+        // 이메일 중복 체크
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("이미 등록된 이메일입니다.");
+        }
+        
+        // ADMIN 사용자 생성 (password 없음, status = ACTIVE)
+        User adminUser = User.builder()
+            .email(email)
+            .password(null)  // 소셜 로그인은 password 없음
+            .name(name)
+            .role(UserRole.ADMIN)
+            .organization(null)  // ADMIN은 organization 없음
+            .status(UserStatus.ACTIVE)  // ADMIN은 즉시 ACTIVE
+            .isSocial(true)
+            .build();
+        
+        adminUser = userRepository.save(adminUser);
+        log.info("ADMIN 소셜 회원가입 완료: userId={}", adminUser.getUserId());
+        
+        // JWT 토큰 발급
+        String accessToken = jwtUtil.generateAccessToken(
+            adminUser.getUserId(),
+            adminUser.getRole().name(),
+            null,  // ADMIN은 organization 없음
+            adminUser.getStatus().name()
+        );
+        
+        String refreshToken = jwtUtil.generateRefreshToken(adminUser.getUserId());
+        
+        log.info("ADMIN 소셜 로그인 성공: userId={}, accessToken 발급 완료", adminUser.getUserId());
+        
+        return OAuth2LoginResponseDTO.success(
+            accessToken,
+            refreshToken,
+            adminUser.getRole().name(),
+            adminUser.getStatus().name()
         );
     }
     
