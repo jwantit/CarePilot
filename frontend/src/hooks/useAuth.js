@@ -41,8 +41,8 @@ export const useAuth = () => {
       
       return { success: false };
     } catch (err) {
-      // authSlice는 { message, code } 형태로 반환하므로 수정 필요
-      const errorMessage = err?.message || err?.payload?.message || '로그인에 실패했습니다.';
+      // authSlice는 { message, code, status } 형태로 반환
+      const errorMessage = err?.message || '로그인에 실패했습니다.';
       toast.error(errorMessage);
       return { success: false, error: err };
     }
@@ -79,6 +79,8 @@ export const useAuth = () => {
       return result;
     } catch (err) {
       console.error('업체 회원가입 실패:', err);
+      const errorMessage = err?.message || '회원가입에 실패했습니다.';
+      toast.error(errorMessage);
       return null;
     }
   };
@@ -99,6 +101,8 @@ export const useAuth = () => {
       return result;
     } catch (err) {
       console.error('직원 회원가입 실패:', err);
+      const errorMessage = err?.message || '회원가입에 실패했습니다.';
+      toast.error(errorMessage);
       return null;
     }
   };
@@ -129,6 +133,8 @@ export const useAuth = () => {
       }
     } catch (err) {
       console.error('USER 소셜 회원가입 실패:', err);
+      const errorMessage = err?.message || '회원가입에 실패했습니다.';
+      toast.error(errorMessage);
       return null;
     }
   };

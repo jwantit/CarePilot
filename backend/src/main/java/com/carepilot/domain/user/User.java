@@ -81,6 +81,23 @@ public class User extends SoftDeleteEntity {
     @Column(name = "is_social")
     private Boolean isSocial = false;
 
+    // 개인정보 수정을 위한 setter 추가
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
     @Builder
     public User(String email, String password, String name, String phone, 
                 UserRole role, Organization organization, UserStatus status, Boolean isSocial) {

@@ -60,7 +60,9 @@ function LoginForm() {
       </div>
 
       {error && (
-        <div className="text-red-600 text-sm text-center">{error}</div>
+        <div className="text-red-600 text-sm text-center">
+          {typeof error === 'string' ? error : error?.message || '로그인에 실패했습니다.'}
+        </div>
       )}
 
       <div>

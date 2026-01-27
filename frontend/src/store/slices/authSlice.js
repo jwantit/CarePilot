@@ -33,13 +33,23 @@ export const loginAsync = createAsyncThunk(
       return { user };
     } catch (error) {
       // 로그인 실패는 일반 에러로 처리 (리다이렉트 없음)
-      const message = error.response?.data?.message 
-        || error.message 
-        || '로그인에 실패했습니다.';
+      // 백엔드 응답: {error: "BAD_CREDENTIALS"} 또는 {error: "NOT_APPROVED"}
+      const backendError = error.response?.data?.error;
+      let message = '로그인에 실패했습니다.';
+      
+      if (backendError === 'BAD_CREDENTIALS') {
+        message = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      } else if (backendError === 'NOT_APPROVED') {
+        message = '승인되지 않은 계정입니다. 관리자 승인 후 로그인할 수 있습니다.';
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.message) {
+        message = error.message;
+      }
       
       return rejectWithValue({
         message,
-        code: error.response?.status === 401 ? 'INVALID_CREDENTIALS' : 'LOGIN_ERROR',
+        code: backendError || (error.response?.status === 401 ? 'INVALID_CREDENTIALS' : 'LOGIN_ERROR'),
         status: error.response?.status,
       });
     }
