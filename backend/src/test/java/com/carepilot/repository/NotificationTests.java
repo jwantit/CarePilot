@@ -1,7 +1,7 @@
 package com.carepilot.repository;
 
-import com.carepilot.domain.enums.NotificationStatus;
-import com.carepilot.domain.enums.NotificationType;
+import com.carepilot.domain.notification.NotificationStatus;
+import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.user.UserRole;
 import com.carepilot.domain.user.UserStatus;

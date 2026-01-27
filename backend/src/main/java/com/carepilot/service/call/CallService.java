@@ -1,9 +1,6 @@
 package com.carepilot.service.call;
 
-import com.carepilot.dto.call.CallDetailResponseDTO;
-import com.carepilot.dto.call.CallResponseDTO;
-import com.carepilot.dto.call.ScheduleCreateRequestDTO;
-import com.carepilot.dto.call.ScheduleResponseDTO;
+import com.carepilot.dto.call.*;
 
 import java.util.List;
 
@@ -16,4 +13,7 @@ public interface CallService {
     List<ScheduleResponseDTO> getSchedulesByMonth(int year, int month);
     List<ScheduleResponseDTO> getUpcomingSchedules();
     Long createSchedule(ScheduleCreateRequestDTO dto);
+    void updateSchedule(Long scheduleId, ScheduleUpdateRequestDTO dto);
+    void deleteSchedule(Long scheduleId);
+    void restoreSchedule(Long scheduleId);
 }

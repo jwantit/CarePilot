@@ -4,9 +4,9 @@ import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.user.User;
 import com.carepilot.domain.enums.Priority;
-import com.carepilot.domain.enums.ScheduleRecurrence;
-import com.carepilot.domain.enums.ScheduleStatus;
-import com.carepilot.domain.enums.ScheduleType;
+import com.carepilot.domain.call.ScheduleRecurrence;
+import com.carepilot.domain.call.ScheduleStatus;
+import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.domain.organization.Organization;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +26,7 @@ public class ScheduleCreateRequestDTO {
     private String type;         // ScheduleType Enum 매핑용
     private String priority;     // Priority Enum 매핑용
     private String recurrence;   // ScheduleRecurrence Enum 매핑용
+    private LocalDateTime recurrenceEndDate;  // 반복 종료일
     private String memo;
 
     public CallSchedule toEntity(Organization org, CareTarget target, User user) {
@@ -36,6 +37,7 @@ public class ScheduleCreateRequestDTO {
                 .type(ScheduleType.valueOf(this.type))
                 .priority(Priority.valueOf(this.priority))
                 .recurrence(this.recurrence != null ? ScheduleRecurrence.valueOf(this.recurrence) : null)
+                .recurrenceEndDate(this.recurrenceEndDate)
                 .memo(this.memo)
                 .createdBy(user)
                 .status(ScheduleStatus.SCHEDULED)

@@ -104,5 +104,43 @@ public class CallSchedule extends BaseEntity {
         this.memo = memo;
         this.createdBy = createdBy;
     }
+
+    public void applyUpdates(CareTarget careTarget,
+                             LocalDateTime scheduledTime,
+                             ScheduleType type,
+                             ScheduleRecurrence recurrence,
+                             LocalDateTime recurrenceEndDate,
+                             Priority priority,
+                             String memo) {
+        if (careTarget != null) {
+            this.careTarget = careTarget;
+        }
+        if (scheduledTime != null) {
+            this.scheduledTime = scheduledTime;
+        }
+        if (type != null) {
+            this.type = type;
+        }
+        if (recurrence != null) {
+            this.recurrence = recurrence;
+        }
+        if (recurrenceEndDate != null) {
+            this.recurrenceEndDate = recurrenceEndDate;
+        }
+        if (priority != null) {
+            this.priority = priority;
+        }
+        if (memo != null) {
+            this.memo = memo;
+        }
+    }
+
+    public void cancel() {
+        this.status = ScheduleStatus.CANCELLED;
+    }
+
+    public void restore() {
+        this.status = ScheduleStatus.SCHEDULED;
+    }
 }
 

@@ -2,6 +2,7 @@ package com.carepilot.dto.call;
 
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallDirection;
+import com.carepilot.domain.call.CallStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,30 +12,44 @@ import java.time.format.DateTimeFormatter;
 @Builder
 public class CallResponseDTO {
     private Long callId;
-    private String startTime;   // "2024-01-15 10:30" 형식
+    private String startTime;   // "yyyy-MM-dd HH:mm:ss"
     private String careTargetName;
     private String direction;   // 발신/수신
     private String callType;    // 정기 모니터링 등
-    private String status;      // 성공, 부재중 등
+    private String status;      // SUCCESS, FAILED 등
+    private String statusLabel; // 한글 라벨
     private String duration;    // "3분 0초" 형식
     private String resultStatus; // 테이블의 '상태' 컬럼
 
     public static CallResponseDTO from(Call call) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        // 초 단위를 "분 초"로 변환
         int totalSeconds = call.getDuration() != null ? call.getDuration() : 0;
         String durationStr = String.format("%d분 %d초", totalSeconds / 60, totalSeconds % 60);
 
         return CallResponseDTO.builder()
                 .callId(call.getCallId())
-                .startTime(call.getStartTime().format(formatter)) // 포맷 적용
+                .startTime(call.getStartTime().format(formatter))
                 .careTargetName(call.getCareTarget().getName())
                 .direction(call.getDirection() == CallDirection.INBOUND ? "수신" : "발신")
                 .callType(call.getCallType() != null ? call.getCallType().name() : "-")
-                .status(call.getStatus().name())
-                .duration(durationStr) // "3분 0초"
+                .status(call.getStatus() != null ? call.getStatus().name() : "-")
+                .statusLabel(mapStatusLabel(call.getStatus()))
+                .duration(durationStr)
                 .resultStatus("성공")
                 .build();
+    }
+
+    private static String mapStatusLabel(CallStatus status) {
+        if (status == null) {
+            return "-";
+        }
+
+        return switch (status) {
+            case SUCCESS -> "성공";
+            case FAILED -> "실패";
+            case NO_ANSWER -> "무응답";
+            case CANCELLED -> "취소됨";
+        };
     }
 }

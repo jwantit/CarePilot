@@ -1,6 +1,7 @@
 package com.carepilot.controller;
 
 import com.carepilot.domain.notification.Notification;
+import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +80,7 @@ public class NotificationController {
         
         Notification notification = notificationService.createAndSendNotification(
                 userId,
-                com.carepilot.domain.enums.NotificationType.valueOf(type),
+                NotificationType.valueOf(type),
                 title,
                 description,
                 riskLevel

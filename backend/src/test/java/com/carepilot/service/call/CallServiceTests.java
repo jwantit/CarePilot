@@ -1,17 +1,17 @@
 package com.carepilot.service.call;
 
 import com.carepilot.domain.call.Call;
-import com.carepilot.domain.call.CallRecording;
-import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.call.CallDirection;
+import com.carepilot.domain.call.CallRecording;
 import com.carepilot.domain.call.CallStatus;
+import com.carepilot.domain.call.CallType;
+import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.file.UploadFileType;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.call.CallDetailResponseDTO;
 import com.carepilot.dto.call.CallResponseDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
-import com.carepilot.dto.call.ScheduleResponseDTO;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,81 +38,105 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Log4j2
 public class CallServiceTests {
 
-    @Autowired private CallService callService;
-    @Autowired private CallRepository callRepository;
-    @Autowired private CareTargetRepository careTargetRepository;
-    @Autowired private OrganizationRepository organizationRepository;
-    @Autowired private CallRecordingRepository callRecordingRepository;
-    @Autowired private UploadFileRepository uploadFileRepository; // 파일 리포지토리 추가
+  @Autowired private CallService callService;
+  @Autowired private CallRepository callRepository;
+  @Autowired private CareTargetRepository careTargetRepository;
+  @Autowired private OrganizationRepository organizationRepository;
+  @Autowired private CallRecordingRepository callRecordingRepository;
+  @Autowired private UploadFileRepository uploadFileRepository;
 
-    private Organization testOrg;
-    private CareTarget testTarget;
+  private Organization testOrg;
+  private CareTarget testTarget;
 
-    @BeforeEach
-    void setUp() {
-        testOrg = Organization.builder().name("케어파일럿 병원").build();
-        organizationRepository.save(testOrg);
+  @BeforeEach
+  void setUp() {
+    testOrg = Organization.builder().name("케어파일럿 병원").build();
+    organizationRepository.save(testOrg);
 
-        // CareTarget 생성 시 필드명(targetPhone 등)을 확인하여 맞춤
-        testTarget = CareTarget.builder()
-                .name("홍길동")
-                .organization(testOrg)
-                .build();
-        careTargetRepository.save(testTarget);
-    }
+    testTarget =
+        CareTarget.builder().name("홍길동").organization(testOrg).targetPhone("010-1234-5678").build();
+    careTargetRepository.save(testTarget);
+  }
 
-    @Test
-    @DisplayName("통화 상세 정보 조회 테스트 (녹취 파일 포함)")
-    void getCallDetailTest() {
-        // 1. UploadFile 먼저 생성 (CallRecording의 Not Null 제약조건 해결)
-        UploadFile file = UploadFile.builder()
-                .organization(testOrg) // <- 이 부분이 누락되어 에러가 났습니다.
-                .fileType(UploadFileType.AUDIO)
-                .originalName("test_record.mp3")
-                .storagePath("/test/path")
-                .build();
-        uploadFileRepository.save(file);
+  @Test
+  @DisplayName("통화 이력 조회는 더미 데이터를 저장한 만큼 결과를 늘려준다")
+  void getCallHistory_returnsDummyEntries() {
+    Call firstCall =
+        persistDummyCall(LocalDateTime.now().minusMinutes(15), CallStatus.SUCCESS, "첫번째 통화송출");
+    Call secondCall =
+        persistDummyCall(LocalDateTime.now().minusMinutes(5), CallStatus.FAILED, "두번째 통화송출");
 
-        // 2. Call 생성
-        Call call = callRepository.save(Call.builder()
+    List<CallResponseDTO> history = callService.getCallHistory();
+
+    assertThat(history)
+        .hasSizeGreaterThanOrEqualTo(2)
+        .extracting(CallResponseDTO::getCallId)
+        .contains(firstCall.getCallId(), secondCall.getCallId());
+    assertThat(history)
+        .extracting(CallResponseDTO::getStatusLabel)
+        .contains("성공", "실패");
+  }
+
+  @Test
+  @DisplayName("통화 상세 정보에 녹취와 상태 라벨이 포함된다")
+  void getCallDetail_includesRecordingAndStatusLabel() {
+    Call call = persistDummyCall(LocalDateTime.now(), CallStatus.SUCCESS, "dummy-transcript");
+
+    CallDetailResponseDTO detail = callService.getCallDetail(call.getCallId());
+
+    assertThat(detail.getTranscript()).contains("dummy-transcript");
+    assertThat(detail.getStatusLabel()).isEqualTo("성공");
+    assertThat(detail.getRecordingFileName()).isNotBlank();
+  }
+
+  @Test
+  @DisplayName("일정 등록 요청이 정상적으로 저장된다")
+  void createScheduleTest() {
+    ScheduleCreateRequestDTO request =
+        ScheduleCreateRequestDTO.builder()
+            .organizationId(testOrg.getOrganizationId())
+            .careTargetId(testTarget.getCareTargetId())
+            .scheduledTime(LocalDateTime.now().plusDays(1))
+            .type("ONE_TIME")
+            .priority("HIGH")
+            .memo("일회성 정기 상담")
+            .build();
+
+    Long scheduleId = callService.createSchedule(request);
+
+    assertThat(scheduleId).isNotNull();
+    log.info("생성된 스케줄 ID: {}", scheduleId);
+  }
+
+  private Call persistDummyCall(LocalDateTime startTime, CallStatus status, String transcript) {
+    Call call =
+        callRepository.save(
+            Call.builder()
                 .organization(testOrg)
                 .careTarget(testTarget)
-                .status(CallStatus.SUCCESS)
-                .startTime(LocalDateTime.now())
+                .status(status)
+                .direction(CallDirection.INBOUND)
+                .callType(CallType.REGULAR_MONITORING)
+                .startTime(startTime)
+                .duration(120)
                 .build());
 
-        // 3. CallRecording 생성
-        callRecordingRepository.save(CallRecording.builder()
-                .call(call)
-                .file(file)
-                .transcript("환자: 기분이 좋아요. AI: 다행이네요.")
+    attachRecording(call, transcript);
+    return call;
+  }
+
+  private void attachRecording(Call call, String content) {
+    UploadFile file =
+        uploadFileRepository.save(
+            UploadFile.builder()
+                .organization(testOrg)
+                .fileType(UploadFileType.AUDIO)
+                .originalName("record_" + UUID.randomUUID() + ".mp3")
+                .storagePath("calls/" + UUID.randomUUID() + ".mp3")
+                .contentType("audio/mpeg")
                 .build());
 
-        // when
-        CallDetailResponseDTO detail = callService.getCallDetail(call.getCallId());
-
-        // then
-        assertThat(detail.getTranscript()).contains("기분이 좋아요");
-    }
-
-    @Test
-    @DisplayName("통화 일정 등록 테스트 (정의된 Enum 사용)")
-    void createScheduleTest() {
-        // given
-        ScheduleCreateRequestDTO request = ScheduleCreateRequestDTO.builder()
-                .organizationId(testOrg.getOrganizationId())
-                .careTargetId(testTarget.getCareTargetId())
-                .scheduledTime(LocalDateTime.now().plusDays(1))
-                .type("ONE_TIME") // 제공해주신 ONE_TIME 사용
-                .priority("HIGH")
-                .memo("일회성 정기 상담")
-                .build();
-
-        // when
-        Long scheduleId = callService.createSchedule(request);
-
-        // then
-        assertThat(scheduleId).isNotNull();
-        log.info("생성된 스케줄 ID: " + scheduleId);
-    }
+    callRecordingRepository.save(
+        CallRecording.builder().call(call).file(file).transcript(content).build());
+  }
 }

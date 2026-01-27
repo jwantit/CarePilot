@@ -1,7 +1,7 @@
 package com.carepilot.repository.notification;
 
 import com.carepilot.domain.notification.Notification;
-import com.carepilot.domain.enums.NotificationStatus;
+import com.carepilot.domain.notification.NotificationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

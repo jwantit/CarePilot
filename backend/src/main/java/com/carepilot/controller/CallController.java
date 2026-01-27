@@ -4,6 +4,7 @@ import com.carepilot.dto.call.CallDetailResponseDTO;
 import com.carepilot.dto.call.CallResponseDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.dto.call.ScheduleResponseDTO;
+import com.carepilot.dto.call.ScheduleUpdateRequestDTO;
 import com.carepilot.service.call.CallService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +48,28 @@ public class CallController {
     @PostMapping("/schedules")
     public ResponseEntity<Long> createSchedule(@RequestBody ScheduleCreateRequestDTO dto) {
         return ResponseEntity.ok(callService.createSchedule(dto));
+    }
+
+    // [탭 2] 일정 수정
+    @PutMapping("/schedules/{scheduleId}")
+    public ResponseEntity<Void> updateSchedule(
+            @PathVariable Long scheduleId,
+            @RequestBody ScheduleUpdateRequestDTO dto) {
+        callService.updateSchedule(scheduleId, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    // [탭 2] 일정 삭제 (Soft delete)
+    @DeleteMapping("/schedules/{scheduleId}")
+    public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId) {
+        callService.deleteSchedule(scheduleId);
+        return ResponseEntity.ok().build();
+    }
+
+    // [탭 2] 일정 복구
+    @PostMapping("/schedules/{scheduleId}/restore")
+    public ResponseEntity<Void> restoreSchedule(@PathVariable Long scheduleId) {
+        callService.restoreSchedule(scheduleId);
+        return ResponseEntity.ok().build();
     }
 }

@@ -4,11 +4,15 @@ import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallRecording;
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.RiskScore;
-import com.carepilot.domain.enums.ScheduleStatus;
+import com.carepilot.domain.call.ScheduleStatus;
 import com.carepilot.dto.call.CallDetailResponseDTO;
 import com.carepilot.dto.call.CallResponseDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.dto.call.ScheduleResponseDTO;
+import com.carepilot.dto.call.ScheduleUpdateRequestDTO;
+import com.carepilot.domain.enums.Priority;
+import com.carepilot.domain.call.ScheduleRecurrence;
+import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
@@ -18,6 +22,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,8 +55,11 @@ public class CallServiceImpl implements CallService {
 
     @Override
     public List<ScheduleResponseDTO> getUpcomingSchedules() {
-        // '예약됨' 상태인 스케줄만 시간순으로 조회 (사진 3 하단 리스트용)
-        return callScheduleRepository.findByStatusOrderByScheduledTimeAsc(ScheduleStatus.SCHEDULED).stream()
+        // 예약된 상태와 취소된 상태를 함께 조회해서 취소된 것도 보여줌
+        return callScheduleRepository
+                .findByStatusInOrderByScheduledTimeAsc(
+                        Arrays.asList(ScheduleStatus.SCHEDULED, ScheduleStatus.CANCELLED))
+                .stream()
                 .map(ScheduleResponseDTO::from)
                 .collect(Collectors.toList());
     }
@@ -99,5 +107,58 @@ public class CallServiceImpl implements CallService {
                 .orElse(null);
 
         return CallDetailResponseDTO.of(call, recording, riskScore);
+    }
+
+    @Override
+    @Transactional
+    public void updateSchedule(Long scheduleId, ScheduleUpdateRequestDTO dto) {
+        CallSchedule existing = callScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
+
+        CareTarget careTarget = existing.getCareTarget();
+        if (dto.getCareTargetId() != null) {
+            careTarget = careTargetRepository.findById(dto.getCareTargetId())
+                    .orElseThrow(() -> new EntityNotFoundException("CareTarget not found"));
+        }
+
+        ScheduleType type = dto.getType() != null ? ScheduleType.valueOf(dto.getType()) : null;
+        ScheduleRecurrence recurrence = dto.getRecurrence() != null && !dto.getRecurrence().isEmpty()
+                ? ScheduleRecurrence.valueOf(dto.getRecurrence())
+                : null;
+        Priority priority = dto.getPriority() != null ? Priority.valueOf(dto.getPriority()) : null;
+        LocalDateTime recurrenceEnd = dto.getRecurrenceEndDate();
+
+        existing.applyUpdates(
+                careTarget,
+                dto.getScheduledTime(),
+                type,
+                recurrence,
+                recurrenceEnd,
+                priority,
+                dto.getMemo());
+
+        callScheduleRepository.save(existing);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSchedule(Long scheduleId) {
+        CallSchedule schedule = callScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
+        
+        // Soft delete: 상태를 CANCELLED로 변경
+        schedule.cancel();
+        callScheduleRepository.save(schedule);
+    }
+
+    @Override
+    @Transactional
+    public void restoreSchedule(Long scheduleId) {
+        CallSchedule schedule = callScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
+        
+        // 상태를 SCHEDULED로 복구
+        schedule.restore();
+        callScheduleRepository.save(schedule);
     }
 }
