@@ -1,39 +1,31 @@
-import axios from 'axios';
+import { apiClient } from "./apiClient";
 
-const API_BASE_URL = "http://localhost:8080/api/notices";
+const host = "/notices";
 
 export const noticeApi = {
-    // 공지사항 관련
-    getNotices: (page, size = 10) =>
-        axios.get(`${API_BASE_URL}?page=${page}&size=${size}`),
+  // 공지사항 관련
+  getNotices: (page, size = 10) =>
+    apiClient.get(`${host}?page=${page}&size=${size}`),
 
-    getNotice: (id) =>
-        axios.get(`${API_BASE_URL}/${id}`),
+  getNotice: (id) => apiClient.get(`${host}/${id}`),
 
-    createNotice: (data) =>
-        axios.post(API_BASE_URL, data),
+  createNotice: (data) => apiClient.post(host, data),
 
-    updateNotice: (id, data) =>
-        axios.put(`${API_BASE_URL}/${id}`, data),
+  updateNotice: (id, data) => apiClient.put(`${host}/${id}`, data),
 
-    deleteNotice: (id) =>
-        axios.delete(`${API_BASE_URL}/${id}`),
+  deleteNotice: (id) => apiClient.delete(`${host}/${id}`),
 
-    createNotice: (formData) =>
-    axios.post(API_BASE_URL, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+  createNotice: (formData) => apiClient.post(host, formData),
 
-    // 댓글 관련
-    getComments: (noticeId) =>
-        axios.get(`${API_BASE_URL}/${noticeId}/comments`),
+  // 댓글 관련
+  getComments: (noticeId) => apiClient.get(`${host}/${noticeId}/comments`),
 
-    createComment: (noticeId, data) =>
-        axios.post(`${API_BASE_URL}/${noticeId}/comments`, data),
+  createComment: (noticeId, data) =>
+    apiClient.post(`${host}/${noticeId}/comments`, data),
 
-    updateComment: (commentId, data) =>
-        axios.put(`${API_BASE_URL}/comments/${commentId}`, data),
+  updateComment: (commentId, data) =>
+    apiClient.put(`${host}/comments/${commentId}`, data),
 
-    deleteComment: (commentId) =>
-        axios.delete(`${API_BASE_URL}/comments/${commentId}`),
+  deleteComment: (commentId) =>
+    apiClient.delete(`${host}/comments/${commentId}`),
 };

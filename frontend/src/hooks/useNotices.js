@@ -32,14 +32,14 @@ export const useNotices = () => {
         loadNotices();
     }, []);
 
-    return {
-        notices,
-        currentPage,
-        totalPages,
+    return { 
+        notices, 
+        currentPage, 
+        totalPages, 
         loadNotices,
         setNotices,
         selectedFiles,
         handleFileChange,
-        clearFiles
+        clearFiles 
     };
 };

@@ -1,6 +1,7 @@
 package com.carepilot.controller;
 
 import com.carepilot.domain.notice.Notice;
+import com.carepilot.dto.notice.NoticeResponseDTO;
 import com.carepilot.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,9 +22,20 @@ public class NoticeController {
 
     // 목록 조회
     @GetMapping
-    public ResponseEntity<Page<Notice>> getAllNotices(
+    public ResponseEntity<Page<NoticeResponseDTO>> getAllNotices(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(noticeService.getAllNotices(pageable));
+        Page<NoticeResponseDTO> response = noticeService.getAllNotices(pageable)
+                .map(notice -> NoticeResponseDTO.builder()
+                        .noticeId(notice.getNoticeId())
+                        .title(notice.getTitle())
+                        .content(notice.getContent())
+                        .writerName(notice.getUser().getName()) // 연관 객체에서 이름 추출
+                        .viewCount(notice.getViewCount())
+                        .isPinned(notice.getIsPinned())
+                        .createdAt(notice.getCreatedAt())
+                        .build());
+
+        return ResponseEntity.ok(response);
     }
 
     // 상세 조회 + 조회수 증가 로직
