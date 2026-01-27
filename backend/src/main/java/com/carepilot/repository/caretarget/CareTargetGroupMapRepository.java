@@ -13,6 +13,7 @@ public interface CareTargetGroupMapRepository extends JpaRepository<CareTargetGr
     @Query("SELECT m FROM CareTargetGroupMap m " +
             "JOIN FETCH m.group g " +
             "JOIN FETCH m.careTarget t " +
-            "WHERE g.organization.organizationId = :organizationId")
+            "WHERE g.organization.organizationId = :organizationId " +
+            "ORDER BY g.groupId DESC")
     List<CareTargetGroupMap> findAllGroupDetails(@Param("organizationId") Long organizationId);
 }

@@ -17,6 +17,8 @@ public class CareTargetUpdateRequestDTO {
     private String guardianPhone;
     private String guardianRelationship;
     private Long doctorId;
+    private Boolean isDelete;
+
 
 
 

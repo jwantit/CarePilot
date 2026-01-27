@@ -1,6 +1,7 @@
 package com.carepilot.repository.caretarget;
 
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,12 +26,25 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
             @Param("keyword") String keyword
     );
 
-    //케어 활성화 상태만 조회
     @Query("SELECT c FROM CareTarget c " +
             "WHERE c.careTargetId = :careTargetId " +
-            "AND c.careStatus = true")
-    Optional<CareTarget> findInactiveCareTarget(
-            @Param("careTargetId") Long careTargetId
+            "AND (:filter IS NULL OR c.careStatus = :filter)")
+    Optional<CareTarget> findCareTargetWithFilter(
+            @Param("careTargetId") Long careTargetId,
+            @Param("filter") Boolean filter
+    );
+
+
+    //케어 그룹 생성시 필요한 케데 리스트
+    @Query("SELECT new com.carepilot.dto.caretarget.CareTargetListResponseDTO(" +
+            "c.careTargetId, c.name, c.age, c.gender, c.disease, " +
+            "(SELECT rs.riskLevel FROM RiskScore rs WHERE rs.careTarget.id = c.id ORDER BY rs.createdAt DESC LIMIT 1)) " +
+            "FROM CareTarget c " +
+            "WHERE c.organization.id = :organizationId " +
+            "AND (:filter IS NULL OR c.careStatus = :filter)")
+    List<CareTargetListResponseDTO> findCareTargetList(
+            @Param("organizationId") Long organizationId,
+            @Param("filter") Boolean filter
     );
 
 

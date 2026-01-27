@@ -112,13 +112,9 @@ public class CareTargetController {
             @RequestParam("organizationId") Long organizationId,
             @RequestParam("careTargetId") Long careTargetId,
             @RequestPart(value = "file", required = false) MultipartFile file,
-            @ModelAttribute CareTargetUpdateRequestDTO updateDTO // 텍스트 필드들을 담은 DTO
+            @ModelAttribute CareTargetUpdateRequestDTO updateDTO
     ) {
 
-        log.info("업체id",organizationId);
-        log.info("케어대상자ID",careTargetId);
-        log.info("파일" + file);
-        log.info("케어대상자ID",updateDTO.getName());
         CareTargetDetailResponseDTO result = careService.updateCareTargetDetail(organizationId,careTargetId,updateDTO,file);
 
 

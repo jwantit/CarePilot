@@ -332,6 +332,8 @@ public class CareServiceImpl implements CareService {
 
         careTargetRepository.save(target);
 
+
+
         if (file != null && !file.isEmpty()) {
             uploadFileService.deletecareTargetFiles(organizationId,careTargetId);
 
@@ -343,8 +345,9 @@ public class CareServiceImpl implements CareService {
                     .files(files)
                     .build();
 
-
             List<UploadFileResponseDTO> saveFile = uploadFileService.saveFiles(targetFileDTO);
+        } else if (Boolean.TRUE.equals(updateDTO.getIsDelete())) {
+            uploadFileService.deletecareTargetFiles(organizationId,careTargetId);
         }
 
         return getCareTargetDetail(organizationId, careTargetId);

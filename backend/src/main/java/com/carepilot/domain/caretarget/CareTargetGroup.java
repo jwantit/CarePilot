@@ -1,6 +1,7 @@
 package com.carepilot.domain.caretarget;
 
 import com.carepilot.domain.common.BaseEntity;
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
@@ -32,13 +33,14 @@ public class CareTargetGroup extends BaseEntity {
     @Column(name = "group_description", columnDefinition = "TEXT")
     private String groupDescription;
 
+    //시나리오
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scenario_id")
+    private Scenario scenario;
+
     // @Column(name = "group_status", nullable = false)
     @Column(name = "group_status")
     private Boolean groupStatus = true;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "group_content_type")
-    private GroupType groupType = GroupType.CUSTOM;
 
     @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "created_by", nullable = false)
@@ -47,13 +49,13 @@ public class CareTargetGroup extends BaseEntity {
 
     @Builder
     public CareTargetGroup(Organization organization, String groupName, String groupDescription,
-                          Boolean groupStatus, User createdBy, GroupType groupType) {
+                          Scenario scenario, Boolean groupStatus, User createdBy) {
         this.organization = organization;
         this.groupName = groupName;
         this.groupDescription = groupDescription;
         this.groupStatus = groupStatus != null ? groupStatus : true;
         this.createdBy = createdBy;
-        this.groupType = (groupType != null) ? groupType : GroupType.CUSTOM;
+        this.scenario = scenario;
     }
 }
 

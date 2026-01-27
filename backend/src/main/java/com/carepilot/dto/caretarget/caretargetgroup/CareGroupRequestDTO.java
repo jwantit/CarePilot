@@ -12,9 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 public class CareGroupRequestDTO {
     private List<Long> careTargetId;
+    private Long scenarioId;
     private Long organizationId;
     private String groupName;
     private String groupDescription;
     private Boolean groupStatus;
-    private String groupType;
+    private Long userId;
 }

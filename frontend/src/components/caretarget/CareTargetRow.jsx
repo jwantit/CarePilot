@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from 'lucide-react';
-import { getFileUrl } from '../common/fileHelper';
+import { getFileUrl } from '../../hooks/fileHelper';
 
 
 //관리 페이지
@@ -19,7 +19,6 @@ function CareTargetRow({ data, organizationId }) {
       alert("환자 정보를 찾을 수 없습니다.");
     }
   };
-
 
 
   const imageUrl = getFileUrl(data?.thumbnailStoragePath);
