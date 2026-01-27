@@ -2,7 +2,6 @@ package com.carepilot.domain.call;
 
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
-import com.carepilot.domain.enums.CallStatus;
 import com.carepilot.domain.organization.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

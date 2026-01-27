@@ -11,17 +11,8 @@ import java.util.Optional;
 
 public interface RiskScoreRepository extends JpaRepository<RiskScore, Long> {
 
-
-
-
-
-
-
-
-
-
-
-
+    // 특정 통화 건에 대한 위험도 점수 조회
+    Optional<RiskScore> findByCall_CallId(Long callId);
 
     //케어 대상자 리스트 단일 조회
     @Query("SELECT rs FROM RiskScore rs " +
