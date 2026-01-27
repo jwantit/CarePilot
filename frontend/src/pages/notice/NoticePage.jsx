@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import CommentItem from './CommentItem';
+import React, { useState } from 'react';
+import { noticeApi } from '../api/noticeApi';
+import { useNotices } from '../hooks/useNotices';
+import Pagination from './notice/Pagination';
+import CommentItem from './notice/CommentItem';
 
 function NoticePage() {
-    const [notices, setNotices] = useState([]);
+    // 1. 커스텀 훅 사용 (목록, 페이징 상태를 여기서 관리)
+    const { notices, currentPage, totalPages, loadNotices } = useNotices();
+
+    // 2. 페이지 내부에서 관리할 최소한의 UI 상태들
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [showForm, setShowForm] = useState(false);
@@ -15,21 +20,7 @@ function NoticePage() {
     const [commentContent, setCommentContent] = useState('');
     const [replyTo, setReplyTo] = useState(null);
 
-    const API_BASE_URL = "http://localhost:8080/api/notices";
-
-    useEffect(() => {
-        loadNotices();
-    }, []);
-
-    const loadNotices = async () => {
-        try {
-            const response = await axios.get(API_BASE_URL);
-            setNotices(Array.isArray(response.data) ? response.data : []);
-        } catch (error) {
-            console.error("데이터 로딩 실패:", error);
-            setNotices([]);
-        }
-    };
+    // --- 비즈니스 로직 (API 계층 활용) ---
 
     const startEdit = (notice) => {
         setEditingId(notice.noticeId);
@@ -41,20 +32,22 @@ function NoticePage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const noticeData = {
+                title, content,
+                organization: { organizationId: 1 },
+                user: { userId: 1 }
+            };
+
             if (editingId) {
-                await axios.put(`${API_BASE_URL}/${editingId}`, { title, content, isPinned: false });
+                await noticeApi.updateNotice(editingId, { ...noticeData, isPinned: false });
                 setEditingId(null);
                 alert("수정되었습니다.");
             } else {
-                await axios.post(API_BASE_URL, {
-                    title, content,
-                    organization: { organizationId: 1 },
-                    user: { userId: 1 }
-                });
+                await noticeApi.createNotice(noticeData);
                 alert("등록되었습니다.");
             }
             setTitle(''); setContent(''); setShowForm(false);
-            loadNotices();
+            loadNotices(currentPage);
         } catch (error) {
             alert("요청 처리 실패");
         }
@@ -63,8 +56,8 @@ function NoticePage() {
     const handleDelete = async (id) => {
         if (window.confirm("정말 삭제할까요?")) {
             try {
-                await axios.delete(`${API_BASE_URL}/${id}`);
-                loadNotices();
+                await noticeApi.deleteNotice(id);
+                loadNotices(currentPage);
             } catch (error) {
                 alert("삭제 실패!");
             }
@@ -73,7 +66,7 @@ function NoticePage() {
 
     const loadComments = async (noticeId) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/${noticeId}/comments`);
+            const response = await noticeApi.getComments(noticeId);
             setComments(response.data);
         } catch (error) {
             console.error("댓글 로딩 실패:", error);
@@ -84,7 +77,7 @@ function NoticePage() {
         e.preventDefault();
         if (!commentContent.trim()) return;
         try {
-            await axios.post(`${API_BASE_URL}/${selectedNotice.noticeId}/comments`, {
+            await noticeApi.createComment(selectedNotice.noticeId, {
                 content: commentContent,
                 userId: 1,
                 parentId: replyTo
@@ -101,7 +94,6 @@ function NoticePage() {
         <div className="max-w-5xl mx-auto p-8">
             <h1 className="text-4xl font-bold mb-12 text-center text-gray-800">공지사항</h1>
 
-            {/* 공지사항 작성 버튼 & 폼 (보존) */}
             <div className="flex justify-end mb-6">
                 <button onClick={() => { setShowForm(!showForm); if (showForm) { setEditingId(null); setTitle(''); setContent(''); } }}
                     className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
@@ -109,6 +101,7 @@ function NoticePage() {
                 </button>
             </div>
 
+            {/* 작성 폼 (나중에 NoticeForm.jsx로 뺄 수 있는 부분) */}
             {showForm && (
                 <form onSubmit={handleSubmit} className="mb-12 p-8 border rounded-xl bg-gray-50 shadow-sm border-gray-200">
                     <h2 className="text-center font-bold text-lg mb-6 text-gray-700">{editingId ? "공지사항 수정하기" : "새 공지사항 쓰기"}</h2>
@@ -118,14 +111,14 @@ function NoticePage() {
                 </form>
             )}
 
-            {/* 공지사항 목록 (보존) */}
+            {/* 목록 (나중에 NoticeList.jsx로 뺄 수 있는 부분) */}
             <div className="grid gap-6">
                 {notices.map((notice) => (
                     <div key={notice.noticeId} className="p-6 border rounded-lg flex justify-between items-center bg-white shadow-sm hover:shadow-md transition cursor-pointer"
                         onClick={() => { setSelectedNotice(notice); setIsDetailOpen(true); loadComments(notice.noticeId); }}>
                         <div className="flex-1">
                             <h3 className="text-xl font-bold mb-2 text-gray-800">{notice.title}</h3>
-                            <p className="text-gray-600 mb-2">{notice.content}</p>
+                            <p className="text-gray-600 mb-2 truncate">{notice.content}</p>
                             <span className="text-sm text-gray-400">조회수: {notice.viewCount}</span>
                         </div>
                         <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
@@ -136,7 +129,14 @@ function NoticePage() {
                 ))}
             </div>
 
-            {/* 상세 모달 (보존 및 댓글 부분만 교체) */}
+            {/* 3. 분리한 Pagination 컴포넌트 적용 */}
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={loadNotices}
+            />
+
+            {/* 상세 모달 (생략 없이 유지) */}
             {isDetailOpen && selectedNotice && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white w-full max-w-2xl rounded-2xl p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
@@ -144,7 +144,6 @@ function NoticePage() {
                         <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-4">{selectedNotice.title}</h2>
                         <div className="text-gray-600 leading-relaxed min-h-[200px] mb-8 whitespace-pre-wrap">{selectedNotice.content}</div>
 
-                        {/* 댓글 영역 (컴포넌트화 적용) */}
                         <div className="border-t pt-6 bg-gray-50 -mx-8 px-8 pb-8">
                             <h4 className="font-bold text-lg mb-4 text-gray-700">댓글 {comments.length}개</h4>
                             <div className="mb-6">
@@ -157,13 +156,11 @@ function NoticePage() {
                                             loadComments={loadComments}
                                             setReplyTo={setReplyTo}
                                             setCommentContent={setCommentContent}
-                                            API_BASE_URL={API_BASE_URL}
                                         />
                                     ))
                                 ) : ( <p className="text-center text-gray-400 py-4">첫 댓글을 남겨보세요!</p> )}
                             </div>
 
-                            {/* 댓글 입력 폼 (보존) */}
                             <form onSubmit={handleCommentSubmit} className="relative">
                                 {replyTo && (
                                     <div className="text-xs text-blue-500 mb-1 flex justify-between items-center">
