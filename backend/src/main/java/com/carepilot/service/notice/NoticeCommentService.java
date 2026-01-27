@@ -11,10 +11,10 @@ public interface NoticeCommentService {
     List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId);
 
     // 댓글 수정
-    void updateComment(Long commentId, String content);
+    void updateComment(Long commentId, String content, Long userId);
 
     // 댓글 삭제
-    void deleteComment(Long commentId);
+    void deleteComment(Long commentId, Long userId);
 
     void disconnectCommentsFromNotice(Long noticeId);
 }

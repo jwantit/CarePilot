@@ -88,20 +88,26 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
 
     @Override
     @Transactional
-    public void updateComment(Long commentId, String content) {
+    public void updateComment(Long commentId, String content, Long userId) {
         NoticeComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다. id=" + commentId));
 
+        if (!comment.getUser().getUserId().equals(userId)) {
+            throw new RuntimeException("댓글 수정 권한이 없습니다.");
+        }
         comment.updateContent(content);
     }
 
     @Override
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long commentId, Long userId) {
         // 1. 삭제할 댓글 존재 확인
         NoticeComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다. id=" + commentId));
 
+        if (!comment.getUser().getUserId().equals(userId)) {
+            throw new RuntimeException("댓글 삭제 권한이 없습니다.");
+        }
         comment.changeDeletedStatus(true);
     }
 

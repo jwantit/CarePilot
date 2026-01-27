@@ -20,8 +20,7 @@ public class NoticeCommentController {
     // 특정 게시물의 댓글 목록 조회
     @GetMapping("/{noticeId}/comments")
     public ResponseEntity<List<CommentResponseDTO>> getComments(@PathVariable Long noticeId) {
-        List<CommentResponseDTO> comments = commentService.getCommentsByNoticeId(noticeId);
-        return ResponseEntity.ok(comments);
+        return ResponseEntity.ok(commentService.getCommentsByNoticeId(noticeId));
     }
 
     // 댓글 및 대댓글 등록
@@ -32,31 +31,33 @@ public class NoticeCommentController {
 
         String content = (String) requestData.get("content");
         Long userId = Long.valueOf(requestData.get("userId").toString());
-
         Object parentIdObj = requestData.get("parentId");
         Long parentId = (parentIdObj != null) ? Long.valueOf(parentIdObj.toString()) : null;
-
-        Long commentId = commentService.saveComment(noticeId, userId, parentId, content);
-        return ResponseEntity.ok(commentId);
+        return ResponseEntity.ok(commentService.saveComment(noticeId, userId, parentId, content));
     }
 
+    // 댓글 수정
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Void> updateComment(
             @PathVariable Long commentId,
-            @RequestBody Map<String, String> requestData) {
+            @RequestBody Map<String, Object> requestData) {
 
-        String content = requestData.get("content");
+        String content = (String) requestData.get("content");
+        Long userId = Long.valueOf(requestData.get("userId").toString()); // 권한 검증용 ID 추출
 
-        commentService.updateComment(commentId, content);
+        commentService.updateComment(commentId, content, userId); // 서비스에 userId 전달
 
-        return ResponseEntity.ok().build(); // 성공 시 200 OK 반환
+        return ResponseEntity.ok().build();
     }
 
+    // 댓글 삭제
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @RequestParam Long userId) { // 쿼리 파라미터로 userId 수신
 
-        commentService.deleteComment(commentId);
+        commentService.deleteComment(commentId, userId); // 서비스에 userId 전달
 
-        return ResponseEntity.ok().build(); // 성공 시 200 OK 반환
+        return ResponseEntity.ok().build();
     }
 }

@@ -54,6 +54,13 @@ public class Notice extends BaseEntity {
         this.viewCount = viewCount != null ? viewCount : 0;
         this.isPinned = isPinned != null ? isPinned : false;
     }
+    // 작성자 설정
+    public void setUser(User user) {
+        this.user = user;
+    }
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
     // 공지사항 수정 로직
     public void update(String title, String content, Boolean isPinned) {
         this.title = title;

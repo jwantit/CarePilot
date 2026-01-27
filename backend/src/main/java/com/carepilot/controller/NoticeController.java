@@ -11,7 +11,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/notices")
@@ -24,46 +23,41 @@ public class NoticeController {
     @GetMapping
     public ResponseEntity<Page<NoticeResponseDTO>> getAllNotices(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<NoticeResponseDTO> response = noticeService.getAllNotices(pageable)
-                .map(notice -> NoticeResponseDTO.builder()
-                        .noticeId(notice.getNoticeId())
-                        .title(notice.getTitle())
-                        .content(notice.getContent())
-                        .writerName(notice.getUser().getName()) // 연관 객체에서 이름 추출
-                        .viewCount(notice.getViewCount())
-                        .isPinned(notice.getIsPinned())
-                        .createdAt(notice.getCreatedAt())
-                        .build());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(noticeService.getAllNotices(pageable));
     }
 
-    // 상세 조회 + 조회수 증가 로직
+    // 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<Notice> getNotice(@PathVariable Long id) {
+    public ResponseEntity<NoticeResponseDTO> getNotice(@PathVariable Long id) {
         noticeService.incrementViewCount(id);
-        Notice notice = noticeService.getNoticeById(id);
-        return ResponseEntity.ok(notice);
+        return ResponseEntity.ok(noticeService.getNoticeById(id));
     }
 
     // 공지사항 작성
     @PostMapping
-    public ResponseEntity<Void> createNotice(@RequestBody Notice notice) {
-        noticeService.saveNotice(notice);
+    public ResponseEntity<Void> createNotice(
+            @RequestBody Notice notice,
+            @RequestParam Long userId) { // 작성자 ID 수신
+        noticeService.saveNotice(notice, userId);
         return ResponseEntity.ok().build();
     }
 
     // 공지사항 수정
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateNotice(@PathVariable Long id, @RequestBody Notice notice) {
-        noticeService.updateNotice(id, notice);
+    public ResponseEntity<Void> updateNotice(
+            @PathVariable Long id,
+            @RequestBody Notice updateParam,
+            @RequestParam Long userId) {
+        noticeService.updateNotice(id, updateParam, userId);
         return ResponseEntity.ok().build();
     }
 
     // 공지사항 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
-        noticeService.deleteNotice(id);
+    public ResponseEntity<Void> deleteNotice(
+            @PathVariable Long id,
+            @RequestParam Long userId) {
+        noticeService.deleteNotice(id, userId);
         return ResponseEntity.ok().build();
     }
 }
