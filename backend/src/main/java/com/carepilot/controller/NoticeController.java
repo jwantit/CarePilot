@@ -3,10 +3,13 @@ package com.carepilot.controller;
 import com.carepilot.domain.notice.Notice;
 import com.carepilot.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -18,8 +21,9 @@ public class NoticeController {
 
     // 목록 조회
     @GetMapping
-    public ResponseEntity<List<Notice>> getAllNotices() {
-        return ResponseEntity.ok(noticeService.getAllNotices());
+    public ResponseEntity<Page<Notice>> getAllNotices(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(noticeService.getAllNotices(pageable));
     }
 
     // 상세 조회 + 조회수 증가 로직
