@@ -3,10 +3,10 @@ package com.carepilot.controller;
 import com.carepilot.domain.notice.Notice;
 import com.carepilot.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -18,11 +18,8 @@ public class NoticeController {
 
     // 목록 조회
     @GetMapping
-    public ResponseEntity<Page<Notice>> getAllNotices(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        return ResponseEntity.ok(noticeService.getAllNotices(pageRequest));
+    public ResponseEntity<List<Notice>> getAllNotices() {
+        return ResponseEntity.ok(noticeService.getAllNotices());
     }
 
     // 상세 조회 + 조회수 증가 로직

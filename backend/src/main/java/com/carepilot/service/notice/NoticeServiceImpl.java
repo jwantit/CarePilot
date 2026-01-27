@@ -3,8 +3,6 @@ package com.carepilot.service.notice;
 import com.carepilot.domain.notice.Notice;
 import com.carepilot.repository.notice.NoticeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -19,8 +17,8 @@ public class NoticeServiceImpl implements NoticeService {
 
     // 모든 공지사항 조회
     @Override
-    public Page<Notice> getAllNotices(Pageable pageable) {
-        return noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(pageable);
+    public List<Notice> getAllNotices() {
+        return noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc();
     }
     // 공지사항 상세 조회
     @Override
