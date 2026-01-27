@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { noticeApi } from '../../api/noticeApi';
 
 const CommentItem = ({
     comment,
@@ -8,48 +8,54 @@ const CommentItem = ({
     loadComments,
     setReplyTo,
     setCommentContent,
-    API_BASE_URL
+    currentUserId
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingContent, setEditingContent] = useState(comment.content);
 
     const isDeleted = comment.content === "삭제된 댓글입니다";
 
+    // 권한 로직 : id 비교
+    const isOwner = comment.userId === currentUserId;
+
+    // 댓글 수정 로직
     const handleUpdate = async () => {
         if (!editingContent.trim()) return;
         try {
-            await axios.put(`${API_BASE_URL}/comments/${comment.commentId}`, {
+            await noticeApi.updateComment(comment.commentId, {
                 content: editingContent
-            });
+            }, currentUserId);
+
             setIsEditing(false);
             loadComments(selectedNotice.noticeId);
         } catch (error) {
-            alert("수정 실패");
+            alert(error.response?.data?.message || "수정 실패");
         }
     };
 
+    // 댓글 삭제 로직
     const handleDelete = async () => {
         if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
         try {
-            await axios.delete(`${API_BASE_URL}/comments/${comment.commentId}`);
+            await noticeApi.deleteComment(comment.commentId, currentUserId);
             loadComments(selectedNotice.noticeId);
         } catch (error) {
-            alert("삭제 실패");
+            alert(error.response?.data?.message || "삭제 실패");
         }
     };
 
     return (
         <div className={`${isChild ? "ml-6 mt-3" : "mb-6"}`}>
-            <div className={`p-4 rounded-lg shadow-sm border ${isChild ? "bg-gray-50 border-gray-200" : "bg-white border-gray-100"}`}>
-                <div className="flex justify-between mb-2">
-                    <span className="font-bold text-blue-600 text-sm">
+            <div className={`p-4 rounded-lg shadow-sm border ${isChild ? "bg-white" : "bg-gray-100"}`}>
+                <div className="flex justify-between items-start mb-2">
+                    <span className="font-bold text-gray-700 text-sm">
                         {isDeleted ? "(알 수 없음)" : comment.userName}
                     </span>
                     <div className="flex gap-2">
-                        <span className="text-[10px] text-gray-400">{new Date(comment.createdAt).toLocaleString()}</span>
+                        <span className="text-[10px] text-gray-400">{comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ""}</span>
 
                         {/* 삭제되지 않은 댓글일 때만 수정/삭제 노출 */}
-                        {!isDeleted && (
+                        {!isDeleted && isOwner && (
                             <>
                                 <button
                                     onClick={() => {
@@ -116,7 +122,7 @@ const CommentItem = ({
                             loadComments={loadComments}
                             setReplyTo={setReplyTo}
                             setCommentContent={setCommentContent}
-                            API_BASE_URL={API_BASE_URL}
+                            currentUserId={currentUserId}
                         />
                     ))}
                 </div>
