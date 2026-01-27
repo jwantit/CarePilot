@@ -1,7 +1,7 @@
 package com.carepilot.service.notification;
 
 import com.carepilot.domain.notification.Notification;
-import com.carepilot.domain.enums.NotificationType;
+import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
 
 import java.util.List;

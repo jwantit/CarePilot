@@ -1,4 +1,4 @@
-package com.carepilot.domain.enums;
+package com.carepilot.domain.call;
 
 public enum ScheduleTargetType {
     CARE_TARGET,    // 대상자
