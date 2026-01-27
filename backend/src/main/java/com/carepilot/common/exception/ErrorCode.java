@@ -21,7 +21,12 @@ public enum ErrorCode {
     // 조직 관련
     ORGANIZATION_NOT_FOUND("존재하지 않는 업체 번호입니다."),
     ORGANIZATION_NUMBER_GENERATION_FAILED("organization_number 생성에 실패했습니다. 다시 시도해주세요."),
-    
+
+    // 작업 관련
+    TASK_NOT_FOUND("작업을 찾을 수 없습니다."),
+    AI_TASK_NOT_FOUND("AI 처리 내역을 찾을 수 없습니다."),
+    CARE_TARGET_NOT_FOUND("케어 대상을 찾을 수 없습니다."),
+
     // 기타
     INTERNAL_SERVER_ERROR("서버 오류가 발생했습니다.");
 
