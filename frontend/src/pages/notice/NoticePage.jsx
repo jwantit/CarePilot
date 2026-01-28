@@ -5,19 +5,21 @@ import Pagination from "../../components/notice/Pagination";
 import NoticeList from "../../components/notice/NoticeList";
 import NoticeForm from "../../components/notice/NoticeForm";
 import NoticeDetail from "../../components/notice/NoticeDetail";
+import { useAuth } from "../../hooks/useAuth";
 
 function NoticePage() {
   // 커스텀 훅 사용 (목록, 페이징 상태를 여기서 관리)
   const { notices, currentPage, totalPages, loadNotices } = useNotices();
+  const { user } = useAuth();
 
-  const [currentUserId] = useState(1); // 임시로 사용자 id를 고정함
+  const currentUserId = user?.userId || null;
+  const currentOrgId = user?.organizationId || null;
 
   // 페이지 내부에서 관리 할 최소한의 UI 상태
   const [showForm, setShowForm] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedNotice, setSelectedNotice] = useState(null);
-
 
   // 입력 필드 상태
   const [title, setTitle] = useState("");
@@ -38,19 +40,24 @@ function NoticePage() {
   // 공지사항 저장(생성/수정)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!currentUserId) {
+      alert("로그인 정보가 없습니다. 다시 로그인해 주세요.");
+      return;
+    }
+
     try {
       const noticeData = {
         title,
         content,
-        organization: { organizationId: 1 },
-        user: { userId: currentUserId },
+        isPinned: false,
       };
 
       if (editingId) {
-        await noticeApi.updateNotice(editingId, {...noticeData, isPinned: false });
+        await noticeApi.updateNotice(editingId, noticeData, currentUserId);
         alert("수정되었습니다.");
       } else {
-        await noticeApi.createNotice(noticeData);
+        await noticeApi.createNotice(noticeData, currentUserId);
         alert("등록되었습니다.");
       }
       // 상태 초기화 및 목록 새로고침
@@ -65,9 +72,14 @@ function NoticePage() {
   };
   // 공지사항 삭제
   const handleDelete = async (id) => {
+    if (!currentUserId) {
+      alert("삭제 권한이 없습니다. 로그인해주세요.");
+      return;
+    }
+
     if (window.confirm("정말 삭제할까요?")) {
       try {
-        await noticeApi.deleteNotice(id);
+        await noticeApi.deleteNotice(id, currentUserId);
         loadNotices(currentPage);
       } catch (error) {
         alert("삭제 실패!");

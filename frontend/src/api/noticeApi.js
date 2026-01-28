@@ -9,13 +9,14 @@ export const noticeApi = {
 
   getNotice: (id) => apiClient.get(`${host}/${id}`),
 
-  createNotice: (data) => apiClient.post(host, data),
+  createNotice: (data, userId) =>
+    apiClient.post(host, data, { params: { userId } }),
 
-  updateNotice: (id, data) => apiClient.put(`${host}/${id}`, data),
+  updateNotice: (id, data, userId) =>
+    apiClient.put(`${host}/${id}`, data, { params: { userId } }),
 
-  deleteNotice: (id) => apiClient.delete(`${host}/${id}`),
-
-  createNotice: (formData) => apiClient.post(host, formData),
+  deleteNotice: (id, userId) =>
+    apiClient.delete(`${host}/${id}`, { params: { userId } }),
 
   // 댓글 관련
   getComments: (noticeId) => apiClient.get(`${host}/${noticeId}/comments`),
@@ -23,9 +24,11 @@ export const noticeApi = {
   createComment: (noticeId, data) =>
     apiClient.post(`${host}/${noticeId}/comments`, data),
 
-  updateComment: (commentId, data) =>
-    apiClient.put(`${host}/comments/${commentId}`, data),
+  updateComment: (commentId, data, userId) =>
+    apiClient.put(`${host}/comments/${commentId}`, data, {
+      params: { userId },
+    }),
 
-  deleteComment: (commentId) =>
-    apiClient.delete(`${host}/comments/${commentId}`),
+  deleteComment: (commentId, userId) =>
+    apiClient.delete(`${host}/comments/${commentId}`, { params: { userId } }),
 };
