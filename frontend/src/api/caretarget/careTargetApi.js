@@ -8,13 +8,11 @@ const host = `/caretarget`;
  */
 export const getCareTargetAllList = async (
   organizationId,
-  filterStatus,
   keyword,
 ) => {
   const config = {
     params: {
       organizationId: organizationId,
-      status: filterStatus === "all" ? "" : filterStatus,
       keyword: keyword || "",
     },
   };
@@ -80,9 +78,8 @@ export const getCareTargetDetail = async (organizationId, caretargetId) => {
   return res.data;
 };
 
-/**
- * 케어대상자 정보 수정
- */
+
+//케어대상자 정보 수정---------------------------------
 export const updateCareTargetDetail = async (
   organizationId,
   careTargetId,
@@ -105,3 +102,25 @@ export const updateCareTargetDetail = async (
   );
   return res.data;
 };
+//--------------------------------------------
+
+
+
+//케어 대상자 삭제---------------------------------
+export const deleteCareTarget = async (careTargetIds) => {
+  const res = await apiClient.delete(`${host}/care/delete`, {
+    data: careTargetIds 
+  });
+  return res.data;
+};
+//--------------------------------------------
+
+
+
+
+ 
+
+
+
+
+

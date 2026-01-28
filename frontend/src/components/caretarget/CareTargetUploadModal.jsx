@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react'; // useState 추가
-import { X, FileText, Upload, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import React, { useRef } from 'react';
+import { X, FileText, Upload, AlertCircle } from 'lucide-react';
 
 function CareTargetUploadModal({ 
   isOpen, 
@@ -10,8 +10,6 @@ function CareTargetUploadModal({
   isUploading 
 }) {
   const fileInputRef = useRef(null);
-
-  const [careStatus, setCareStatus] = useState(true);
 
   if (!isOpen) return null;
 
@@ -34,10 +32,6 @@ function CareTargetUploadModal({
     e.target.value = '';
   };
 
-  const handleUploadClick = () => {
-    onUpload(careStatus); 
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -50,26 +44,7 @@ function CareTargetUploadModal({
         </div>
 
         <div className="p-6">
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-700 mb-3">등록 환자 기본 상태 설정</label>
-            <div className="flex gap-2">
-              <button 
-                type="button" 
-                onClick={() => setCareStatus(true)} 
-                className={`flex-1 py-2.5 rounded-lg font-medium border flex items-center justify-center gap-2 transition-all ${careStatus ? 'bg-[#008080] text-white border-[#008080]' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
-              >
-                <CheckCircle2 size={16} /> 활성 등록
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setCareStatus(false)} 
-                className={`flex-1 py-2.5 rounded-lg font-medium border flex items-center justify-center gap-2 transition-all ${!careStatus ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
-              >
-                <XCircle size={16} /> 비활성 등록
-              </button>
-            </div>
-            <p className="mt-2 text-[11px] text-gray-400">※ 업로드되는 모든 환자에게 해당 상태가 일괄 적용됩니다.</p>
-          </div>
+          {/* 기본 상태 설정 섹션 제거됨 */}
 
           <div className="mb-6 text-center p-8 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
             <input 
@@ -120,7 +95,7 @@ function CareTargetUploadModal({
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200">취소</button>
             <button 
-              onClick={handleUploadClick} 
+              onClick={onUpload} // 파라미터 전달 없이 호출
               disabled={selectedFiles.length === 0 || isUploading}
               className="flex-1 py-3 bg-[#008080] text-white rounded-xl font-bold hover:bg-[#006666] disabled:bg-gray-300 transition-colors"
             >

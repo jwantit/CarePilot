@@ -1,18 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, User, ShieldCheck, PlusCircle, CheckCircle2, XCircle, FileImage, UploadCloud } from 'lucide-react';
+import { X, User, ShieldCheck, PlusCircle, FileImage, UploadCloud } from 'lucide-react';
 import { doctorList } from '../../api/caretarget/careTargetApi';
 
 function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUploading }) {
   const [doctors, setDoctors] = useState([]);
   const fileInputRef = useRef(null);
 
-  // 초기값 설정 (gender를 '남성'으로 설정)
+  // 1. 초기 상태에서 careStatus 제거
   const initialFormState = {
     name: '',
     age: '',
-    gender: '남성', // 'MALE' -> '남성'으로 변경
+    gender: '남성', 
     disease: '',
-    careStatus: true,
     targetPhone: '',
     guardianName: '',
     guardianPhone: '',
@@ -75,12 +74,12 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
     Object.entries(formData).forEach(([key, value]) => {
       if (key === 'image') return; 
       if (key === 'doctorId' && (value === '' || value === null)) return;
-      
-      // 전송 시점에 '남성'/'여성' 값이 그대로 포함됨
       if (value !== null && value !== undefined) {
         data.append(key, value);
       }
     });
+
+    // 2. append('careStatus', true) 부분 완전 삭제
     
     onInsert(data);
   };
@@ -128,7 +127,7 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
 
           <div className="grid grid-cols-2 gap-5">
             <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b text-[#008080] font-bold text-sm">
-              <User size={16} /> 기본 정보 및 상태
+              <User size={16} /> 기본 정보
             </div>
 
             <div className="space-y-4">
@@ -144,16 +143,8 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">활성 상태</label>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setFormData(prev => ({ ...prev, careStatus: true }))} className={`flex-1 py-2.5 rounded-lg font-medium border flex items-center justify-center gap-2 transition-all ${formData.careStatus ? 'bg-[#008080] text-white border-[#008080]' : 'bg-white text-gray-500 border-gray-200'}`}><CheckCircle2 size={16} /> 활성</button>
-                  <button type="button" onClick={() => setFormData(prev => ({ ...prev, careStatus: false }))} className={`flex-1 py-2.5 rounded-lg font-medium border flex items-center justify-center gap-2 transition-all ${!formData.careStatus ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-500 border-gray-300'}`}><XCircle size={16} /> 비활성</button>
-                </div>
-              </div>
-              <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">성별</label>
                 <div className="flex gap-2">
-                  {/* 한글 문자열로 상태 업데이트 */}
                   {['남성', '여성'].map((g) => (
                     <button 
                       key={g} 
@@ -166,12 +157,10 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
                   ))}
                 </div>
               </div>
-            </div>
-
-            {/* 나머지 필드 (동일) */}
-            <div className="col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">질환명</label>
-              <input name="disease" value={formData.disease} onChange={handleChange} placeholder="예: 고혈압, 경증 치매" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">질환명</label>
+                <input name="disease" value={formData.disease} onChange={handleChange} placeholder="예: 고혈압, 경증 치매" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+              </div>
             </div>
 
             <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b text-[#008080] font-bold text-sm">

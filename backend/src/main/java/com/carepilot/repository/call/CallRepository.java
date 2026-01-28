@@ -18,7 +18,6 @@ public interface CallRepository extends JpaRepository<Call, Long> {
     Optional<Call> findTopByCareTargetId(@Param("careTargetId") Long careTargetId);
 
     //케어 대상자 상세보기 통화기록
-    @Query("SELECT c FROM Call c WHERE c.careTarget.careTargetId = :careTargetId ORDER BY c.startTime DESC")
-    List<Call> findAllByCareTargetId(@Param("careTargetId") Long careTargetId);
+    List<Call> findAllByCareTargetCareTargetIdOrderByStartTimeDesc(Long careTargetId);
 
 }

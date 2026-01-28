@@ -12,7 +12,7 @@ public interface CareService {
 
     List<CareTargetListResponseDTO> careTargetInsert(CareTargetInsertRequestDTO careTargetInsertRequestDTO, List<MultipartFile> files);
 
-    List<CareTargetListResponseDTO> getCareTargetList(Long organizationId, String careStatus, String keyword);
+    List<CareTargetListResponseDTO> getCareTargetList(Long organizationId, String keyword);
 
     List<CareTargetDoctorResponseDTO> getDoctorList(Long organizationId);
 
@@ -20,4 +20,12 @@ public interface CareService {
     CareTargetDetailResponseDTO getCareTargetDetail(Long organizationId, Long careTargetId);
 
     CareTargetDetailResponseDTO updateCareTargetDetail(Long organizationId, Long careTargetId, CareTargetUpdateRequestDTO updateDTO, MultipartFile file);
+
+    //삭제 처리
+    void deleteCareTarget(List<Long> careTargetIds, Long organizationId);
+
+
+
+
+
 }

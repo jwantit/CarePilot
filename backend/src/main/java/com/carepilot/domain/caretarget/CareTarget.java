@@ -6,11 +6,16 @@ import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.CareTargetUpdateRequestDTO;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "care_targets")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+
+@SQLDelete(sql = "UPDATE care_targets SET deleted_at = NOW() WHERE care_target_id = ?")
+@Where(clause = "deleted_at IS NULL")
 public class CareTarget extends SoftDeleteEntity {
 
     @Id
@@ -34,10 +39,6 @@ public class CareTarget extends SoftDeleteEntity {
 
     @Column(name = "disease")
     private String disease;
-
-    // @Column(name = "care_status", nullable = false)
-    @Column(name = "care_status")
-    private Boolean careStatus = true;
 
     @Column(name = "target_phone")
     private String targetPhone;
@@ -63,7 +64,6 @@ public class CareTarget extends SoftDeleteEntity {
         this.name = name;
         this.age = age;
         this.disease = disease;
-        this.careStatus = careStatus != null ? careStatus : true;
         this.targetPhone = targetPhone;
         this.guardianName = guardianName;
         this.guardianPhone = guardianPhone;

@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CareGroupListResponseDTO {
+    private Long groupId;
     private String groupName; //그룹이름 | 당뇨병 환자 그룹
     private String groupDescription; //그룹 설명 | 당뇨병 진단을 받은 환자들
     private String groupStatus; // 활성화 상태

@@ -17,9 +17,10 @@ public class CareTargetListResponseDTO {
     private String gender;
     private int age;
     private String disease;
+    private String careTargetPhone;
     private int riskScore; //리스크 점수
     private RiskLevel riskLevel; //리스크 레벨
-    private String recentCall;
+    private String recentCall; //최근통화 기록
     private Boolean careStatus;
 
 

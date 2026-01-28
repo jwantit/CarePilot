@@ -3,14 +3,17 @@ package com.carepilot.service.caretarget;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.caretarget.CareTargetGroupMap;
 import com.carepilot.domain.config.Doctor;
 import com.carepilot.domain.file.UploadTargetType;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.*;
 import com.carepilot.dto.upload.TargetFileDTO;
 import com.carepilot.dto.upload.UploadFileResponseDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.RiskScoreRepository;
+import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
@@ -39,14 +42,12 @@ public class CareServiceImpl implements CareService {
     private final UploadFileService uploadFileService;
     private final CallRepository callRepository;
     private final RiskScoreRepository riskScoreRepository;
+    private final CareTargetGroupMapRepository careTargetGroupMapRepository;
 
     //대량 환자등록 ---------------------------------------------------------------------------
     @Override
     @Transactional
     public List<CareTargetListResponseDTO> csvOrExcelCareTargetSave(List<CareTargetInsertRequestDTO> requests) {
-        if (requests == null || requests.isEmpty()) {
-            return getCareTargetList(requests.get(0).getOrganizationId(), "", "");
-        }
 
         Organization organization = organizationRepository.findById(requests.get(0).getOrganizationId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 조직입니다."));
@@ -65,7 +66,6 @@ public class CareServiceImpl implements CareService {
                     .age(dto.getAge())
                     .gender(dto.getGender())
                     .disease(dto.getDisease())
-                    .careStatus(dto.getCareStatus())
                     .targetPhone(dto.getTargetPhone())
                     .guardianName(dto.getGuardianName())
                     .guardianPhone(dto.getGuardianPhone())
@@ -78,7 +78,7 @@ public class CareServiceImpl implements CareService {
         }
 
         log.info("대량 등록 완료");
-        return getCareTargetList(organization.getOrganizationId(), "", "");
+        return getCareTargetList(organization.getOrganizationId(), "");
     }
     //END-------------------------------------------------------------------------------------------
 
@@ -103,7 +103,6 @@ public class CareServiceImpl implements CareService {
                 .age(careTargetInsertRequestDTO.getAge())
                 .gender(careTargetInsertRequestDTO.getGender())
                 .disease(careTargetInsertRequestDTO.getDisease())
-                .careStatus(careTargetInsertRequestDTO.getCareStatus())
                 .targetPhone(careTargetInsertRequestDTO.getTargetPhone())
                 .guardianName(careTargetInsertRequestDTO.getGuardianName())
                 .guardianPhone(careTargetInsertRequestDTO.getGuardianPhone())
@@ -124,7 +123,7 @@ public class CareServiceImpl implements CareService {
 
         log.info("저장성공 수동등록");
 
-        return getCareTargetList(careTargetInsertRequestDTO.getOrganizationId(), "","");
+        return getCareTargetList(careTargetInsertRequestDTO.getOrganizationId(), "");
 
 
     }
@@ -132,16 +131,10 @@ public class CareServiceImpl implements CareService {
 
 
     @Override
-    public List<CareTargetListResponseDTO> getCareTargetList(Long organizationId, String status, String keyword) {
+    public List<CareTargetListResponseDTO> getCareTargetList(Long organizationId, String keyword) {
 
-        Boolean filter = null;
-        if (status.equals("active")){
-            filter = true;
-        } else if (status.equals("inactive")) {
-            filter = false;
-        }
 
-        List<CareTarget> careTargets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(organizationId, filter, keyword);
+        List<CareTarget> careTargets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(organizationId, keyword);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         log.info("케어 대상자 조회 진입");
@@ -157,9 +150,10 @@ public class CareServiceImpl implements CareService {
                     .orElse(null);
 
 
-            Integer latestScore = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId())
-                    .map(RiskScore::getRiskScore)
-                    .orElse(0);
+
+            RiskLevel latestLevel = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId())
+                    .map(RiskScore::getRiskLevel)
+                    .orElse(RiskLevel.LOW);
 
             List<UploadFileResponseDTO> tempfiles = uploadFileService.careTargetFiles(organizationId, ct.getCareTargetId());
             List<UploadFileResponseDTO> filesScores = (tempfiles != null && !tempfiles.isEmpty())
@@ -172,10 +166,11 @@ public class CareServiceImpl implements CareService {
                     .thumbnailStoragePath(filesScores != null ? filesScores.getFirst().getThumbnailUrl() : null)
                     .name(ct.getName())
                     .age(ct.getAge())
+                    .gender(ct.getGender())
+                    .careTargetPhone(ct.getTargetPhone())
                     .disease(ct.getDisease())
-                    .riskScore(latestScore)
+                    .riskLevel(latestLevel)
                     .recentCall(lastCallDate)
-                    .careStatus(ct.getCareStatus())
                     .build();
             result.add(dto);
         }
@@ -211,89 +206,70 @@ public class CareServiceImpl implements CareService {
 
     @Override
     public CareTargetDetailResponseDTO getCareTargetDetail(Long organizationId, Long careTargetId) {
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // 차트용 짧은 날짜 포맷
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         CareTarget careTarget = careTargetRepository.findById(careTargetId).orElseThrow();
 
-        List<Call> calls = callRepository.findAllByCareTargetId(careTargetId);
+        // 1. 통화 기록 가져오기 및 최신순 정렬 (Repository 레벨에서 정렬 권장)
+        List<Call> calls = callRepository.findAllByCareTargetCareTargetIdOrderByStartTimeDesc(careTargetId);
 
-        //가장 최근 통화 ai요약 가져오기
-        String latestAiMemo = (calls != null && !calls.isEmpty())
-                ? calls.get(0).getAiMemo()
-                : null;
+        // 2. 최신 AI 메모 안전하게 가져오기
+        String latestAiMemo = calls.stream()
+                .findFirst()
+                .map(Call::getAiMemo)
+                .orElse(null);
 
-//. 데이터 존재 여부에 따라 null 또는 DTO 리스트 할당
-        List<CallHistoryDTO> callHistoryDTOS = (calls != null && !calls.isEmpty())
-                ? calls.stream()
+        // 3. 통화 히스토리 변환 (빈 리스트일 경우 null 대신 빈 리스트 반환이 프론트엔드에서 처리하기 편함)
+        List<CallHistoryDTO> callHistoryDTOS = calls.stream()
                 .map(c -> CallHistoryDTO.builder()
                         .callType(c.getCallType() != null ? c.getCallType().name() : null)
                         .startTime(c.getStartTime().format(formatter))
                         .summary(c.getSummary())
                         .status(c.getStatus() != null ? c.getStatus().name() : null)
                         .build())
-                .toList()
+                .toList();
+
+        // 4. 파일 정보 처리 (Empty 체크 추가)
+        List<UploadFileResponseDTO> tempFiles = uploadFileService.careTargetFiles(organizationId, careTargetId);
+        String firstFileUrl = (tempFiles != null && !tempFiles.isEmpty())
+                ? tempFiles.get(0).getFileUrl()
                 : null;
 
-
-
-
-        List<UploadFileResponseDTO> tempfiles = uploadFileService.careTargetFiles(organizationId, careTargetId);
-        List<UploadFileResponseDTO> filesScores = (tempfiles != null && !tempfiles.isEmpty())
-                ? tempfiles
-                : null;
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime threeMonthsAgo = now.minusMonths(3);
-        List<RiskScore> dbScores = riskScoreRepository.findTrendData(careTargetId, threeMonthsAgo);
-
-
-        Map<LocalDate, Integer> scoreMap = dbScores.stream()
-                .collect(Collectors.toMap(
-                        rs -> rs.getCalculatedAt().toLocalDate(),
-                        RiskScore::getRiskScore,
-                        (existing, replacement) -> replacement
-                ));
-
+        // 5. 위험도 트렌드 로직 (3개월 전부터 현재까지 7일 단위)
+        List<RiskScore> dbScores = riskScoreRepository.findTrendData(careTargetId, LocalDateTime.now().minusMonths(3));
         List<RiskTrendDTO> trendList = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-        LocalDate startDate = today.minusMonths(3);
 
-        LocalDate cursor = startDate;
-        while (cursor.getDayOfWeek() != today.getDayOfWeek()) {
-            cursor = cursor.plusDays(1);
-        }
+        LocalDate today = LocalDate.now();
+        LocalDate cursor = today.minusMonths(3);
 
         while (!cursor.isAfter(today)) {
             LocalDate weekStart = cursor;
-            LocalDate weekEnd = cursor.plusDays(7); // 다음 기준점까지가 한 주
+            LocalDate weekEnd = cursor.plusDays(7);
 
-            // 해당 7일 범위 내에 있는 데이터들 중 가장 높은 점수(Max) 찾기
             int maxScoreInWeek = dbScores.stream()
                     .filter(rs -> {
                         LocalDate dataDate = rs.getCalculatedAt().toLocalDate();
-                        // 데이터 날짜가 이번 주 범위(weekStart <= 날짜 < weekEnd)에 있는지 확인
                         return !dataDate.isBefore(weekStart) && dataDate.isBefore(weekEnd);
                     })
                     .mapToInt(RiskScore::getRiskScore)
-                    .max() // 가장 큰 값 추출
-                    .orElse(0); // 데이터가 없으면 0점
+                    .max()
+                    .orElse(0);
 
             trendList.add(new RiskTrendDTO(maxScoreInWeek, weekStart.format(formatter)));
-
-            cursor = weekEnd; // 다음 주로 이동
+            cursor = weekEnd; // 7일씩 증가
         }
 
+        // 6. 의사 정보 및 최종 빌드
         CareTargetDoctorResponseDTO doctor = Optional.ofNullable(careTarget.getDoctor())
                 .map(d -> CareTargetDoctorResponseDTO.builder()
                         .doctorId(d.getDoctorId())
                         .doctorName(d.getName())
                         .doctorSpecialty(d.getSpecialty())
                         .build())
-                .orElse(null); // 의사가 없으면 doctor 변수 자체가 null이 됨
+                .orElse(null);
 
         return CareTargetDetailResponseDTO.builder()
-                .file(filesScores != null ? filesScores.getFirst().getFileUrl() : null)
+                .file(firstFileUrl) // 안전하게 추출한 URL
                 .name(careTarget.getName())
                 .age(careTarget.getAge())
                 .gender(careTarget.getGender())
@@ -351,5 +327,18 @@ public class CareServiceImpl implements CareService {
         }
 
         return getCareTargetDetail(organizationId, careTargetId);
+    }
+
+
+
+
+    //삭제 처리
+
+    @Override
+    @Transactional
+    public void deleteCareTarget(List<Long> careTargetIds, Long organizationId) {
+        if (careTargetIds == null || careTargetIds.isEmpty()) return;
+        careTargetGroupMapRepository.deleteByCareTargetIds(careTargetIds, organizationId);
+        careTargetRepository.deleteAllById(careTargetIds);
     }
 }

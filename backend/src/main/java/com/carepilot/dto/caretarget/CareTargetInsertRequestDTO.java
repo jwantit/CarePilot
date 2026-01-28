@@ -14,7 +14,6 @@ public class CareTargetInsertRequestDTO {
     private int age; //케대 나이
     private String gender;
     private String disease;//케대 질환
-    private Boolean careStatus;//활성 여부
     private String targetPhone;
     private String guardianName;
     private String guardianPhone;

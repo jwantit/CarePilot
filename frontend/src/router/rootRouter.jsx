@@ -4,12 +4,11 @@ import Layout from '../components/menu/Layout';
 import Loading from '../components/common/Loading';
 import RequireLoginRoute from './RequireLoginRoute';
 import careTargetRouter from './caretarget/careTargetRouter';
+import careTargetGroupRouter from './caretarget/careTargetGroupRouter';
 
 
 // Lazy load pages
 const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
-const CareTargetPage = lazy(() => import('../pages/careTarget/CareTargetPage'));
-const CareTargetGroupPage = lazy(() => import('../pages/careTargetGroup/CareTargetGroupPage'));
 const CallPage = lazy(() => import('../pages/call/CallPage'));
 const TaskPage = lazy(() => import('../pages/task/TaskPage'));
 const ReportPage = lazy(() => import('../pages/report/ReportPage'));
@@ -90,14 +89,9 @@ const router = createBrowserRouter([
         ),
       },
       ...careTargetRouter(),
-      {
-        path: 'care-target-group',
-        element: (
-          <SuspenseWrapper>
-            <CareTargetGroupPage />
-          </SuspenseWrapper>
-        ),
-      },
+
+      ...careTargetGroupRouter(),
+    
       {
         path: 'call',
         element: (

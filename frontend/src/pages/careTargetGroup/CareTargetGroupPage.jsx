@@ -10,17 +10,15 @@ import { useAuth } from '../../hooks/useAuth';
 const CareTargetGroupPage = () => {
   const { user } = useAuth();
   const organizationId = user?.organizationId;
+  const role = user?.role; // ADMIN, MANAGER, USER 값 확인
 
-  //그룹 데이터 -> 그룹 Row -> props
+  // 그룹 데이터 관리
   const [groups, setGroups] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
 
-  //검색, 활성, 비활성, 전체보기 필터-------------------------
+  // 검색, 활성, 비활성, 전체보기 필터
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  //------------------------------------
-
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -69,20 +67,22 @@ const CareTargetGroupPage = () => {
           <p className="text-slate-500 font-medium">그룹을 생성하고 효율적으로 관리하세요.</p>
         </div>
         
-        {/* 그룹 생성 버튼 - 틸(#008080) 컬러 적용 */}
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-lg"
-          style={{ 
-            backgroundColor: '#008080',
-            boxShadow: '0 10px 15px -3px rgba(0, 128, 128, 0.2)' 
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#006666'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#008080'}
-        >
-          <Plus size={20} />
-          그룹 생성
-        </button>
+        {/* 권한 체크: ADMIN 혹은 MANAGER일 때만 버튼 렌더링 */}
+        {(role === 'ADMIN' || role === 'MANAGER') && (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-lg"
+            style={{ 
+              backgroundColor: '#008080',
+              boxShadow: '0 10px 15px -3px rgba(0, 128, 128, 0.2)' 
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#006666'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#008080'}
+          >
+            <Plus size={20} />
+            그룹 생성
+          </button>
+        )}
       </div>
 
       <GroupActionHeader
@@ -95,7 +95,6 @@ const CareTargetGroupPage = () => {
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center h-80 text-slate-400">
-          {/* 로딩 아이콘도 틸 컬러로 변경 */}
           <Loader2 className="animate-spin mb-4" size={48} style={{ color: '#008080' }} />
           <p className="font-medium text-slate-600">그룹 데이터를 불러오는 중입니다...</p>
         </div>
@@ -112,11 +111,14 @@ const CareTargetGroupPage = () => {
         </div>
       )}
 
-      <CreateGroupModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        organizationId={organizationId}
-      />
+      {/* 모달도 권한이 있는 경우에만 작동하도록 보호(안전장치) */}
+      {(role === 'ADMIN' || role === 'MANAGER') && (
+        <CreateGroupModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          organizationId={organizationId}
+        />
+      )}
     </div>
   );
 };

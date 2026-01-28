@@ -1,16 +1,19 @@
 package com.carepilot.controller;
 
 import com.carepilot.domain.caretarget.Gender;
+import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.dto.caretarget.CareTargetInsertRequestDTO;
 import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
 import com.carepilot.dto.caretarget.CareTargetDetailResponseDTO;
 import com.carepilot.dto.caretarget.CareTargetUpdateRequestDTO;
 import com.carepilot.dto.caretarget.CareTargetDoctorResponseDTO;
+import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.caretarget.CareService;
 import com.carepilot.util.CsvUtil;
 import com.carepilot.util.RowMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +29,13 @@ public class CareTargetController {
 
     private final CsvUtil csvUtil;
     private final CareService careService;
+    private final UserUtil userUtil;
 
     // CSV, 엑셀 대응
     @PostMapping(value = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<CareTargetListResponseDTO>> csvCareTarget(
             @RequestPart(value = "files") List<MultipartFile> files,
-            @RequestParam("organizationId") Long organizationId,
-            @RequestParam("careStatus") Boolean careStatus
+            @RequestParam("organizationId") Long organizationId
     ) {
         log.info("CSV 업로드 컨트롤러 진입 - 조직ID: {}", organizationId);
 
@@ -51,7 +54,6 @@ public class CareTargetController {
                     .guardianPhone(cols[6])
                     .guardianRelationship(cols[7])
                     .organizationId(organizationId)
-                    .careStatus(careStatus)
                     .doctorId(null) // CSV에는 의료진 정보 없음
                     .build();
         };
@@ -77,12 +79,10 @@ public class CareTargetController {
     @GetMapping("/care/list")
     public ResponseEntity<List<CareTargetListResponseDTO>> getTargetList(
             @RequestParam("organizationId") Long organizationId,
-            @RequestParam("status") String status,
             @RequestParam(value = "keyword", required = false) String keyword
     ) {
 
-        log.info("상태는" + status);
-        List<CareTargetListResponseDTO> result = careService.getCareTargetList(organizationId, status, keyword);
+        List<CareTargetListResponseDTO> result = careService.getCareTargetList(organizationId, keyword);
 
         return ResponseEntity.ok(result);
     }
@@ -94,6 +94,18 @@ public class CareTargetController {
         List<CareTargetDoctorResponseDTO> result = careService.getDoctorList(organizationId);
 
         return ResponseEntity.ok(result);
+    }
+
+    //케데헌 삭제
+    @DeleteMapping("/care/delete")
+    public ResponseEntity<Void> deleteCareTarget(
+            @RequestBody List<Long> careTargetIds) {
+        UserDTO userDTO = userUtil.getCurrentUserDTO();
+        if ("USER".equals(userDTO.getRole())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        careService.deleteCareTarget(careTargetIds, userDTO.getOrganizationId());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/care/detail")

@@ -1,20 +1,20 @@
 import React from 'react';
 import { Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const GroupRow = ({ data }) => {
+  const navigate = useNavigate();
   const isActive = data.groupStatus === 'ACTIVE' || data.groupStatus === '활성';
   
   const careList = data.careList || [];
   const displayPatients = careList.slice(0, 3);
   const remainingCount = careList.length - 3;
 
-  // 메인 틸 컬러 변수
   const tealColor = '#008080';
   const lightTealBg = '#f0f9f9';
 
   return (
     <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-7 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group relative overflow-hidden">
-      {/* 배경 장식 원 - 틸 톤으로 변경 */}
       <div 
         className="absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 transition-colors duration-500 opacity-20 group-hover:opacity-40" 
         style={{ backgroundColor: tealColor }}
@@ -22,7 +22,6 @@ const GroupRow = ({ data }) => {
 
       <div className="flex justify-between items-start mb-5 relative z-10">
         <div className="flex flex-col gap-2">
-          {/* 그룹 타입 배지 */}
           <span 
             className="inline-flex w-fit px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest rounded-lg border transition-colors"
             style={{ 
@@ -39,6 +38,7 @@ const GroupRow = ({ data }) => {
           </h3>
         </div>
         <button 
+          onClick={() => navigate(`/care-target-group/detail/${data.groupId}`)}
           className="text-xs font-bold text-slate-400 hover:bg-white px-4 py-2 rounded-xl border border-slate-50 transition-all shadow-sm hover:shadow"
           style={{ '--hover-text': tealColor }}
           onMouseOver={(e) => {

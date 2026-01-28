@@ -142,5 +142,22 @@ public class CallSchedule extends BaseEntity {
     public void restore() {
         this.status = ScheduleStatus.SCHEDULED;
     }
+
+    //업데이트 함수
+    public void updateSchedule(
+            LocalDateTime scheduledTime,
+            ScheduleType type,
+            ScheduleRecurrence recurrence,
+            LocalDateTime recurrenceEndDate,
+            Priority priority,
+            String memo
+    ){
+        this.scheduledTime = scheduledTime;
+        this.type = type;
+        this.recurrence = (type == ScheduleType.RECURRING) ? recurrence : null;
+        this.recurrenceEndDate = (type == ScheduleType.RECURRING) ? recurrenceEndDate : null;
+        this.priority = priority;
+        this.memo = memo;
+    }
 }
 

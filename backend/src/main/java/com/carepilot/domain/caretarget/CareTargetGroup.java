@@ -57,5 +57,21 @@ public class CareTargetGroup extends BaseEntity {
         this.createdBy = createdBy;
         this.scenario = scenario;
     }
+
+    public void updateInfo(String groupName, String groupDescription, Boolean groupStatus) {
+        if (groupName != null && !groupName.isBlank()) {
+            this.groupName = groupName;
+        }
+
+        if (groupDescription != null) {
+            this.groupDescription = groupDescription;
+        }
+
+        if (groupStatus != null) {
+            this.groupStatus = groupStatus;
+        }
+    }
+
+
 }
 

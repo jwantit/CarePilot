@@ -1,12 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, AlignLeft, Tag, Search, UserPlus, CheckCircle2, BookOpen, Loader2 } from 'lucide-react';
-import { getScenarioList, getCareTargetList, createCareGroup } from '../../api/caretarget/careTargetGroupApi';
+//------- Redux 연결 추가 -------
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCareTargets } from '../../store/slices/careTargetSlice';
+//------------------------------
+import { getScenarioList, createCareGroup } from '../../api/caretarget/careTargetGroupApi';
 import { useAuth } from '../../hooks/useAuth';
-
 
 const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
   const { user } = useAuth();
   const userId = user?.userId;
+  
+  //------- Redux Hooks 사용 -------
+  const dispatch = useDispatch();
+  const { list: patients, loading: reduxLoading } = useSelector((state) => state.careTarget);
+  //------------------------------
 
   const [formData, setFormData] = useState({ 
     careTargetId: [],
@@ -19,7 +27,6 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
   });
   
   const [scenarios, setScenarios] = useState([]);
-  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,13 +37,17 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
       const fetchData = async () => {
         setLoading(true);
         try {
-          // organizationId를 인자로 전달하여 데이터 호출
-          const [scenarioRes, patientRes] = await Promise.all([
-            getScenarioList(organizationId || 1),
-            getCareTargetList(organizationId || 1)
-          ]);
+          // 시나리오 리스트는 기존 API 호출 유지
+          const scenarioRes = await getScenarioList(organizationId || 1);
           setScenarios(Array.isArray(scenarioRes) ? scenarioRes : (scenarioRes.data || []));
-          setPatients(Array.isArray(patientRes) ? patientRes : (patientRes.data || []));
+
+          //------- 환자 목록은 리덕스 Thunk 호출 (필터/검색어 없이 전체 요청) -------
+          dispatch(fetchCareTargets({ 
+            organizationId: organizationId || 1, 
+            filterStatus: 'all', 
+            keyword: '' 
+          }));
+          //------------------------------------------------------------------
         } catch (error) {
           console.error("데이터 로드 실패:", error);
         } finally {
@@ -45,7 +56,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
       };
       fetchData();
     }
-  }, [isOpen, organizationId]);
+  }, [isOpen, organizationId, dispatch]);
 
   const handleSubmit = async () => {
     if (!isFormValid || isSubmitting) return;
@@ -80,7 +91,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
       const nameMatch = p.name?.toLowerCase().includes(term);
       const ageMatch = p.age?.toString().includes(term);
       const riskMatch = p.riskLevel?.toLowerCase().includes(term);
-      const diseaseMatch = p.disease?.toLowerCase().includes(term); // 질환 검색 추가
+      const diseaseMatch = p.disease?.toLowerCase().includes(term);
       
       return nameMatch || ageMatch || riskMatch || diseaseMatch;
     });
@@ -104,6 +115,9 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
         : [...prev, patient]
     );
   };
+
+  // 로딩 상태 통합 (시나리오 로딩 + 리덕스 환자 로딩)
+  const isDataLoading = loading || reduxLoading;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -179,7 +193,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input 
                 type="text" 
-                placeholder="이름, 나이, 위험도(CRITICAL/HIGH/MEDIUM/LOW), 질환명 검색..."
+                placeholder="이름, 나이, 위험도, 질환명 검색..."
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-11 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-medium focus:ring-2 outline-none transition-all"
@@ -188,12 +202,17 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
             </div>
 
             <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border-t border-slate-50">
-              {loading ? (
+              {isDataLoading ? (
                 <div className="py-10 flex flex-col items-center text-slate-300 gap-2"><Loader2 size={24} className="animate-spin text-teal-500" /></div>
               ) : filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => {
                   const isSelected = selectedPatients.some(p => p.careTargetId === patient.careTargetId);
-                  const riskColor = patient.riskLevel === 'HIGH' || patient.riskLevel === 'CRITICAL' ? 'bg-red-500' : patient.riskLevel === 'MEDIUM' ? 'bg-orange-400' : 'bg-green-400';
+                  
+                  // ★ 수정된 부분: riskLevel이 null이면 NORMAL로 간주하여 teal 색상 적용
+                  const isHighRisk = patient.riskLevel === 'HIGH' || patient.riskLevel === 'CRITICAL';
+                  const isMediumRisk = patient.riskLevel === 'MEDIUM';
+                  
+                  const riskColor = isHighRisk ? 'bg-red-500' : isMediumRisk ? 'bg-orange-400' : 'bg-teal-400';
                   
                   return (
                     <div 
@@ -205,12 +224,12 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                     >
                       <div className="flex-1 grid grid-cols-4 items-center">
                         <p className={`text-sm font-bold ${isSelected ? 'text-teal-700' : 'text-slate-700'}`}>{patient.name}</p>
-                        <p className="text-[11px] text-slate-400 font-semibold">{patient.gender} / {patient.age}세</p>
+                        <p className="text-[11px] text-slate-400 font-semibold">{patient.gender === 'M' || patient.gender === '남성' ? '남성' : '여성'} / {patient.age}세</p>
                         <p className="text-[11px] text-slate-500 font-bold truncate pr-2">{patient.disease || '-'}</p>
                         <div className="flex items-center gap-1.5">
                           <span className={`w-1.5 h-1.5 rounded-full ${riskColor}`} />
-                          <p className={`text-[10px] font-black uppercase ${patient.riskLevel === 'HIGH' || patient.riskLevel === 'CRITICAL' ? 'text-red-500' : 'text-slate-400'}`}>
-                            {patient.riskLevel || '-'}
+                          <p className={`text-[10px] font-black uppercase ${isHighRisk ? 'text-red-500' : isMediumRisk ? 'text-orange-400' : 'text-teal-500'}`}>
+                            {patient.riskLevel || 'NORMAL'} 
                           </p>
                         </div>
                       </div>
@@ -244,12 +263,12 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
             <div className="flex gap-2">
               <button onClick={onClose} disabled={isSubmitting} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-all">취소</button>
               <button 
-                disabled={!isFormValid || loading || isSubmitting}
+                disabled={!isFormValid || isDataLoading || isSubmitting}
                 onClick={handleSubmit}
                 className={`flex-[2] py-3 font-bold rounded-xl text-sm transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2`}
                 style={{ 
-                  backgroundColor: !isFormValid || loading || isSubmitting ? '#f1f5f9' : '#008080',
-                  color: !isFormValid || loading || isSubmitting ? '#cbd5e1' : 'white',
+                  backgroundColor: !isFormValid || isDataLoading || isSubmitting ? '#f1f5f9' : '#008080',
+                  color: !isFormValid || isDataLoading || isSubmitting ? '#cbd5e1' : 'white',
                   cursor: isFormValid && !isSubmitting ? 'pointer' : 'not-allowed'
                 }}
               >

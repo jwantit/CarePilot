@@ -14,7 +14,6 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
     //케어 대상자 검색 과 필터
     @Query("SELECT c FROM CareTarget c " +
             "WHERE c.organization.organizationId = :organizationId " +
-            "AND (:filter IS NULL OR c.careStatus = :filter) " +
             "AND (:keyword IS NULL OR :keyword = '' " +
             "    OR c.name LIKE %:keyword% " +
             "    OR c.targetPhone LIKE %:keyword% " +
@@ -22,29 +21,23 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
             "ORDER BY c.careTargetId DESC")
     List<CareTarget> findByOrganizationIdAndFilterAndKeyword(
             @Param("organizationId") Long organizationId,
-            @Param("filter") Boolean filter,
             @Param("keyword") String keyword
     );
 
     @Query("SELECT c FROM CareTarget c " +
-            "WHERE c.careTargetId = :careTargetId " +
-            "AND (:filter IS NULL OR c.careStatus = :filter)")
+            "WHERE c.careTargetId = :careTargetId ")
     Optional<CareTarget> findCareTargetWithFilter(
-            @Param("careTargetId") Long careTargetId,
-            @Param("filter") Boolean filter
+            @Param("careTargetId") Long careTargetId
     );
-
 
     //케어 그룹 생성시 필요한 케데 리스트
     @Query("SELECT new com.carepilot.dto.caretarget.CareTargetListResponseDTO(" +
             "c.careTargetId, c.name, c.age, c.gender, c.disease, " +
             "(SELECT rs.riskLevel FROM RiskScore rs WHERE rs.careTarget.id = c.id ORDER BY rs.createdAt DESC LIMIT 1)) " +
             "FROM CareTarget c " +
-            "WHERE c.organization.id = :organizationId " +
-            "AND (:filter IS NULL OR c.careStatus = :filter)")
+            "WHERE c.organization.id = :organizationId ")
     List<CareTargetListResponseDTO> findCareTargetList(
-            @Param("organizationId") Long organizationId,
-            @Param("filter") Boolean filter
+            @Param("organizationId") Long organizationId
     );
 
 
