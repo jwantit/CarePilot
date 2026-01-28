@@ -4,6 +4,7 @@ import com.carepilot.domain.notice.Notice;
 import com.carepilot.domain.notice.NoticeComment;
 import com.carepilot.domain.user.User;
 import com.carepilot.dto.notice.CommentResponseDTO;
+import com.carepilot.dto.notice.CommentSaveRequest;
 import com.carepilot.repository.notice.NoticeCommentRepository;
 import com.carepilot.repository.notice.NoticeRepository;
 import com.carepilot.repository.user.UserRepository;
@@ -27,23 +28,24 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
 
     @Override
     @Transactional
-    public Long saveComment(Long noticeId, Long userId, Long parentId, String content) {
+    public Long saveComment(Long noticeId, CommentSaveRequest request) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다."));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물이 없습니다. id=" + noticeId));
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. id=" + request.getUserId()));
 
         NoticeComment parent = null;
-        if (parentId != null) {
-            parent = commentRepository.findById(parentId)
-                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글이 없습니다."));
+        if (request.getParentId() != null) {
+            parent = commentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글이 없습니다. id=" + request.getParentId()));
         }
 
         NoticeComment comment = NoticeComment.builder()
                 .notice(notice)
                 .user(user)
+                .content(request.getContent())
                 .parentComment(parent)
-                .content(content)
+                .isDeleted(false)
                 .build();
 
         return commentRepository.save(comment).getCommentId();
@@ -51,28 +53,16 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
 
     @Override
     public List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId) {
-        // 1. DB에서 해당 게시물의 모든 댓글을 정렬해서 가져옴
-        List<NoticeComment> comments = commentRepository.findAllByNoticeId(noticeId);
+        List<NoticeComment> comments = commentRepository.findAllByNotice_NoticeIdOrderByCreatedAtAsc(noticeId);
 
-        // 2. 변환 및 트리 구조 조립을 위한 준비
         List<CommentResponseDTO> rootComments = new ArrayList<>();
         Map<Long, CommentResponseDTO> map = new HashMap<>();
 
-        // 3. 모든 댓글을 DTO로 변환하여 Map에 저장
         comments.forEach(c -> {
-            CommentResponseDTO dto = CommentResponseDTO.builder()
-                    .commentId(c.getCommentId())
-                    .content(c.getIsDeleted() ? "삭제된 댓글입니다" : c.getContent())
-                    .userName(c.getIsDeleted() ? "" : c.getUser().getName())
-                    .userId(c.getUser().getUserId())
-                    .parentId(c.getParentComment() != null ? c.getParentComment().getCommentId() : null)
-                    .createdAt(c.getCreatedAt())
-                    .children(new ArrayList<>()) // 자식 리스트 초기화
-                    .build();
+            CommentResponseDTO dto = CommentResponseDTO.from(c);
 
             map.put(dto.getCommentId(), dto);
 
-            // 부모가 없으면 최상위 댓글 리스트에 추가, 있으면 부모의 children에 추가
             if (c.getParentComment() == null) {
                 rootComments.add(dto);
             } else {
@@ -82,20 +72,18 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
                 }
             }
         });
-
         return rootComments;
     }
 
     @Override
     @Transactional
-    public void updateComment(Long commentId, String content, Long userId) {
+    public void updateComment(Long commentId, CommentSaveRequest request) {
         NoticeComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다. id=" + commentId));
 
-        if (!comment.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("댓글 수정 권한이 없습니다.");
-        }
-        comment.updateContent(content);
+        comment.validateWriter(request.getUserId());
+
+        comment.updateContent(request.getContent());
     }
 
     @Override
@@ -105,16 +93,8 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
         NoticeComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다. id=" + commentId));
 
-        if (!comment.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("댓글 삭제 권한이 없습니다.");
-        }
-        comment.changeDeletedStatus(true);
-    }
+        comment.validateWriter(userId);
 
-    @Override
-    @Transactional
-    public void disconnectCommentsFromNotice(Long noticeId) {
-        List<NoticeComment> comments = commentRepository.findAllByNoticeId(noticeId);
-        comments.forEach(NoticeComment::setNoticeNull);
+        comment.changeDeletedStatus(true);
     }
 }

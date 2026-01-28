@@ -1,7 +1,7 @@
 package com.carepilot.controller;
 
-import com.carepilot.domain.notice.Notice;
 import com.carepilot.dto.notice.NoticeResponseDTO;
+import com.carepilot.dto.notice.NoticeSaveRequest;
 import com.carepilot.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,9 +36,9 @@ public class NoticeController {
     // 공지사항 작성
     @PostMapping
     public ResponseEntity<Void> createNotice(
-            @RequestBody Notice notice,
-            @RequestParam Long userId) { // 작성자 ID 수신
-        noticeService.saveNotice(notice, userId);
+            @RequestBody NoticeSaveRequest noticeSaveRequest,
+            @RequestParam Long userId) {    // 작성자 ID 수신
+        noticeService.saveNotice(noticeSaveRequest, userId);
         return ResponseEntity.ok().build();
     }
 
@@ -46,9 +46,9 @@ public class NoticeController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateNotice(
             @PathVariable Long id,
-            @RequestBody Notice updateParam,
+            @RequestBody NoticeSaveRequest noticeSaveRequest,
             @RequestParam Long userId) {
-        noticeService.updateNotice(id, updateParam, userId);
+        noticeService.updateNotice(id, noticeSaveRequest, userId);
         return ResponseEntity.ok().build();
     }
 
