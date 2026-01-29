@@ -2,8 +2,12 @@ package com.carepilot.config;
 
 
 
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.OllamaEmbeddingModel;
 
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.VectorStore;
 
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
@@ -14,12 +18,12 @@ import org.springframework.context.annotation.Bean;
 
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.context.annotation.Primary;
 import redis.clients.jedis.JedisPooled;
 
 
 
 @Configuration
-
 public class VectorDBConfig {
 
 
