@@ -10,6 +10,7 @@ import com.carepilot.security.handler.LoginSuccessHandler;
 import com.carepilot.security.handler.OAuth2SuccessHandler;
 import com.carepilot.security.service.AuthUserDetailsService;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -74,7 +75,8 @@ public class SecurityConfig {
                 // 나머지 인증 API는 허용
                 .requestMatchers("/auth/**").permitAll()
                 // 나머지는 인증 필요
-                .anyRequest().authenticated()
+                // .anyRequest().authenticated()
+                .anyRequest().permitAll() // 개발 중 인증 해제
                 );
 
         // 폼 로그인 설정

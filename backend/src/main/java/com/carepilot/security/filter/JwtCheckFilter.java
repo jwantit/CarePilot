@@ -109,9 +109,14 @@ public class JwtCheckFilter extends OncePerRequestFilter {
         }
 
         // 3. JWT가 없으면 에러 응답 (토큰 관련 - 401)
+        // if (accessToken == null) {
+        //     log.error("JWT not found in Authorization header or cookie. Path: {}, Method: {}", request.getRequestURI(), request.getMethod());
+        //     sendErrorResponse(response, "ERROR_ACCESS_TOKEN", HttpServletResponse.SC_UNAUTHORIZED);
+        //     return;
+        // }
         if (accessToken == null) {
-            log.error("JWT not found in Authorization header or cookie. Path: {}, Method: {}", request.getRequestURI(), request.getMethod());
-            sendErrorResponse(response, "ERROR_ACCESS_TOKEN", HttpServletResponse.SC_UNAUTHORIZED);
+            // 토큰이 없어도 그냥 다음 필터/컨트롤러로 넘김 (401 안 던짐)
+            filterChain.doFilter(request, response);
             return;
         }
         

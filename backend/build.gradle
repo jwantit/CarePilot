@@ -60,6 +60,9 @@ dependencies {
     // Redis 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // Spring AI (통화 요약용 LLM)
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M6'
+
 
     //JWT 관련 라이브러리
     implementation  'io.jsonwebtoken:jjwt-api:0.11.5'

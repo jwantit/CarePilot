@@ -68,6 +68,9 @@ public class Call extends BaseEntity {
     @Column(name = "ai_memo", columnDefinition = "TEXT")
     private String aiMemo;
 
+    @Column(name = "signals", columnDefinition = "TEXT")
+    private String signals;
+
     @Column(name = "caller_id", length = 50)
     private String callerId;
 
@@ -78,7 +81,7 @@ public class Call extends BaseEntity {
     public Call(Organization organization, CareTarget careTarget, CallSchedule callSchedule,
                 Long operatorId, CallDirection direction, CallType callType, CallStatus status,
                 Integer duration, LocalDateTime startTime, LocalDateTime endTime,
-                String summary, String aiMemo, String callerId, String callSid) {
+                String summary, String aiMemo, String signals, String callerId, String callSid) {
         this.organization = organization;
         this.careTarget = careTarget;
         this.callSchedule = callSchedule;
@@ -91,6 +94,7 @@ public class Call extends BaseEntity {
         this.endTime = endTime;
         this.summary = summary;
         this.aiMemo = aiMemo;
+        this.signals = signals;
         this.callerId = callerId;
         this.callSid = callSid;
     }
@@ -103,6 +107,13 @@ public class Call extends BaseEntity {
         if (this.startTime != null && this.endTime != null) {
             this.duration = (int) Duration.between(this.startTime, this.endTime).getSeconds();
         }
+    }
+
+    // AI 분석 결과(요약, 메모, 시그널)를 반영. 통화 분석 파이프라인에서 호출.
+    public void updateAiResult(String summary, String aiMemo, String signals) {
+        this.summary = summary;
+        this.aiMemo = aiMemo;
+        this.signals = signals;
     }
 }
 

@@ -40,7 +40,7 @@ class TaskRepositoryTests {
         Organization org = organizationRepository.findById(1L).orElseThrow();
         List<User> users = userRepository.findByOrganization(org);
         List<CareTarget> targets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(
-                org.getOrganizationId(), true, null);
+                org.getOrganizationId(),  null);
         User creator = users.isEmpty() ? null : users.get(0);
         User assignee = users.size() > 1 ? users.get(1) : null;
         CareTarget target = targets.isEmpty() ? null : targets.get(0);
