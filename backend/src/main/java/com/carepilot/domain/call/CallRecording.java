@@ -24,7 +24,7 @@ public class CallRecording extends BaseEntity {
     private Call call;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "file_id", nullable = false)
+    @JoinColumn(name = "file_id", nullable = true)
     private UploadFile file;
 
     @Column(name = "transcript", columnDefinition = "TEXT")
@@ -35,6 +35,14 @@ public class CallRecording extends BaseEntity {
         this.call = call;
         this.file = file;
         this.transcript = transcript;
+    }
+
+    public void updateTranscript(String transcript) {
+        this.transcript = transcript;
+    }
+
+    public void updateFile(UploadFile file) {
+        this.file = file;
     }
 }
 

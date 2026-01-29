@@ -20,4 +20,7 @@ public interface CallRepository extends JpaRepository<Call, Long> {
     //케어 대상자 상세보기 통화기록
     List<Call> findAllByCareTargetCareTargetIdOrderByStartTimeDesc(Long careTargetId);
 
+    // Twilio CallSid로 Call 조회
+    Optional<Call> findByCallSid(String callSid);
+
 }

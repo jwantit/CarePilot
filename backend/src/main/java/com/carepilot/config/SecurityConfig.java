@@ -66,6 +66,9 @@ public class SecurityConfig {
                 .requestMatchers("/display/**").permitAll()
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/api/calls/make-call").permitAll()
+                .requestMatchers("/api/calls/test/**").permitAll()  // 테스트 엔드포인트 허용
+                .requestMatchers("/api/twilio/**").permitAll()  // Twilio 웹훅/TwiML 엔드포인트 허용
                 // 인증 필요한 엔드포인트 (구체적인 것부터)
                 .requestMatchers("/auth/me").authenticated()
                 // 나머지 인증 API는 허용
