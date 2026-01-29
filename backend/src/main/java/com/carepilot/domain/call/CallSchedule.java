@@ -3,6 +3,7 @@ package com.carepilot.domain.call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.caretarget.CareTargetGroup;
 import com.carepilot.domain.common.BaseEntity;
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.enums.*;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
@@ -75,6 +76,10 @@ public class CallSchedule extends BaseEntity {
     @JoinColumn(name = "call_id")
     private Call call;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scenario_id")
+    private Scenario scenario;
+
     @Column(name = "memo", columnDefinition = "TEXT")
     private String memo;
 
@@ -88,7 +93,7 @@ public class CallSchedule extends BaseEntity {
                        CareTarget careTarget, CareTargetGroup group, LocalDateTime scheduledTime,
                        ScheduleType type, ScheduleRecurrence recurrence, LocalDateTime recurrenceEndDate,
                        Priority priority, ScheduleStatus status, LocalDateTime completedAt,
-                       Call call, String memo, User createdBy) {
+                       Call call, Scenario scenario, String memo, User createdBy) {
         this.organization = organization;
         this.targetType = targetType;
         this.careTarget = careTarget;
@@ -101,6 +106,7 @@ public class CallSchedule extends BaseEntity {
         this.status = status != null ? status : ScheduleStatus.SCHEDULED;
         this.completedAt = completedAt;
         this.call = call;
+        this.scenario = scenario;
         this.memo = memo;
         this.createdBy = createdBy;
     }

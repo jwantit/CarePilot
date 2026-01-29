@@ -78,7 +78,8 @@ public class JwtCheckFilter extends OncePerRequestFilter {
 
         // Twilio 웹훅 엔드포인트는 JWT 없이 허용
         if (path.startsWith("/api/twilio/") ||
-            path.equals("/api/calls/make-call")) {
+            path.equals("/api/calls/make-call") ||
+            path.startsWith("/api/calls/test/")) {
             return true;
         }
 

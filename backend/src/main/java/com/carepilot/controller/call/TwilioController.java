@@ -10,9 +10,13 @@ import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.file.UploadFileType;
 import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.organization.Organization;
+import com.carepilot.domain.config.Scenario;
+import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
+import com.carepilot.repository.config.ScenarioQuestionRepository;
+import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
 import com.twilio.twiml.VoiceResponse;
@@ -33,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,6 +53,8 @@ public class TwilioController {
     private final CareTargetRepository careTargetRepository;
     private final OrganizationRepository organizationRepository;
     private final UploadFileRepository uploadFileRepository;
+    private final ScenarioRepository scenarioRepository;
+    private final ScenarioQuestionRepository scenarioQuestionRepository;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -59,8 +66,8 @@ public class TwilioController {
     private String twilioAuthToken;
 
     /**
-     * [1단계] Twilio가 가장 먼저 찌르는 엔드포인트
-     * 트라이얼 안내가 나올 때 1번을 누르도록 유도합니다.
+     * [1단계] Twilio가 가장 먼저 호출하는 엔드포인트
+     * 인사말을 말하고, 시나리오가 있으면 첫 번째 질문을 시작하고, 없으면 일반 STT 입력을 받습니다.
      */
     @RequestMapping(
             value = "/twiml/voice",
@@ -68,48 +75,92 @@ public class TwilioController {
             produces = "application/xml; charset=UTF-8"
     )
     @ResponseBody
-    public ResponseEntity<String> getVoiceTwiML() {
-        VoiceResponse twiml = new VoiceResponse.Builder()
-                .gather(new Gather.Builder()
-                        .numDigits(1)
-                        .action(ngrokBaseUrl + "/api/twilio/voice/menu")
+    public ResponseEntity<String> getVoiceTwiML(
+            @RequestParam(value = "CallSid") String callSid) {
+        VoiceResponse.Builder rb = new VoiceResponse.Builder();
+
+        try {
+            // CallSid로 Call 찾기
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            if (callOpt.isPresent()) {
+                Call call = callOpt.get();
+                Scenario scenario = null;
+                
+                // CallSchedule을 통해 Scenario 찾기
+                if (call.getCallSchedule() != null) {
+                    scenario = call.getCallSchedule().getScenario();
+                }
+                
+                // 인사말 먼저 말하기 (시나리오 있든 없든)
+                rb.say(new Say.Builder("안녕하세요, 케어파일럿입니다.")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+                
+                // Scenario가 있으면 시나리오 기반 질문 시작
+                if (scenario != null) {
+                    // 시나리오의 첫 번째 질문 가져오기
+                    List<ScenarioQuestion> questions = scenarioQuestionRepository
+                            .findByScenarioOrderByQuestionOrderAsc(scenario);
+                    
+                    if (questions.isEmpty()) {
+                        rb.say(new Say.Builder("질문이 설정되지 않았습니다.")
+                                .language(Say.Language.KO_KR)
+                                .voice(Say.Voice.POLLY_SEOYEON)
+                                .build());
+                    } else {
+                        // 첫 번째 질문 초기화
+                        ScenarioQuestion firstQuestion = questions.get(0);
+                        initializeTranscript(callSid, firstQuestion.getQuestionText());
+                        
+                        // 첫 번째 질문을 바로 읽어줌
+                        rb.gather(new Gather.Builder()
+                                .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                                .language(Gather.Language.KO_KR)
+                                .speechTimeout("auto")
+                                .action(ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=1")
+                                .method(com.twilio.http.HttpMethod.POST)
+                                .say(new Say.Builder(firstQuestion.getQuestionText())
+                                        .language(Say.Language.KO_KR)
+                                        .voice(Say.Voice.POLLY_SEOYEON)
+                                        .build())
+                                .build());
+                    }
+                } else {
+                    // Scenario가 없으면 기존 방식으로 진행
+                    rb.gather(new Gather.Builder()
+                            .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                            .language(Gather.Language.KO_KR)
+                            .speechTimeout("auto")
+                            .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
+                            .method(com.twilio.http.HttpMethod.POST)
+                            .say(new Say.Builder("오늘 컨디션이 어떠신지 말씀해 주세요.")
+                                    .language(Say.Language.KO_KR)
+                                    .voice(Say.Voice.POLLY_SEOYEON)
+                                    .build())
+                            .build());
+                }
+            } else {
+                // Call을 찾을 수 없으면 기존 방식으로 진행
+                rb.say(new Say.Builder("안녕하세요, 케어파일럿입니다.")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+                rb.gather(new Gather.Builder()
+                        .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                        .language(Gather.Language.KO_KR)
+                        .speechTimeout("auto")
+                        .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
                         .method(com.twilio.http.HttpMethod.POST)
-                        .say(new Say.Builder("안녕하세요, 케어파일럿입니다. 서비스를 시작하려면 키패드 1번을 눌러주세요.")
+                        .say(new Say.Builder("오늘 컨디션이 어떠신지 말씀해 주세요.")
                                 .language(Say.Language.KO_KR)
                                 .voice(Say.Voice.POLLY_SEOYEON)
                                 .build())
-                        .build())
-                .say(new Say.Builder("입력이 감지되지 않아 통화를 종료합니다.")
-                        .language(Say.Language.KO_KR)
-                        .voice(Say.Voice.POLLY_SEOYEON)
-                        .build())
-                .build();
-
-        return ResponseEntity.ok().body(cleanXml(twiml.toXml()));
-    }
-
-    /**
-     * [2단계] 1번을 눌렀을 때 실행되는 메뉴 처리
-     */
-    @PostMapping(value = "/voice/menu", produces = "application/xml; charset=UTF-8")
-    @ResponseBody
-    public ResponseEntity<String> handleMenu(@RequestParam(value = "Digits", required = false) String digits) {
-        VoiceResponse.Builder rb = new VoiceResponse.Builder();
-
-        if ("1".equals(digits)) {
-            rb.gather(new Gather.Builder()
-                    .inputs(java.util.Collections.singletonList(Gather.Input.SPEECH))
-                    .language(Gather.Language.KO_KR)
-                    .speechTimeout("auto")
-                    .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
-                    .method(com.twilio.http.HttpMethod.POST)
-                    .say(new Say.Builder("네, 연결되었습니다. 오늘 컨디션이 어떠신지 말씀해 주세요.")
-                            .language(Say.Language.KO_KR)
-                            .voice(Say.Voice.POLLY_SEOYEON)
-                            .build())
-                    .build());
-        } else {
-            rb.say(new Say.Builder("잘못된 입력입니다. 다시 전화를 걸어주세요.")
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("시나리오 질문 시작 중 에러 발생: {}", e.getMessage(), e);
+            rb.say(new Say.Builder("시스템 오류가 발생했습니다.")
                     .language(Say.Language.KO_KR)
                     .voice(Say.Voice.POLLY_SEOYEON)
                     .build());
@@ -119,7 +170,127 @@ public class TwilioController {
     }
 
     /**
-     * [3단계] 음성 인식(STT) 결과 처리 및 DB 저장
+     * [2-1단계] 시나리오 기반 순차 질문 처리
+     * 이전 답변을 저장하고 다음 질문을 읽어줍니다. 모든 질문이 끝나면 완료 메시지를 재생합니다.
+     */
+    @PostMapping(value = "/voice/conversation", produces = "application/xml; charset=UTF-8")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<String> handleConversation(
+            @RequestParam(value = "SpeechResult", required = false) String speechResult,
+            @RequestParam(value = "CallSid") String callSid,
+            @RequestParam(value = "questionIdx", defaultValue = "0") int questionIdx) {
+
+        VoiceResponse.Builder rb = new VoiceResponse.Builder();
+
+        try {
+            // 1. CallSid로 Call 찾기
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            if (callOpt.isEmpty()) {
+                log.warn("Call을 찾을 수 없음: callSid={}", callSid);
+                rb.say(new Say.Builder("시스템 오류가 발생했습니다.")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+                return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+            }
+
+            Call call = callOpt.get();
+
+            // 2. CallSchedule을 통해 Scenario 찾기
+            Scenario scenario = null;
+            if (call.getCallSchedule() != null) {
+                scenario = call.getCallSchedule().getScenario();
+            }
+            
+            if (scenario == null) {
+                // 시나리오가 없으면 기존 방식(단순 STT)으로 진행
+                log.info("시나리오가 없어 기존 방식으로 진행: callId={}", call.getCallId());
+                rb.gather(new Gather.Builder()
+                        .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                        .language(Gather.Language.KO_KR)
+                        .speechTimeout("auto")
+                        .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
+                        .method(com.twilio.http.HttpMethod.POST)
+                        .say(new Say.Builder("오늘 컨디션이 어떠신지 말씀해 주세요.")
+                                .language(Say.Language.KO_KR)
+                                .voice(Say.Voice.POLLY_SEOYEON)
+                                .build())
+                        .build());
+                return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+            }
+
+            // 3. 시나리오의 질문 목록 가져오기 (순서대로)
+            List<ScenarioQuestion> questions = scenarioQuestionRepository
+                    .findByScenarioOrderByQuestionOrderAsc(scenario);
+
+            if (questions.isEmpty()) {
+                rb.say(new Say.Builder("질문이 설정되지 않았습니다.")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+                return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+            }
+
+            // 4. 이전 답변이 있다면 저장
+            if (speechResult != null && !speechResult.trim().isEmpty() && questionIdx > 0) {
+                // 이전 질문 텍스트 가져오기
+                ScenarioQuestion previousQuestion = questions.get(questionIdx - 1);
+                saveAnswer(callSid, previousQuestion.getQuestionText(), speechResult);
+            }
+
+            // 5. 첫 번째 질문인 경우 질문만 먼저 저장 (답변은 다음 호출에서 저장됨)
+            if (questionIdx == 0) {
+                ScenarioQuestion firstQuestion = questions.get(0);
+                initializeTranscript(callSid, firstQuestion.getQuestionText());
+            }
+
+            // 6. 다음 질문이 있는지 확인
+            if (questionIdx < questions.size()) {
+                ScenarioQuestion nextQuestion = questions.get(questionIdx);
+                
+                // 다음 질문을 물어보고, 다시 이 엔드포인트를 호출하도록 설정
+                rb.gather(new Gather.Builder()
+                        .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                        .language(Gather.Language.KO_KR)
+                        .speechTimeout("auto")
+                        .action(ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=" + (questionIdx + 1))
+                        .method(com.twilio.http.HttpMethod.POST)
+                        .say(new Say.Builder(nextQuestion.getQuestionText())
+                                .language(Say.Language.KO_KR)
+                                .voice(Say.Voice.POLLY_SEOYEON)
+                                .build())
+                        .build());
+            } else {
+                // 모든 질문 완료 - 요청사항 질문
+                rb.say(new Say.Builder("모든 질문이 완료되었습니다. 추가적으로 하실 말씀이나 요청사항이 있으신가요?")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+                
+                rb.gather(new Gather.Builder()
+                        .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                        .language(Gather.Language.KO_KR)
+                        .speechTimeout("auto")
+                        .action(ngrokBaseUrl + "/api/twilio/voice/final-request")
+                        .method(com.twilio.http.HttpMethod.POST)
+                        .build());
+            }
+
+        } catch (Exception e) {
+            log.error("시나리오 질문 처리 중 에러: {}", e.getMessage(), e);
+            rb.say(new Say.Builder("시스템 오류가 발생했습니다.")
+                    .language(Say.Language.KO_KR)
+                    .voice(Say.Voice.POLLY_SEOYEON)
+                    .build());
+        }
+
+        return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+    }
+
+    /**
+     * [2-2단계] 시나리오가 없을 때 일반 음성 인식(STT) 결과 처리
+     * 시나리오가 없는 경우 1단계에서 이 엔드포인트로 연결되며, 사용자의 음성을 텍스트로 변환하여 CallRecording에 저장합니다.
      */
     @PostMapping(value = "/voice/gather-speech", produces = "application/xml; charset=UTF-8")
     @ResponseBody
@@ -152,7 +323,70 @@ public class TwilioController {
                     .build());
         }
 
-        rb.say(new Say.Builder("통화를 종료합니다.")
+        // 요청사항 질문
+        rb.say(new Say.Builder("추가적으로 하실 말씀이나 요청사항이 있으신가요?")
+                .language(Say.Language.KO_KR)
+                .voice(Say.Voice.POLLY_SEOYEON)
+                .build());
+        
+        rb.gather(new Gather.Builder()
+                .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                .language(Gather.Language.KO_KR)
+                .speechTimeout("auto")
+                .action(ngrokBaseUrl + "/api/twilio/voice/final-request")
+                .method(com.twilio.http.HttpMethod.POST)
+                .build());
+
+        return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+    }
+
+    /**
+     * [3단계] 요청사항 답변 처리 및 통화 종료
+     * 모든 질문 완료 후 마지막 요청사항을 물어보고 답변을 받은 후 통화를 종료합니다.
+     */
+    @PostMapping(value = "/voice/final-request", produces = "application/xml; charset=UTF-8")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<String> handleFinalRequest(
+            @RequestParam(value = "SpeechResult", required = false) String speechResult,
+            @RequestParam(value = "CallSid") String callSid) {
+
+        VoiceResponse.Builder rb = new VoiceResponse.Builder();
+
+        try {
+            // 요청사항 답변이 있으면 저장
+            if (speechResult != null && !speechResult.trim().isEmpty()) {
+                Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+                if (callOpt.isPresent()) {
+                    Call call = callOpt.get();
+                    Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
+                    
+                    if (recordingOpt.isPresent()) {
+                        CallRecording recording = recordingOpt.get();
+                        String existingTranscript = recording.getTranscript() != null ? recording.getTranscript() : "";
+                        String newTranscript = existingTranscript.isEmpty()
+                                ? "요청사항: " + speechResult
+                                : existingTranscript + "\n\n요청사항: " + speechResult;
+                        recording.updateTranscript(newTranscript);
+                        callRecordingRepository.save(recording);
+                        log.info("요청사항 저장 완료: callSid={}, request={}", callSid, speechResult);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("요청사항 저장 실패: callSid={}, error={}", callSid, e.getMessage(), e);
+        }
+
+        // 통화 종료 처리: end_time과 duration 업데이트
+        Optional<Call> callForUpdate = callRepository.findByCallSid(callSid);
+        callForUpdate.ifPresent(c -> {
+            c.completeCall();
+            callRepository.save(c);
+            log.info("통화 종료 처리 완료: callId={}, duration={}초", c.getCallId(), c.getDuration());
+        });
+
+        // 종료 메시지
+        rb.say(new Say.Builder("알겠습니다. 다음 전화 예정일에 연락드리겠습니다.")
                 .language(Say.Language.KO_KR)
                 .voice(Say.Voice.POLLY_SEOYEON)
                 .build());
@@ -160,7 +394,11 @@ public class TwilioController {
         return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
     }
 
-    // Twilio 녹음 완료 웹훅 엔드포인트
+    /**
+     * [4단계] Twilio 녹음 완료 웹훅 엔드포인트
+     * TwilioService.makeCall()에서 setRecordingStatusCallback으로 설정된 콜백입니다.
+     * 녹음이 완료되면 Twilio가 자동으로 호출하며, 녹음 파일을 다운로드하여 저장하고 CallRecording의 file 필드를 업데이트합니다.
+     */
     @PostMapping("/recording/status")
     @Transactional
     public ResponseEntity<Void> handleRecordingStatus(
@@ -187,7 +425,7 @@ public class TwilioController {
             Call call = callOpt.get();
 
             String fileName = "recording_" + recordingSid + ".mp3";
-            String storagePath = downloadAndSaveRecording(recordingUrl, call.getCallId());
+            String storagePath = downloadAndSaveRecording(recordingUrl);
             if (storagePath == null) {
                 return ResponseEntity.ok().build();
             }
@@ -206,14 +444,22 @@ public class TwilioController {
                             .build()
             );
 
-            Optional<CallRecording> existing = callRecordingRepository.findByCall_CallId(call.getCallId());
-            existing.ifPresent(callRecordingRepository::delete);
-
-            CallRecording callRecording = CallRecording.builder()
-                    .call(call)
-                    .file(savedFile)
-                    .transcript(call.getSummary())
-                    .build();
+            Optional<CallRecording> existingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
+            
+            CallRecording callRecording;
+            if (existingOpt.isPresent()) {
+                // 기존 CallRecording이 있으면 file만 업데이트하고 transcript는 유지
+                callRecording = existingOpt.get();
+                callRecording.updateFile(savedFile);
+                // transcript는 이미 대화 내용이 저장되어 있으므로 유지
+            } else {
+                // 기존 CallRecording이 없으면 새로 생성
+                callRecording = CallRecording.builder()
+                        .call(call)
+                        .file(savedFile)
+                        .transcript(call.getSummary())
+                        .build();
+            }
 
             callRecordingRepository.save(callRecording);
 
@@ -240,7 +486,7 @@ public class TwilioController {
                 .replace("'", "&apos;");
     }
 
-    private String downloadAndSaveRecording(String recordingUrl, Long callId) {
+    private String downloadAndSaveRecording(String recordingUrl) {
         try {
             String auth = twilioAccountSid + ":" + twilioAuthToken;
             String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
@@ -249,7 +495,7 @@ public class TwilioController {
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
 
-            String storagePath = "CALL_LOG/" + callId + "/" + UUID.randomUUID() + ".mp3";
+            String storagePath = "CALL_LOG/" + UUID.randomUUID() + ".mp3";
             Path filePath = Paths.get("uploads", storagePath);
             Files.createDirectories(filePath.getParent());
 
@@ -316,29 +562,102 @@ public class TwilioController {
                     .status(CallStatus.SUCCESS)
                     .startTime(java.time.LocalDateTime.now())
                     .endTime(java.time.LocalDateTime.now())
-                    .summary("음성 인식 답변: " + speechResult)
+                    .summary(null)  // summary에 저장하지 않음
                     .callerId(finalTwilioPhone)  // 전화번호 저장
                     .callSid(callSid)  // Twilio CallSid 저장
                     .build());
 
-            UploadFile savedFile = uploadFileRepository.save(UploadFile.builder()
-                    .organization(organization)
-                    .targetType(UploadTargetType.CALL_LOG)
-                    .fileType(UploadFileType.AUDIO)
-                    .call(call)
-                    .originalName("stt.txt")
-                    .storagePath("calls/stt/" + UUID.randomUUID())
-                    .contentType("text/plain")
-                    .fileSize((long) speechResult.getBytes(StandardCharsets.UTF_8).length)
-                    .build());
-
+            // stt.txt 파일 저장 제거, CallRecording만 생성
             callRecordingRepository.save(CallRecording.builder()
                     .call(call)
-                    .file(savedFile)
+                    .file(null)  // 파일은 나중에 녹음 파일 저장될 때 설정됨
                     .transcript(speechResult)
                     .build());
         } catch (Exception e) {
             log.error("saveCallData 에러: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 첫 번째 질문 초기화 (transcript에 질문만 저장)
+     */
+    private void initializeTranscript(String callSid, String firstQuestion) {
+        try {
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            if (callOpt.isEmpty()) {
+                return;
+            }
+
+            Call call = callOpt.get();
+            
+            // CallRecording이 없으면 생성하고 첫 번째 질문만 저장
+            Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
+            
+            if (recordingOpt.isEmpty()) {
+                CallRecording recording = CallRecording.builder()
+                        .call(call)
+                        .file(null)  // 녹음 파일은 나중에 저장될 때 설정됨
+                        .transcript("AI: " + firstQuestion)
+                        .build();
+                callRecordingRepository.save(recording);
+                log.info("첫 번째 질문 초기화: callSid={}, question={}", callSid, firstQuestion);
+            }
+        } catch (Exception e) {
+            log.error("첫 번째 질문 초기화 실패: callSid={}, error={}", callSid, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 답변 저장 (CallRecording에 저장) - 대화 형식으로 저장
+     * 형식: "AI: 질문\n케어대상: 답변"
+     */
+    private void saveAnswer(String callSid, String questionText, String answer) {
+        try {
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            if (callOpt.isEmpty()) {
+                log.warn("Call을 찾을 수 없어 답변 저장 실패: callSid={}", callSid);
+                return;
+            }
+
+            Call call = callOpt.get();
+            
+            // CallRecording이 있으면 transcript에 추가, 없으면 생성
+            Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
+            
+            // 대화 형식으로 저장: "AI: 질문\n케어대상: 답변"
+            String conversationEntry = String.format("AI: %s\n케어대상: %s", questionText, answer);
+            
+            if (recordingOpt.isPresent()) {
+                CallRecording recording = recordingOpt.get();
+                // 기존 transcript에 추가
+                String existingTranscript = recording.getTranscript() != null ? recording.getTranscript() : "";
+                
+                // 기존 transcript가 "AI: 질문" 형식으로 끝나면 답변만 추가, 아니면 전체 대화 추가
+                String newTranscript;
+                if (existingTranscript.endsWith(questionText) || existingTranscript.contains("AI: " + questionText)) {
+                    // 이미 질문이 저장되어 있으면 답변만 추가
+                    newTranscript = existingTranscript + "\n케어대상: " + answer;
+                } else {
+                    // 질문이 없으면 전체 대화 추가
+                    newTranscript = existingTranscript.isEmpty() 
+                            ? conversationEntry
+                            : existingTranscript + "\n\n" + conversationEntry;
+                }
+                recording.updateTranscript(newTranscript);
+                callRecordingRepository.save(recording);
+            } else {
+                // CallRecording이 없으면 새로 생성
+                CallRecording recording = CallRecording.builder()
+                        .call(call)
+                        .file(null)  // 녹음 파일은 나중에 저장될 때 설정됨
+                        .transcript(conversationEntry)
+                        .build();
+                callRecordingRepository.save(recording);
+            }
+            
+            log.info("답변 저장 완료: callSid={}, question={}, answer={}", callSid, questionText, answer);
+        } catch (Exception e) {
+            log.error("답변 저장 실패: callSid={}, question={}, error={}", callSid, questionText, e.getMessage(), e);
         }
     }
 }

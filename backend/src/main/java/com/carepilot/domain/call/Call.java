@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -92,6 +93,16 @@ public class Call extends BaseEntity {
         this.aiMemo = aiMemo;
         this.callerId = callerId;
         this.callSid = callSid;
+    }
+
+    /**
+     * 통화 종료 시 end_time과 duration을 업데이트합니다.
+     */
+    public void completeCall() {
+        this.endTime = LocalDateTime.now();
+        if (this.startTime != null && this.endTime != null) {
+            this.duration = (int) Duration.between(this.startTime, this.endTime).getSeconds();
+        }
     }
 }
 
