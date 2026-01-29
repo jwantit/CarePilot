@@ -3,8 +3,6 @@ package com.carepilot.domain.task;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.enums.Priority;
-import com.carepilot.domain.enums.TaskStatus;
-import com.carepilot.domain.enums.TaskType;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
@@ -86,6 +84,31 @@ public class Task extends BaseEntity {
         this.assignedTo = assignedTo;
         this.dueDate = dueDate;
         this.completedAt = completedAt;
+    }
+
+    /** 상태 변경 (대기/진행중/완료) */
+    public void changeStatus(TaskStatus status) {
+        this.status = status;
+        if (status == TaskStatus.DONE) {
+            this.completedAt = LocalDateTime.now();
+        }
+    }
+
+    /** 할당자 변경 */
+    public void assignTo(User user) {
+        this.assignedTo = user;
+    }
+
+    /** 수정 시 상세 정보 변경 */
+    public void updateDetails(String title, String description, TaskType type, Priority priority,
+                              CareTarget careTarget, User assignedTo, LocalDateTime dueDate) {
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (type != null) this.type = type;
+        if (priority != null) this.priority = priority;
+        if (careTarget != null) this.careTarget = careTarget;
+        this.assignedTo = assignedTo;
+        if (dueDate != null) this.dueDate = dueDate;
     }
 }
 

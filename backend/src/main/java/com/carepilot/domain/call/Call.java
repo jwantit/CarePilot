@@ -2,9 +2,6 @@ package com.carepilot.domain.call;
 
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
-import com.carepilot.domain.enums.CallDirection;
-import com.carepilot.domain.enums.CallStatus;
-import com.carepilot.domain.enums.CallType;
 import com.carepilot.domain.organization.Organization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -70,14 +68,20 @@ public class Call extends BaseEntity {
     @Column(name = "ai_memo", columnDefinition = "TEXT")
     private String aiMemo;
 
+    @Column(name = "signals", columnDefinition = "TEXT")
+    private String signals;
+
     @Column(name = "caller_id", length = 50)
     private String callerId;
+
+    @Column(name = "call_sid", length = 50, unique = true)
+    private String callSid;
 
     @Builder
     public Call(Organization organization, CareTarget careTarget, CallSchedule callSchedule,
                 Long operatorId, CallDirection direction, CallType callType, CallStatus status,
                 Integer duration, LocalDateTime startTime, LocalDateTime endTime,
-                String summary, String aiMemo, String callerId) {
+                String summary, String aiMemo, String signals, String callerId, String callSid) {
         this.organization = organization;
         this.careTarget = careTarget;
         this.callSchedule = callSchedule;
@@ -90,7 +94,26 @@ public class Call extends BaseEntity {
         this.endTime = endTime;
         this.summary = summary;
         this.aiMemo = aiMemo;
+        this.signals = signals;
         this.callerId = callerId;
+        this.callSid = callSid;
+    }
+
+    /**
+     * 통화 종료 시 end_time과 duration을 업데이트합니다.
+     */
+    public void completeCall() {
+        this.endTime = LocalDateTime.now();
+        if (this.startTime != null && this.endTime != null) {
+            this.duration = (int) Duration.between(this.startTime, this.endTime).getSeconds();
+        }
+    }
+
+    // AI 분석 결과(요약, 메모, 시그널)를 반영. 통화 분석 파이프라인에서 호출.
+    public void updateAiResult(String summary, String aiMemo, String signals) {
+        this.summary = summary;
+        this.aiMemo = aiMemo;
+        this.signals = signals;
     }
 }
 

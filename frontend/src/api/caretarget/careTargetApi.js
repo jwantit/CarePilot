@@ -1,0 +1,126 @@
+import { apiClient } from "../apiClient";
+
+// apiClient의 baseURL이 이미 /api까지 포함하고 있으므로, 그 이후 경로만 설정합니다.
+const host = `/caretarget`;
+
+/**
+ * 케어 대상자 전체 조회
+ */
+export const getCareTargetAllList = async (
+  organizationId,
+  keyword,
+) => {
+  const config = {
+    params: {
+      organizationId: organizationId,
+      keyword: keyword || "",
+    },
+  };
+
+  const res = await apiClient.get(`${host}/care/list`, config);
+  return res.data;
+};
+
+/**
+ * 대량 등록 (CSV)
+ */
+export const uploadCsvCareTarget = async (formData) => {
+  const config = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
+
+  const res = await apiClient.post(`${host}/csv`, formData, config);
+  return res.data;
+};
+
+/**
+ * 단일 등록
+ */
+export const uploadOneCareTarget = async (formData) => {
+  const config = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
+
+  const res = await apiClient.post(`${host}/care/insert`, formData, config);
+  return res.data;
+};
+
+/**
+ * 의료진 조회
+ */
+export const doctorList = async (organizationId) => {
+  const config = {
+    params: {
+      organizationId: organizationId,
+    },
+  };
+
+  const res = await apiClient.get(`${host}/care/doctor`, config);
+  return res.data;
+};
+
+/**
+ * 케어대상자 디테일 조회
+ */
+export const getCareTargetDetail = async (organizationId, caretargetId) => {
+  const config = {
+    params: {
+      organizationId: organizationId,
+      careTargetId: caretargetId,
+    },
+  };
+
+  const res = await apiClient.get(`${host}/care/detail`, config);
+  return res.data;
+};
+
+
+//케어대상자 정보 수정---------------------------------
+export const updateCareTargetDetail = async (
+  organizationId,
+  careTargetId,
+  formData,
+) => {
+  const config = {
+    params: {
+      organizationId: organizationId,
+      careTargetId: careTargetId,
+    },
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
+
+  const res = await apiClient.patch(
+    `${host}/care/detail/update`,
+    formData,
+    config,
+  );
+  return res.data;
+};
+//--------------------------------------------
+
+
+
+//케어 대상자 삭제---------------------------------
+export const deleteCareTarget = async (careTargetIds) => {
+  const res = await apiClient.delete(`${host}/care/delete`, {
+    data: careTargetIds 
+  });
+  return res.data;
+};
+//--------------------------------------------
+
+
+
+
+ 
+
+
+
+
+

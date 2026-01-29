@@ -1,6 +1,7 @@
 package com.carepilot.domain.caretarget;
 
 import com.carepilot.domain.common.BaseEntity;
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
@@ -32,6 +33,11 @@ public class CareTargetGroup extends BaseEntity {
     @Column(name = "group_description", columnDefinition = "TEXT")
     private String groupDescription;
 
+    //시나리오
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scenario_id")
+    private Scenario scenario;
+
     // @Column(name = "group_status", nullable = false)
     @Column(name = "group_status")
     private Boolean groupStatus = true;
@@ -43,12 +49,29 @@ public class CareTargetGroup extends BaseEntity {
 
     @Builder
     public CareTargetGroup(Organization organization, String groupName, String groupDescription,
-                          Boolean groupStatus, User createdBy) {
+                          Scenario scenario, Boolean groupStatus, User createdBy) {
         this.organization = organization;
         this.groupName = groupName;
         this.groupDescription = groupDescription;
         this.groupStatus = groupStatus != null ? groupStatus : true;
         this.createdBy = createdBy;
+        this.scenario = scenario;
     }
+
+    public void updateInfo(String groupName, String groupDescription, Boolean groupStatus) {
+        if (groupName != null && !groupName.isBlank()) {
+            this.groupName = groupName;
+        }
+
+        if (groupDescription != null) {
+            this.groupDescription = groupDescription;
+        }
+
+        if (groupStatus != null) {
+            this.groupStatus = groupStatus;
+        }
+    }
+
+
 }
 

@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "notice_comment")
 @Getter
@@ -20,12 +23,15 @@ public class NoticeComment extends BaseEntity {
     private Long commentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notice_id", nullable = false)
+    @JoinColumn(name = "notice_id", nullable = true)
     private Notice notice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
     private NoticeComment parentComment;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NoticeComment> children = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -41,12 +47,29 @@ public class NoticeComment extends BaseEntity {
 
     @Builder
     public NoticeComment(Notice notice, NoticeComment parentComment, User user,
-                        String content, Boolean isDeleted) {
+                         String content, Boolean isDeleted) {
         this.notice = notice;
         this.parentComment = parentComment;
         this.user = user;
         this.content = content;
         this.isDeleted = isDeleted != null ? isDeleted : false;
     }
-}
 
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void changeDeletedStatus(Boolean status) {
+        this.isDeleted = status;
+    }
+
+    public void setNoticeNull() {
+        this.notice = null;
+    }
+
+    public void validateWriter(Long requestUserId) {
+        if (!this.user.getUserId().equals(requestUserId)) {
+            throw new RuntimeException("댓글에 대한 권한이 없습니다.");
+        }
+    }
+}

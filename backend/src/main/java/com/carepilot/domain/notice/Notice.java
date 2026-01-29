@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "notice")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@org.hibernate.annotations.Where(clause = "is_deleted = false")
 public class Notice extends BaseEntity {
 
     @Id
@@ -44,15 +45,45 @@ public class Notice extends BaseEntity {
     @Column(name = "is_pinned")
     private Boolean isPinned = false;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @Builder
     public Notice(Organization organization, User user, String title,
-                 String content, Integer viewCount, Boolean isPinned) {
+                  String content, Integer viewCount, Boolean isPinned, Boolean isDeleted) {
         this.organization = organization;
         this.user = user;
         this.title = title;
         this.content = content;
         this.viewCount = viewCount != null ? viewCount : 0;
         this.isPinned = isPinned != null ? isPinned : false;
+        this.isDeleted = isDeleted != null ? isDeleted : false;
+    }
+    // 작성자 설정
+    public void setUser(User user) {
+        this.user = user;
+    }
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
+    // 공지사항 수정 로직
+    public void update(String title, String content, Boolean isPinned) {
+        this.title = title;
+        this.content = content;
+        this.isPinned = isPinned;
+    }
+    // 조회수 증가 로직
+    public void setViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public void changeDeletedStatus(Boolean status) {
+        this.isDeleted = status;
+    }
+
+    public void validateWriter(Long requestUserId) {
+        if (!this.user.getUserId().equals(requestUserId)) {
+            throw new RuntimeException("공지사항에 대한 권한이 없습니다.");
+        }
     }
 }
-

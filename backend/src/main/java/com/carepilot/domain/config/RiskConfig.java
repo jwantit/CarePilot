@@ -49,5 +49,13 @@ public class RiskConfig extends BaseEntity {
         this.mediumThreshold = mediumThreshold;
         this.lowThreshold = lowThreshold;
     }
+
+    public void updateThresholds(Integer criticalThreshold, Integer highThreshold,
+                                Integer mediumThreshold, Integer lowThreshold) {
+        this.criticalThreshold = criticalThreshold;
+        this.highThreshold = highThreshold;
+        this.mediumThreshold = mediumThreshold;
+        this.lowThreshold = lowThreshold;
+    }
 }
 

@@ -1,15 +1,20 @@
 package com.carepilot.domain.organization;
 
 import com.carepilot.domain.common.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "organization")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Organization extends BaseEntity {
 
     @Id
@@ -24,5 +29,11 @@ public class Organization extends BaseEntity {
     // @Column(name = "organization_number", unique = true, nullable = false, length = 50)
     @Column(name = "organization_number", unique = true, length = 50)
     private String organizationNumber;
+
+    @Builder
+    public Organization(String name, String organizationNumber) {
+        this.name = name;
+        this.organizationNumber = organizationNumber;
+    }
 }
 
