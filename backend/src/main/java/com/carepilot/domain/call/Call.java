@@ -70,11 +70,14 @@ public class Call extends BaseEntity {
     @Column(name = "caller_id", length = 50)
     private String callerId;
 
+    @Column(name = "call_sid", length = 50, unique = true)
+    private String callSid;
+
     @Builder
     public Call(Organization organization, CareTarget careTarget, CallSchedule callSchedule,
                 Long operatorId, CallDirection direction, CallType callType, CallStatus status,
                 Integer duration, LocalDateTime startTime, LocalDateTime endTime,
-                String summary, String aiMemo, String callerId) {
+                String summary, String aiMemo, String callerId, String callSid) {
         this.organization = organization;
         this.careTarget = careTarget;
         this.callSchedule = callSchedule;
@@ -88,6 +91,7 @@ public class Call extends BaseEntity {
         this.summary = summary;
         this.aiMemo = aiMemo;
         this.callerId = callerId;
+        this.callSid = callSid;
     }
 }
 

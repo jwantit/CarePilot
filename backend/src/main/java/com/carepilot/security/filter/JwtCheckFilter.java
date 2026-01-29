@@ -47,7 +47,7 @@ public class JwtCheckFilter extends OncePerRequestFilter {
         if ("/login".equals(path)) {
             return true;
         }
-        
+
         // 인증이 필요한 /auth 경로 (필터 적용)
         if (path.equals("/auth/logout") || path.equals("/auth/me")) {
             return false; // 필터 적용
@@ -73,6 +73,12 @@ public class JwtCheckFilter extends OncePerRequestFilter {
 
         // 공개 조회용 엔드포인트 (필요시 추가)
         if (path.startsWith("/display/")) {
+            return true;
+        }
+
+        // Twilio 웹훅 엔드포인트는 JWT 없이 허용
+        if (path.startsWith("/api/twilio/") ||
+            path.equals("/api/calls/make-call")) {
             return true;
         }
 

@@ -1,23 +1,29 @@
-package com.carepilot.controller;
+package com.carepilot.controller.call;
 
-import com.carepilot.dto.call.CallDetailResponseDTO;
-import com.carepilot.dto.call.CallResponseDTO;
-import com.carepilot.dto.call.ScheduleCreateRequestDTO;
-import com.carepilot.dto.call.ScheduleResponseDTO;
-import com.carepilot.dto.call.ScheduleUpdateRequestDTO;
+import com.carepilot.dto.call.*;
 import com.carepilot.service.call.CallService;
+import com.carepilot.service.call.TwilioService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/calls")
 @RequiredArgsConstructor
+@Log4j2
 public class CallController {
 
     private final CallService callService;
+    private final TwilioService twilioService;
+
+    @Value("${app.ngrok.base-url}")
+    private String ngrokBaseUrl;
 
     // [탭 1] 통화 이력 리스트 조회
     @GetMapping("/history")
@@ -71,5 +77,23 @@ public class CallController {
     public ResponseEntity<Void> restoreSchedule(@PathVariable Long scheduleId) {
         callService.restoreSchedule(scheduleId);
         return ResponseEntity.ok().build();
+    }
+
+    // Twilio를 통한 전화 발신
+    @PostMapping("/make-call")
+    public ResponseEntity<MakeCallResponseDTO> makeCall(@RequestBody MakeCallRequestDTO request) {
+        // 메시지가 있으면 쿼리 파라미터로 전달된 TwiML URL 사용
+        String twimlUrl = request.getTwimlUrl();
+        if (twimlUrl == null && request.getMessage() != null && !request.getMessage().isEmpty()) {
+            String encodedMessage = URLEncoder.encode(request.getMessage(), StandardCharsets.UTF_8);
+            twimlUrl = ngrokBaseUrl + "/api/twilio/twiml/voice?message=" + encodedMessage;
+        }
+
+        String callSid = twilioService.makeCall(request.getTo(), twimlUrl);
+        MakeCallResponseDTO response = MakeCallResponseDTO.builder()
+                .message("전화 발신이 시작되었습니다.")
+                .callSid(callSid)
+                .build();
+        return ResponseEntity.ok(response);
     }
 }
