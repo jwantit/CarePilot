@@ -1,8 +1,8 @@
 package com.carepilot.dto.caretarget.caretargetgroup;
 
 
-import com.carepilot.domain.enums.Priority;
-import com.carepilot.domain.enums.ScheduleStatus;
+//import com.carepilot.domain.enums.Priority;
+//import com.carepilot.domain.enums.ScheduleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
