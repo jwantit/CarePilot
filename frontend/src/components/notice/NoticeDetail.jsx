@@ -12,7 +12,7 @@ const NoticeDetail = ({
   setReplyTo,
   handleCommentSubmit,
   loadComments,
-  currentUserId
+  currentUserId,
 }) => {
   if (!isDetailOpen || !selectedNotice) return null;
 
@@ -40,7 +40,7 @@ const NoticeDetail = ({
           <h4 className="font-bold text-lg mb-4 text-gray-700">
             댓글 {comments.length}개
           </h4>
-          
+
           <div className="mb-6">
             {comments.length > 0 ? (
               comments.map((comment) => (

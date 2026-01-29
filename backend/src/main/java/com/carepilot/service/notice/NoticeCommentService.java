@@ -1,20 +1,15 @@
 package com.carepilot.service.notice;
 
 import com.carepilot.dto.notice.CommentResponseDTO;
+import com.carepilot.dto.notice.CommentSaveRequest;
 import java.util.List;
 
 public interface NoticeCommentService {
-    // 댓글/대댓글 저장
-    Long saveComment(Long noticeId, Long userId, Long parentId, String content);
+    Long saveComment(Long noticeId, CommentSaveRequest request);    // 댓글/대댓글 저장
 
-    // 게시물의 댓글 목록 조회
-    List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId);
+    List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId);  // 게시물의 댓글 목록 조회
 
-    // 댓글 수정
-    void updateComment(Long commentId, String content, Long userId);
+    void updateComment(Long commentId, CommentSaveRequest request); // 댓글 수정
 
-    // 댓글 삭제
-    void deleteComment(Long commentId, Long userId);
-
-    void disconnectCommentsFromNotice(Long noticeId);
+    void deleteComment(Long commentId, Long userId);    // 댓글 삭제
 }

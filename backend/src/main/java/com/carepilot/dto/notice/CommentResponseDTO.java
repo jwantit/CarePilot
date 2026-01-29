@@ -1,11 +1,10 @@
 package com.carepilot.dto.notice;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.carepilot.domain.notice.NoticeComment;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,7 +18,22 @@ public class CommentResponseDTO {
     private Long userId;         // 작성자 ID (수정/삭제 권한 확인용)
     private Long parentId;       // 부모 댓글 ID (대댓글인 경우 필수)
     private LocalDateTime createdAt; // 작성 시간
+    private List<CommentResponseDTO> children;  // 대댓글 목록
 
-    // 대댓글 목록 (이 리스트에 자식 DTO들을 담아서 트리 구조를 만듭니다)
-    private List<CommentResponseDTO> children;
+    public static CommentResponseDTO from(NoticeComment comment) {
+        // 삭제 여부에 따른 데이터 가공 로직을 DTO 내부로 캡슐화
+        boolean isDeleted = comment.getIsDeleted();
+
+        return CommentResponseDTO.builder()
+                .commentId(comment.getCommentId())
+                // 삭제된 댓글이면 내용을 치환
+                .content(isDeleted ? "삭제된 댓글입니다" : comment.getContent())
+                // 삭제된 댓글이면 이름을 비움
+                .userName(isDeleted ? "" : (comment.getUser() != null ? comment.getUser().getName() : "익명"))
+                .userId(comment.getUser() != null ? comment.getUser().getUserId() : null)
+                .parentId(comment.getParentComment() != null ? comment.getParentComment().getCommentId() : null)
+                .createdAt(comment.getCreatedAt())
+                .children(new ArrayList<>())
+                .build();
+    }
 }

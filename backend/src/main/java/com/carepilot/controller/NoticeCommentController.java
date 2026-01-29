@@ -1,13 +1,13 @@
 package com.carepilot.controller;
 
 import com.carepilot.dto.notice.CommentResponseDTO;
+import com.carepilot.dto.notice.CommentSaveRequest;
 import com.carepilot.service.notice.NoticeCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notices")
@@ -27,25 +27,18 @@ public class NoticeCommentController {
     @PostMapping("/{noticeId}/comments")
     public ResponseEntity<Long> saveComment(
             @PathVariable Long noticeId,
-            @RequestBody Map<String, Object> requestData) {
+            @RequestBody CommentSaveRequest request) {
 
-        String content = (String) requestData.get("content");
-        Long userId = Long.valueOf(requestData.get("userId").toString());
-        Object parentIdObj = requestData.get("parentId");
-        Long parentId = (parentIdObj != null) ? Long.valueOf(parentIdObj.toString()) : null;
-        return ResponseEntity.ok(commentService.saveComment(noticeId, userId, parentId, content));
+        return ResponseEntity.ok(commentService.saveComment(noticeId, request));
     }
 
     // 댓글 수정
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Void> updateComment(
             @PathVariable Long commentId,
-            @RequestBody Map<String, Object> requestData) {
+            @RequestBody CommentSaveRequest request) {
 
-        String content = (String) requestData.get("content");
-        Long userId = Long.valueOf(requestData.get("userId").toString()); // 권한 검증용 ID 추출
-
-        commentService.updateComment(commentId, content, userId); // 서비스에 userId 전달
+        commentService.updateComment(commentId, request); // 서비스에 userId 전달
 
         return ResponseEntity.ok().build();
     }
