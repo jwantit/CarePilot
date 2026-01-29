@@ -10,12 +10,14 @@ import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.dto.call.*;
+import com.carepilot.dto.callanalysis.CallAnalyzeResponseDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.service.call.CallService;
 import com.carepilot.service.call.TwilioService;
+import com.carepilot.service.callanalysis.CallAnalysisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -44,6 +43,8 @@ public class CallController {
     private final CareTargetRepository careTargetRepository;
     private final CallScheduleRepository callScheduleRepository;
     private final ScenarioQuestionRepository scenarioQuestionRepository;
+
+    private final CallAnalysisService callAnalysisService;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -333,5 +334,26 @@ public class CallController {
 //                })
                 .findFirst()
                 .orElse(null); // 예약이 없으면 null 반환 (정상 동작)
+    }
+
+
+    // 테스트용: 해당 통화에 대해 LLM 요약·시그널 추출 후 DB 저장 및 위험도 계산. Postman에서 결과 확인용으로 응답 body 반환.
+    @PostMapping("/{callId}/analyze")
+    public ResponseEntity<CallAnalyzeResponseDTO> triggerAnalyze(@PathVariable Long callId) {
+        Optional<CallAnalyzeResponseDTO> result = callAnalysisService.analyze(callId);
+        return result
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // [테스트용] scheduledTime에 전화 발신 로그만 남기는 API
+    @PostMapping("/make-call-test")
+    public ResponseEntity<Void> makeCallTest(@RequestBody MakeCallTestRequestDTO request) {
+        log.info("테스트 발신 - scheduledTime={}, to={}",
+                request.getScheduledTime(),
+                request.getTo());
+
+        // 실제 전화 발신은 하지 않고, 로그만 남김
+        return ResponseEntity.ok().build();
     }
 }
