@@ -20,8 +20,17 @@ configurations {
 	}
 }
 
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:1.0.0-M5"
+    }
+}
+
 repositories {
 	mavenCentral()
+}
+ext {
+    set('springAiVersion', "1.0.0-M5")
 }
 
 dependencies {
@@ -69,9 +78,16 @@ dependencies {
     runtimeOnly		'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly		'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
+
+    //올라마 연결
+    implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
+    //Redis Vector Store
+    implementation 'org.springframework.ai:spring-ai-redis-store-spring-boot-starter'
+
+
     // Twilio SDK
     implementation 'com.twilio.sdk:twilio:9.16.0'
-    
+
     // .env 파일을 읽기 위한 라이브러리
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 }
