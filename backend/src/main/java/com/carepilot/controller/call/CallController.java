@@ -346,14 +346,13 @@ public class CallController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // [테스트용] scheduledTime에 전화 발신 로그만 남기는 API
+    // [테스트용] scheduledTime에 전화 발신 로그만 남기는 API (실행 로직은 CallService.executeScheduledCall과 동일)
     @PostMapping("/make-call-test")
     public ResponseEntity<Void> makeCallTest(@RequestBody MakeCallTestRequestDTO request) {
-        log.info("테스트 발신 - scheduledTime={}, to={}",
+        callService.executeScheduledCall(
+                request.getTo(),
                 request.getScheduledTime(),
-                request.getTo());
-
-        // 실제 전화 발신은 하지 않고, 로그만 남김
+                null);
         return ResponseEntity.ok().build();
     }
 }

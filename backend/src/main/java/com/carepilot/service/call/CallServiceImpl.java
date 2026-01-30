@@ -136,6 +136,9 @@ public class CallServiceImpl implements CallService {
                 recurrenceEnd,
                 priority,
                 dto.getMemo());
+        if (dto.getScheduledTime() != null && existing.getStatus() == ScheduleStatus.SCHEDULED) {
+            existing.rescheduleNextRunAt(dto.getScheduledTime());
+        }
 
         callScheduleRepository.save(existing);
     }
@@ -160,5 +163,16 @@ public class CallServiceImpl implements CallService {
         // 상태를 SCHEDULED로 복구
         schedule.restore();
         callScheduleRepository.save(schedule);
+    }
+
+    // 스케줄링 자동 콜 발신 로직
+    @Override
+    public void executeScheduledCall(String to, LocalDateTime scheduledTime, Long scheduleId) {
+        if (to == null) {
+            log.info("테스트 발신 스킵 - to=null (care_target 없음 또는 target_phone 없음), scheduleId={}", scheduleId);
+            return;
+        }
+        log.info("테스트 발신 - scheduledTime={}, to={}, scheduleId={}", scheduledTime, to, scheduleId);
+        // 추후 TwilioService.makeCall(to) 등 실제 발신 연동
     }
 }

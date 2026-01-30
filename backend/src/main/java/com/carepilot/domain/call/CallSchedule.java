@@ -16,7 +16,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "call_schedule")
+@Table(name = "call_schedule", indexes = {
+        @Index(name = "idx_call_schedule_status_next_run", columnList = "status, next_run_at"),
+        @Index(name = "idx_call_schedule_status_scheduled", columnList = "status, scheduled_time")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CallSchedule extends BaseEntity {
@@ -46,6 +49,10 @@ public class CallSchedule extends BaseEntity {
     // @Column(name = "scheduled_time", nullable = false)
     @Column(name = "scheduled_time")
     private LocalDateTime scheduledTime;
+
+    /** 워커가 "다음에 실행할 시각" 기준 (폴링용). 최초는 scheduledTime과 동일, 반복 시 실행 후 갱신. */
+    @Column(name = "next_run_at")
+    private LocalDateTime nextRunAt;
 
     @Enumerated(EnumType.STRING)
     // @Column(name = "type", nullable = false)
@@ -91,6 +98,7 @@ public class CallSchedule extends BaseEntity {
     @Builder
     public CallSchedule(Organization organization, ScheduleTargetType targetType,
                        CareTarget careTarget, CareTargetGroup group, LocalDateTime scheduledTime,
+                       LocalDateTime nextRunAt,
                        ScheduleType type, ScheduleRecurrence recurrence, LocalDateTime recurrenceEndDate,
                        Priority priority, ScheduleStatus status, LocalDateTime completedAt,
                        Call call, Scenario scenario, String memo, User createdBy) {
@@ -99,6 +107,7 @@ public class CallSchedule extends BaseEntity {
         this.careTarget = careTarget;
         this.group = group;
         this.scheduledTime = scheduledTime;
+        this.nextRunAt = nextRunAt;
         this.type = type;
         this.recurrence = recurrence;
         this.recurrenceEndDate = recurrenceEndDate;
@@ -164,6 +173,35 @@ public class CallSchedule extends BaseEntity {
         this.recurrenceEndDate = (type == ScheduleType.RECURRING) ? recurrenceEndDate : null;
         this.priority = priority;
         this.memo = memo;
+    }
+
+    /** next_run_at 미설정 시 scheduledTime으로 보정 (단일 서버용) */
+    public void ensureNextRunAtInitialized() {
+        if (this.nextRunAt == null) {
+            this.nextRunAt = this.scheduledTime;
+        }
+    }
+
+    /** 단일 서버용: 실행 중 표시 (추후 다중 서버 시 locked_until, locked_by 추가) */
+    public void markAsRunning() {
+        this.status = ScheduleStatus.RUNNING;
+    }
+
+    /** 반복 스케줄: 다음 실행 시각 갱신 후 대기 상태로 */
+    public void releaseToScheduled(LocalDateTime nextRunAt) {
+        this.nextRunAt = nextRunAt;
+        this.status = ScheduleStatus.SCHEDULED;
+    }
+
+    /** 단발 스케줄: 완료 처리 */
+    public void completeOneTime(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+        this.status = ScheduleStatus.COMPLETED;
+    }
+
+    /** 스케줄 수정 시 다음 실행 시각만 갱신 (예: 사용자가 scheduledTime 변경 시) */
+    public void rescheduleNextRunAt(LocalDateTime nextRunAt) {
+        this.nextRunAt = nextRunAt;
     }
 }
 
