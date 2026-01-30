@@ -18,8 +18,8 @@ public class CallSchedulePollerService {
     private final CallScheduleWorkerService callScheduleWorkerService;
 
     // 주기 폴링 진입점
-    // 10초마다 실행: 실행 시각이 된 스케줄 선점 → 발신 실행 → DB 상태 갱신
-    @Scheduled(fixedDelay = 60_000)
+    // 5분마다 실행(테스트): 실행 시각이 된 스케줄 선점 → 발신 실행 → DB 상태 갱신
+    @Scheduled(fixedDelay = 300_000)
     public void pollAndExecuteDueSchedules() {
         LocalDateTime now = LocalDateTime.now();
         List<Long> claimedIds = callScheduleWorkerService.claimDueSchedules(now);
