@@ -71,6 +71,7 @@ public class ScheduleResponseDTO {
             case COMPLETED -> "완료됨";
             case CANCELLED -> "취소됨";
             case FAILED -> "실패";
+            case RUNNING -> "실행중";
         };
     }
 

@@ -34,6 +34,7 @@ public class ScheduleCreateRequestDTO {
                 .organization(org)
                 .careTarget(target)
                 .scheduledTime(this.scheduledTime)
+                .nextRunAt(this.scheduledTime)
                 .type(ScheduleType.valueOf(this.type))
                 .priority(Priority.valueOf(this.priority))
                 .recurrence(this.recurrence != null ? ScheduleRecurrence.valueOf(this.recurrence) : null)
