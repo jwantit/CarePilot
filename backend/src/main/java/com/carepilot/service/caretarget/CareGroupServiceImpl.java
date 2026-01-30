@@ -348,6 +348,10 @@ public class CareGroupServiceImpl implements CareGroupService {
                     dto.getPriority(),
                     dto.getMemo()
             );
+             // 스케줄링 폴링용: SCHEDULED 상태일 때 수정된 scheduledTime으로 next_run_at 동기화
+             if (scheduledTime != null && callSchedule.getStatus() == ScheduleStatus.SCHEDULED) {
+                 callSchedule.rescheduleNextRunAt(scheduledTime);
+             }
         } else {
             // 2. 등록 모드
             callSchedule = CallSchedule.builder()
