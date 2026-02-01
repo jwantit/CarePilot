@@ -7,16 +7,16 @@ export const noticeApi = {
   getNotices: (page, size = 10) =>
     apiClient.get(`${host}?page=${page}&size=${size}`),
 
-  getNotice: (id) => apiClient.get(`${host}/${id}`),
+  getNotice: (noticeId) => apiClient.get(`${host}/${noticeId}`),
 
   createNotice: (data, userId) =>
     apiClient.post(host, data, { params: { userId } }),
 
-  updateNotice: (id, data, userId) =>
-    apiClient.put(`${host}/${id}`, data, { params: { userId } }),
+  updateNotice: (noticeId, data, userId) =>
+    apiClient.put(`${host}/${noticeId}`, data, { params: { userId } }),
 
-  deleteNotice: (id, userId) =>
-    apiClient.delete(`${host}/${id}`, { params: { userId } }),
+  deleteNotice: (noticeId, userId) =>
+    apiClient.delete(`${host}/${noticeId}`, { params: { userId } }),
 
   // 댓글 관련
   getComments: (noticeId) => apiClient.get(`${host}/${noticeId}/comments`),

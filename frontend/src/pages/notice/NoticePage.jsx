@@ -11,79 +11,80 @@ function NoticePage() {
   // 1. 커스텀 훅 사용 (목록, 페이징 상태를 여기서 관리)
   const { notices, currentPage, totalPages, loadNotices } = useNotices();
   const { user } = useAuth();
-
   const currentUserId = user?.userId || null;
-  const currentOrgId = user?.organizationId || null;
+  const currentOrgId = user?.organizationId || null; // 페이지 내부에서 관리 할 최소한의 UI 상태
 
-  // 페이지 내부에서 관리 할 최소한의 UI 상태
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedNotice, setSelectedNotice] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const [title, setTitle] = useState("");      
-  const [content, setContent] = useState("");  
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
 
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState("");
   const [replyTo, setReplyTo] = useState(null);
 
-  // --- 비즈니스 로직 (API 계층 활용) ---
-
-  const startEdit = (notice) => {
-    setEditingId(notice.noticeId);
-    setTitle(notice.title);
-    setContent(notice.content);
-    setIsPinned(notice.isPinned);
-    setShowForm(true);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUserId) return alert("로그인이 필요합니다.");
 
-    if (!currentUserId) {
-      alert("로그인 정보가 없습니다. 다시 로그인해 주세요.");
-      return;
-    }
-
+    const noticeData = {
+      title,
+      content,
+      isPinned,
+      organizationId: currentOrgId,
+    };
     try {
-      const noticeData = {
-        title,
-        content,
-        isPinned,
-      };
-
       if (editingId) {
         await noticeApi.updateNotice(editingId, noticeData, currentUserId);
-        alert("수정되었습니다.");
       } else {
         await noticeApi.createNotice(noticeData, currentUserId);
-        alert("등록되었습니다.");
-      }
+      } // 상태 초기화 및 목록 새로고침
+
+      setShowForm(false);
+      setEditingId(null);
       setTitle("");
       setContent("");
       setIsPinned(false);
-      setShowForm(false);
       loadNotices(currentPage);
     } catch (error) {
-      alert("요청 처리 실패");
+      console.error("저장 실패:", error);
+      alert("공지사항 저장 중 오류가 발생했습니다.");
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!currentUserId) {
-      alert("삭제 권한이 없습니다. 로그인해주세요.");
-      return;
-    }
+  const handleEdit = (notice) => {
+    setEditingId(notice.noticeId);
+    setTitle(notice.title);
+    setContent(notice.content);
+    setIsPinned(notice.isPinned || false);
+    setShowForm(true);
+    window.scrollTo(0, 0);
+  };
 
-    if (window.confirm("정말 삭제할까요?")) {
-      try {
-        await noticeApi.deleteNotice(id, currentUserId);
-        loadNotices(currentPage);
-      } catch (error) {
-        alert("삭제 실패!");
-      }
+  const handleDelete = async (noticeId) => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      // 삭제 시 권한 확인을 위해 userId 전달
+      await noticeApi.deleteNotice(noticeId, currentUserId);
+      loadNotices(currentPage);
+    } catch (error) {
+      alert("삭제 권한이 없거나 오류가 발생했습니다.");
+    }
+  };
+
+  const handleDetail = async (notice) => {
+    try {
+      // 서버에 상세 조회 요청 (백엔드에서 조회수가 +1)
+      const response = await noticeApi.getNotice(notice.noticeId);
+      setSelectedNotice(response.data);
+      await loadComments(notice.noticeId);
+      setIsDetailOpen(true);
+    } catch (error) {
+      alert("상세 정보를 가져오는데 실패했습니다.");
     }
   };
 
@@ -92,202 +93,95 @@ function NoticePage() {
       const response = await noticeApi.getComments(noticeId);
       setComments(response.data);
     } catch (error) {
-      console.error("댓글 로딩 실패:", error);
+      console.error("댓글 로드 실패:", error);
     }
   };
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!commentContent.trim()) return;
+
+    const commentData = {
+      content: commentContent,
+      userId: currentUserId,
+      parentCommentId: replyTo ? replyTo.commentId : null,
+    };
+
     try {
-      await noticeApi.createComment(selectedNotice.noticeId, {
-        content: commentContent,
-        userId: 1,
-        parentId: replyTo,
-      });
+      await noticeApi.createComment(selectedNotice.noticeId, commentData);
       setCommentContent("");
       setReplyTo(null);
       loadComments(selectedNotice.noticeId);
     } catch (error) {
-      alert("댓글 등록 실패");
+      alert("댓글 등록에 실패했습니다.");
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-8">
-      <h1 className="text-4xl font-bold mb-12 text-center text-gray-800">
-        공지사항
-      </h1>
-
-      <div className="flex justify-end mb-6">
+    <div className="max-w-5xl mx-auto py-12 px-4">
+           {" "}
+      <header className="flex justify-between items-center mb-10">
+               {" "}
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+                    공지사항        {" "}
+        </h1>
+               {" "}
         <button
           onClick={() => {
             setShowForm(!showForm);
-            if (showForm) {
-              setEditingId(null);
-              setTitle("");
-              setContent("");
-            }
+            setEditingId(null);
+            setTitle("");
+            setContent("");
           }}
-          className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
+          className="bg-black text-white px-6 py-2.5 rounded-full font-bold hover:bg-gray-800 transition shadow-lg"
         >
-          {showForm ? "작성 취소" : "공지사항 작성"}
+                    {showForm ? "닫기" : "글쓰기"}       {" "}
         </button>
-      </div>
-
-      {/* 작성 폼 (나중에 NoticeForm.jsx로 뺄 수 있는 부분) */}
+             {" "}
+      </header>
+           {" "}
       {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="mb-12 p-8 border rounded-xl bg-gray-50 shadow-sm border-gray-200"
-        >
-          <h2 className="text-center font-bold text-lg mb-6 text-gray-700">
-            {editingId ? "공지사항 수정하기" : "새 공지사항 쓰기"}
-          </h2>
-          <input
-            className="w-full p-3 mb-4 border rounded-md outline-none"
-            placeholder="제목"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-          <textarea
-            className="w-full p-3 mb-4 border rounded-md h-32 outline-none"
-            placeholder="내용"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          />
-          <div className="flex justify-center">
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-10 py-2 rounded-md font-bold"
-            >
-              {editingId ? "수정 완료" : "등록하기"}
-            </button>
-          </div>
-        </form>
+        <NoticeForm
+          title={title}
+          setTitle={setTitle}
+          content={content}
+          setContent={setContent}
+          isPinned={isPinned}
+          setIsPinned={setIsPinned}
+          handleSubmit={handleSubmit}
+          editingId={editingId}
+          setShowForm={setShowForm}
+          setEditingId={setEditingId}
+        />
       )}
-
-      {/* 목록 (나중에 NoticeList.jsx로 뺄 수 있는 부분) */}
-      <div className="grid gap-6">
-        {notices.map((notice) => (
-          <div
-            key={notice.noticeId}
-            className="p-6 border rounded-lg flex justify-between items-center bg-white shadow-sm hover:shadow-md transition cursor-pointer"
-            onClick={() => {
-              setSelectedNotice(notice);
-              setIsDetailOpen(true);
-              loadComments(notice.noticeId);
-            }}
-          >
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-2 text-gray-800">
-                {notice.title}
-              </h3>
-              <p className="text-gray-600 mb-2 truncate">{notice.content}</p>
-              <span className="text-sm text-gray-400">
-                조회수: {notice.viewCount}
-              </span>
-            </div>
-            <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => startEdit(notice)}
-                className="text-blue-500 hover:text-blue-700 font-medium"
-              >
-                수정
-              </button>
-              <button
-                onClick={() => handleDelete(notice.noticeId)}
-                className="text-red-500 hover:text-red-700 font-medium"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 3. 분리한 Pagination 컴포넌트 적용 */}
+           {" "}
+      <NoticeList
+        notices={notices}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onDetail={handleDetail}
+      />
+           {" "}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={loadNotices}
       />
-
-      {/* 상세 모달 (생략 없이 유지) */}
-      {isDetailOpen && selectedNotice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-2xl rounded-2xl p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
-            <button
-              onClick={() => setIsDetailOpen(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black text-2xl"
-            >
-              &times;
-            </button>
-            <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-4">
-              {selectedNotice.title}
-            </h2>
-            <div className="text-gray-600 leading-relaxed min-h-[200px] mb-8 whitespace-pre-wrap">
-              {selectedNotice.content}
-            </div>
-
-            <div className="border-t pt-6 bg-gray-50 -mx-8 px-8 pb-8">
-              <h4 className="font-bold text-lg mb-4 text-gray-700">
-                댓글 {comments.length}개
-              </h4>
-              <div className="mb-6">
-                {comments.length > 0 ? (
-                  comments.map((comment) => (
-                    <CommentItem
-                      key={comment.commentId}
-                      comment={comment}
-                      selectedNotice={selectedNotice}
-                      loadComments={loadComments}
-                      setReplyTo={setReplyTo}
-                      setCommentContent={setCommentContent}
-                    />
-                  ))
-                ) : (
-                  <p className="text-center text-gray-400 py-4">
-                    첫 댓글을 남겨보세요!
-                  </p>
-                )}
-              </div>
-
-              <form onSubmit={handleCommentSubmit} className="relative">
-                {replyTo && (
-                  <div className="text-xs text-blue-500 mb-1 flex justify-between items-center">
-                    <span>답글 작성 중...</span>
-                    <button
-                      type="button"
-                      onClick={() => setReplyTo(null)}
-                      className="text-gray-400 hover:text-red-500"
-                    >
-                      취소
-                    </button>
-                  </div>
-                )}
-                <textarea
-                  id="comment-textarea"
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  placeholder={
-                    replyTo ? "답글을 입력하세요..." : "댓글을 입력하세요..."
-                  }
-                  className="w-full p-3 pr-20 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none resize-none h-20"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 bottom-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
-                >
-                  등록
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+           {" "}
+      <NoticeDetail
+        selectedNotice={selectedNotice}
+        isDetailOpen={isDetailOpen}
+        setIsDetailOpen={setIsDetailOpen}
+        comments={comments}
+        commentContent={commentContent}
+        setCommentContent={setCommentContent}
+        replyTo={replyTo}
+        setReplyTo={setReplyTo}
+        handleCommentSubmit={handleCommentSubmit}
+        loadComments={loadComments}
+        currentUserId={currentUserId}
+      />
+         {" "}
     </div>
   );
 }

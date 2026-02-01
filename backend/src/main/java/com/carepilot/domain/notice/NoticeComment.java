@@ -67,9 +67,9 @@ public class NoticeComment extends BaseEntity {
         this.notice = null;
     }
 
-    public void validateWriter(Long requestUserId) {
-        if (!this.user.getUserId().equals(requestUserId)) {
-            throw new RuntimeException("댓글에 대한 권한이 없습니다.");
+    public void validateWriter(Long userId) {
+        if (this.user == null || !this.user.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("댓글에 대한 권한이 없습니다.");
         }
     }
 }

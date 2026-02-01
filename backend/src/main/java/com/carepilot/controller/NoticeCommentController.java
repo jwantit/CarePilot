@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/notices")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class NoticeCommentController {
 
     private final NoticeCommentService commentService;
@@ -36,9 +35,10 @@ public class NoticeCommentController {
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Void> updateComment(
             @PathVariable Long commentId,
-            @RequestBody CommentSaveRequest request) {
+            @RequestBody CommentSaveRequest request,
+            @RequestParam Long userId) {
 
-        commentService.updateComment(commentId, request); // 서비스에 userId 전달
+        commentService.updateComment(commentId, request, userId);
 
         return ResponseEntity.ok().build();
     }
@@ -47,9 +47,9 @@ public class NoticeCommentController {
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
-            @RequestParam Long userId) { // 쿼리 파라미터로 userId 수신
+            @RequestParam Long userId) {
 
-        commentService.deleteComment(commentId, userId); // 서비스에 userId 전달
+        commentService.deleteComment(commentId, userId);
 
         return ResponseEntity.ok().build();
     }

@@ -16,7 +16,7 @@ public class CommentResponseDTO {
     private String content;      // 댓글 내용
     private String userName;     // 작성자 이름 (User 엔티티에서 추출)
     private Long userId;         // 작성자 ID (수정/삭제 권한 확인용)
-    private Long parentId;       // 부모 댓글 ID (대댓글인 경우 필수)
+    private Long parentCommentId;       // 부모 댓글 ID (대댓글인 경우 필수)
     private LocalDateTime createdAt; // 작성 시간
     private List<CommentResponseDTO> children;  // 대댓글 목록
 
@@ -31,7 +31,7 @@ public class CommentResponseDTO {
                 // 삭제된 댓글이면 이름을 비움
                 .userName(isDeleted ? "" : (comment.getUser() != null ? comment.getUser().getName() : "익명"))
                 .userId(comment.getUser() != null ? comment.getUser().getUserId() : null)
-                .parentId(comment.getParentComment() != null ? comment.getParentComment().getCommentId() : null)
+                .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getCommentId() : null)
                 .createdAt(comment.getCreatedAt())
                 .children(new ArrayList<>())
                 .build();

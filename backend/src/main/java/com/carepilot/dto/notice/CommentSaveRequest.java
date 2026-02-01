@@ -10,5 +10,5 @@ import lombok.Setter;
 public class CommentSaveRequest {
     private String content;
     private Long userId;
-    private Long parentId;
+    private Long parentCommentId;
 }

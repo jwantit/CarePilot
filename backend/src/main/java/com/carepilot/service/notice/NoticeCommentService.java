@@ -9,7 +9,7 @@ public interface NoticeCommentService {
 
     List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId);  // 게시물의 댓글 목록 조회
 
-    void updateComment(Long commentId, CommentSaveRequest request); // 댓글 수정
+    void updateComment(Long commentId, CommentSaveRequest request, Long userId); // 댓글 수정
 
     void deleteComment(Long commentId, Long userId);    // 댓글 삭제
 }

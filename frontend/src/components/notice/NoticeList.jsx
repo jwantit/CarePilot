@@ -3,7 +3,7 @@ import React from "react";
 const NoticeList = ({ notices, onEdit, onDelete, onDetail }) => {
   return (
     <div className="grid gap-6">
-      {notices.length > 0 ? (
+      {notices && notices.length > 0 ? (
         notices.map((notice) => (
           <div
             key={notice.noticeId}
@@ -46,7 +46,7 @@ const NoticeList = ({ notices, onEdit, onDelete, onDetail }) => {
         ))
       ) : (
         <div className="text-center py-20 text-gray-500 border rounded-lg bg-gray-50">
-          등록된 공지사항이 없습니다.
+          게시글이 없습니다.
         </div>
       )}
     </div>

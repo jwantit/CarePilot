@@ -5,6 +5,9 @@ import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import com.carepilot.domain.file.UploadFile;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +31,9 @@ public class Notice extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UploadFile> uploadFiles = new ArrayList<>();
 
     // @Column(name = "title", nullable = false, length = 255)
     @Column(name = "title", length = 255)

@@ -11,6 +11,7 @@ export const useNotices = () => {
         try {
             const response = await noticeApi.getNotices(page);
             const { content, totalPages, number } = response.data;
+            
             setNotices(Array.isArray(content) ? content : []);
             setTotalPages(totalPages);
             setCurrentPage(number);
@@ -22,7 +23,7 @@ export const useNotices = () => {
 
     const handleFileChange = (e) => {
         if (e.target.files) {
-            setSelectedFiles(Array.from(e.target.files)); // 선택한 파일들을 배열로 저장
+            setSelectedFiles(Array.from(e.target.files));
         }
     };
 
