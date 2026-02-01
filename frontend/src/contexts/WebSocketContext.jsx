@@ -2,12 +2,15 @@ import { createContext, useContext, useEffect, useRef, useState, useCallback } f
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
 const WebSocketContext = createContext(null);
 
 export function WebSocketProvider({ children }) {
   const clientRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
+  const auth = useSelector((state) => state.auth);
+  const organizationId = auth.user?.organizationId;
 
   // 알림 처리 함수
   const handleNotification = useCallback((message) => {
@@ -58,6 +61,11 @@ export function WebSocketProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    // organizationId가 없으면 WebSocket 연결하지 않음
+    if (!organizationId) {
+      return;
+    }
+
     const client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
       reconnectDelay: 5000,
@@ -67,8 +75,11 @@ export function WebSocketProvider({ children }) {
         console.log('WebSocket Connected');
         setIsConnected(true);
         
-        // 알림 구독
-        client.subscribe('/topic/notifications', (message) => {
+        // 조직별 알림 구독: /topic/org/{organizationId}
+        const orgTopic = `/topic/org/${organizationId}`;
+        console.log('Subscribing to organization topic:', orgTopic);
+        
+        client.subscribe(orgTopic, (message) => {
           const notification = JSON.parse(message.body);
           handleNotification(notification);
         });
@@ -88,7 +99,7 @@ export function WebSocketProvider({ children }) {
     return () => {
       client.deactivate();
     };
-  }, [handleNotification]);
+  }, [handleNotification, organizationId]);
 
   const sendMessage = (message) => {
     if (clientRef.current && clientRef.current.connected) {
