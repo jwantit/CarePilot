@@ -4,6 +4,7 @@ import com.carepilot.domain.common.SoftDeleteEntity;
 import com.carepilot.domain.config.Doctor;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.CareTargetUpdateRequestDTO;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -13,7 +14,7 @@ import org.hibernate.annotations.Where;
 @Table(name = "care_targets")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @SQLDelete(sql = "UPDATE care_targets SET deleted_at = NOW() WHERE care_target_id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class CareTarget extends SoftDeleteEntity {

@@ -3,6 +3,7 @@ package com.carepilot.domain.call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.organization.Organization;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "calls")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Call extends BaseEntity {
 
     @Id

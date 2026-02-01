@@ -45,6 +45,8 @@ public class CallController {
     private final ScenarioQuestionRepository scenarioQuestionRepository;
 
     private final CallAnalysisService callAnalysisService;
+    private final com.carepilot.service.call.emergency.EmergencyDetectionService emergencyDetectionService;
+    private final com.carepilot.service.notification.NotificationService notificationService;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -354,5 +356,97 @@ public class CallController {
                 request.getScheduledTime(),
                 null);
         return ResponseEntity.ok().build();
+    }
+
+    // [테스트용] 긴급 상황 감지 및 알림 발생 테스트 API (Postman용)
+    @PostMapping("/test/emergency")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> testEmergencyDetection(
+            @RequestParam Long careTargetId,
+            @RequestParam String answer,
+            @RequestParam(required = false, defaultValue = "일상 건강 체크") String scenarioPurpose) {
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // CareTarget 조회
+            CareTarget careTarget = careTargetRepository.findById(careTargetId)
+                    .orElseThrow(() -> new RuntimeException("CareTarget not found: " + careTargetId));
+            
+            com.carepilot.domain.organization.Organization organization = careTarget.getOrganization();
+            if (organization == null) {
+                result.put("success", false);
+                result.put("error", "CareTarget의 Organization이 없습니다.");
+                return ResponseEntity.badRequest().body(result);
+            }
+            
+            // Call 생성 (테스트용 - 항상 새로 생성)
+            String shortCallSid = "TEST_EMG_" + UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+            Call testCall = callRepository.save(Call.builder()
+                    .organization(organization)
+                    .careTarget(careTarget)
+                    .direction(CallDirection.OUTBOUND)
+                    .callType(CallType.REGULAR_MONITORING)
+                    .status(CallStatus.SUCCESS)
+                    .startTime(java.time.LocalDateTime.now())
+                    .callSid(shortCallSid)
+                    .callerId(careTarget.getTargetPhone())
+                    .build());
+            
+            // 긴급 상황 감지
+            com.carepilot.service.call.emergency.EmergencyDetectionResult detectionResult = 
+                    emergencyDetectionService.detectEmergency(answer, scenarioPurpose);
+            
+            result.put("detectionResult", Map.of(
+                    "isEmergency", detectionResult.isEmergency(),
+                    "emergencyMessage", detectionResult.getEmergencyMessage() != null ? detectionResult.getEmergencyMessage() : ""
+            ));
+            
+            // 긴급 상황인 경우 알림 생성
+            if (detectionResult.isEmergency()) {
+                String title = String.format("긴급 상황 발생: %s", careTarget.getName());
+                String description = String.format(
+                        "케어대상자 '%s'의 통화 중 긴급 상황이 감지되었습니다.\n\n" +
+                        "감지된 답변: %s\n" +
+                        "대응 메시지: %s",
+                        careTarget.getName(), answer, detectionResult.getEmergencyMessage());
+                
+                com.carepilot.domain.notification.Notification notification = 
+                        notificationService.createOrganizationNotification(
+                                organization.getOrganizationId(),
+                                com.carepilot.domain.notification.NotificationType.EMERGENCY,
+                                title,
+                                description,
+                                com.carepilot.domain.notification.RiskLevel.CRITICAL,
+                                testCall,
+                                careTarget
+                        );
+                
+                result.put("notification", Map.of(
+                        "notificationId", notification.getNotificationId(),
+                        "title", notification.getTitle(),
+                        "type", notification.getType().name(),
+                        "severity", notification.getSeverity().name(),
+                        "status", notification.getStatus().name(),
+                        "organizationId", notification.getOrganization().getOrganizationId(),
+                        "userId", notification.getUser() == null ? "null (조직 공유)" : notification.getUser().getUserId()
+                ));
+                
+                result.put("success", true);
+                result.put("message", "긴급 알림이 생성되었습니다.");
+            } else {
+                result.put("success", true);
+                result.put("message", "정상 답변으로 판단되었습니다. 알림이 생성되지 않았습니다.");
+            }
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("긴급 상황 테스트 실패: careTargetId={}, answer={}, error={}", 
+                    careTargetId, answer, e.getMessage(), e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(result);
+        }
     }
 }

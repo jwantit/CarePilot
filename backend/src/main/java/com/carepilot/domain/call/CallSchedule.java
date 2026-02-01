@@ -72,8 +72,7 @@ public class CallSchedule extends BaseEntity {
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
-    // @Column(name = "status", nullable = false)
-    @Column(name = "status")
+    @Column(name = "status", length = 20)
     private ScheduleStatus status = ScheduleStatus.SCHEDULED;
 
     @Column(name = "completed_at")

@@ -23,6 +23,15 @@ import com.carepilot.service.call.emergency.EmergencyDetectionService;
 import com.carepilot.service.call.emergency.EmergencyDetectionResult;
 import com.carepilot.service.call.generation.QuestionGenerationService;
 import com.carepilot.service.call.vector.CallVectorStoreService;
+import com.carepilot.service.notification.NotificationService;
+import com.carepilot.domain.notification.NotificationType;
+import com.carepilot.domain.notification.RiskLevel;
+import com.carepilot.domain.user.User;
+import com.carepilot.domain.user.User;
+import com.carepilot.domain.user.UserRole;
+import com.carepilot.repository.user.UserRepository;
+import com.carepilot.repository.notification.NotificationRepository;
+import java.util.ArrayList;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Gather;
 import com.twilio.twiml.voice.Say;
@@ -62,6 +71,9 @@ public class TwilioController {
     private final CallVectorStoreService callVectorStoreService;
     private final EmergencyDetectionService emergencyDetectionService;
     private final QuestionGenerationService questionGenerationService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -291,7 +303,9 @@ public class TwilioController {
                     // 답변 저장 (변형된 질문 사용)
                     saveAnswer(callSid, previousContextualQuestion, speechResult);
                     
-                    // TODO: 관리자 SMS 알림 발송 (별도 서비스 필요)
+                    // 긴급 상황 알림 전송 (WebSocket + DB 저장)
+                    sendEmergencyNotification(call, careTarget, speechResult, emergencyResult.getEmergencyMessage());
+                    
                     log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}", 
                         callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
                     
@@ -798,6 +812,58 @@ public class TwilioController {
             log.info("답변 저장 완료: callSid={}, question={}, answer={}", callSid, questionText, answer);
         } catch (Exception e) {
             log.error("답변 저장 실패: callSid={}, question={}, error={}", callSid, questionText, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 긴급 상황 발생 시 조직 공유 알림 전송
+     * 같은 Call에 대해 하나의 조직 공유 알림만 생성 (user_id = null)
+     * 조직별 WebSocket 토픽(/topic/org/{organizationId})으로 브로드캐스트
+     */
+    private void sendEmergencyNotification(Call call, CareTarget careTarget, 
+                                          String emergencyAnswer, String emergencyMessage) {
+        try {
+            Organization organization = call.getOrganization();
+            if (organization == null) {
+                log.warn("Organization을 찾을 수 없어 긴급 알림 전송 실패: callId={}", call.getCallId());
+                return;
+            }
+
+            // 같은 Call에 대해 이미 긴급 알림이 생성되었는지 확인
+            List<com.carepilot.domain.notification.Notification> existingNotifications = 
+                notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.EMERGENCY);
+            
+            if (!existingNotifications.isEmpty()) {
+                log.info("이미 긴급 알림이 생성되어 중복 방지: callId={}, 기존 알림 개수={}", 
+                    call.getCallId(), existingNotifications.size());
+                return;
+            }
+
+            // 알림 제목 및 내용 구성
+            String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
+            String title = String.format("긴급 상황 발생: %s", careTargetName);
+            String description = String.format("케어대상자 '%s'의 통화 중 긴급 상황이 감지되었습니다.\n\n" +
+                    "감지된 답변: %s\n" +
+                    "대응 메시지: %s", 
+                    careTargetName, emergencyAnswer, emergencyMessage);
+
+            // 조직 공유 알림 생성 (user_id = null, 하나만 생성)
+            // WebSocket은 조직별 토픽으로 브로드캐스트
+            notificationService.createOrganizationNotification(
+                organization.getOrganizationId(),
+                NotificationType.EMERGENCY,
+                title,
+                description,
+                RiskLevel.CRITICAL,
+                call,
+                careTarget
+            );
+            
+            log.info("긴급 알림 생성 완료: organizationId={}, careTargetName={}", 
+                organization.getOrganizationId(), careTargetName);
+        } catch (Exception e) {
+            log.error("긴급 알림 전송 중 오류 발생: callId={}, error={}", 
+                call.getCallId(), e.getMessage(), e);
         }
     }
 }

@@ -39,7 +39,7 @@ public class Notification extends BaseEntity {
     private Call call;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")  // nullable = true (조직 공유 알림용)
     private User user;
 
     @Enumerated(EnumType.STRING)
