@@ -1,5 +1,6 @@
 package com.carepilot.domain.config;
 
+import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
@@ -9,6 +10,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "scenario")
@@ -46,6 +50,13 @@ public class Scenario extends BaseEntity {
 
     @Column(name = "risk_criteria", columnDefinition = "TEXT")
     private String riskCriteria;
+
+    @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScenarioQuestion> questions = new ArrayList<>();
+
+    // CallSchedule과의 양방향 관계 (선택적)
+    @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<CallSchedule> callSchedules = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "created_by", nullable = false)

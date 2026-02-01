@@ -3,6 +3,7 @@ package com.carepilot.repository.call;
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.ScheduleStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -39,4 +40,9 @@ public interface CallScheduleRepository extends JpaRepository<CallSchedule, Long
     List<CallSchedule> findAllByGroupIdAndOrgId(
             @Param("groupId") Long groupId,
             @Param("organizationId") Long organizationId);
+
+    // Scenario 삭제 시 관련 CallSchedule의 scenario를 NULL로 설정
+    @Modifying
+    @Query("UPDATE CallSchedule cs SET cs.scenario = NULL WHERE cs.scenario.scenarioId = :scenarioId")
+    void clearScenarioByScenarioId(@Param("scenarioId") Long scenarioId);
 }

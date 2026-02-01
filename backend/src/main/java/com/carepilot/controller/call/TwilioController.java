@@ -19,6 +19,10 @@ import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
+import com.carepilot.service.call.emergency.EmergencyDetectionService;
+import com.carepilot.service.call.emergency.EmergencyDetectionResult;
+import com.carepilot.service.call.generation.QuestionGenerationService;
+import com.carepilot.service.call.vector.CallVectorStoreService;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Gather;
 import com.twilio.twiml.voice.Say;
@@ -55,6 +59,9 @@ public class TwilioController {
     private final UploadFileRepository uploadFileRepository;
     private final ScenarioRepository scenarioRepository;
     private final ScenarioQuestionRepository scenarioQuestionRepository;
+    private final CallVectorStoreService callVectorStoreService;
+    private final EmergencyDetectionService emergencyDetectionService;
+    private final QuestionGenerationService questionGenerationService;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -109,18 +116,35 @@ public class TwilioController {
                                 .voice(Say.Voice.POLLY_SEOYEON)
                                 .build());
                     } else {
-                        // 첫 번째 질문 초기화
+                        // 첫 번째 질문 가져오기
                         ScenarioQuestion firstQuestion = questions.get(0);
-                        initializeTranscript(callSid, firstQuestion.getQuestionText());
+                        String originalQuestion = firstQuestion.getQuestionText();
+                        CareTarget careTarget = call.getCareTarget();
                         
-                        // 첫 번째 질문을 바로 읽어줌
+                        // 첫 번째 질문도 변형된 질문 생성 (이전 답변이 없으므로 거의 변형 없음)
+                        String contextualQuestion = originalQuestion; // 기본값: 원래 질문
+                        if (questionGenerationService != null && careTarget != null) {
+                            contextualQuestion = questionGenerationService.generateContextualQuestion(
+                                originalQuestion, 
+                                careTarget,
+                                null // 첫 번째 질문이므로 이전 답변 없음
+                            );
+                        }
+                        
+                        // 변형된 질문을 transcript에 저장
+                        updateTranscriptWithQuestion(callSid, contextualQuestion);
+                        
+                        // 변형된 질문을 바로 읽어줌
+                        String firstActionUrl = ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=1";
+                        log.info("첫 번째 질문 송출: actionUrl={}, question={}", firstActionUrl, contextualQuestion);
+                        
                         rb.gather(new Gather.Builder()
                                 .inputs(Collections.singletonList(Gather.Input.SPEECH))
                                 .language(Gather.Language.KO_KR)
                                 .speechTimeout("auto")
-                                .action(ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=1")
+                                .action(firstActionUrl)
                                 .method(com.twilio.http.HttpMethod.POST)
-                                .say(new Say.Builder(firstQuestion.getQuestionText())
+                                .say(new Say.Builder(contextualQuestion)
                                         .language(Say.Language.KO_KR)
                                         .voice(Say.Voice.POLLY_SEOYEON)
                                         .build())
@@ -182,6 +206,9 @@ public class TwilioController {
             @RequestParam(value = "questionIdx", defaultValue = "0") int questionIdx) {
 
         VoiceResponse.Builder rb = new VoiceResponse.Builder();
+        
+        log.info("handleConversation 호출: callSid={}, questionIdx={}, speechResult={}", 
+            callSid, questionIdx, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
 
         try {
             // 1. CallSid로 Call 찾기
@@ -232,38 +259,107 @@ public class TwilioController {
                 return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
             }
 
-            // 4. 이전 답변이 있다면 저장
+            // 4. 이전 답변이 있다면 처리
+            String previousContextualQuestion = null; // 이전에 실제로 물어본 변형된 질문
+            log.info("답변 처리 시작: speechResult={}, questionIdx={}", 
+                speechResult != null && !speechResult.trim().isEmpty() ? "있음" : "없음", questionIdx);
+            
             if (speechResult != null && !speechResult.trim().isEmpty() && questionIdx > 0) {
                 // 이전 질문 텍스트 가져오기
                 ScenarioQuestion previousQuestion = questions.get(questionIdx - 1);
-                saveAnswer(callSid, previousQuestion.getQuestionText(), speechResult);
+                CareTarget careTarget = call.getCareTarget();
+                
+                // 이전에 저장된 변형된 질문 가져오기 (transcript에서)
+                previousContextualQuestion = getLastQuestionFromTranscript(callSid);
+                if (previousContextualQuestion == null || previousContextualQuestion.isEmpty()) {
+                    // transcript에서 찾지 못하면 원래 질문 사용 (fallback)
+                    previousContextualQuestion = previousQuestion.getQuestionText();
+                }
+                
+                // 4-1. 긴급 상황 감지
+                String scenarioPurpose = scenario.getDescription() != null ? scenario.getDescription() : "";
+                EmergencyDetectionResult emergencyResult = emergencyDetectionService.detectEmergency(
+                    speechResult, scenarioPurpose);
+                
+                if (emergencyResult.isEmergency()) {
+                    // 긴급 상황: 시나리오 중단 및 대응 멘트 송출
+                    rb.say(new Say.Builder(emergencyResult.getEmergencyMessage())
+                            .language(Say.Language.KO_KR)
+                            .voice(Say.Voice.POLLY_SEOYEON)
+                            .build());
+                    
+                    // 답변 저장 (변형된 질문 사용)
+                    saveAnswer(callSid, previousContextualQuestion, speechResult);
+                    
+                    // TODO: 관리자 SMS 알림 발송 (별도 서비스 필요)
+                    log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}", 
+                        callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
+                    
+                    // 통화 종료
+                    return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+                }
+                
+                // 4-2. 답변 저장 및 벡터 저장 (변형된 질문 사용)
+                saveAnswer(callSid, previousContextualQuestion, speechResult);
+                
+                // VectorStore에 저장 (임베딩은 자동 생성됨)
+                // 벡터 저장 시에는 원래 질문 사용 (메타데이터용)
+                if (careTarget != null) {
+                    callVectorStoreService.saveAnswerVector(
+                        careTarget.getCareTargetId(),
+                        previousQuestion.getQuestionText(), // 원래 질문 (메타데이터용)
+                        speechResult,
+                        null, // embedding은 VectorStore가 자동 생성
+                        java.time.LocalDateTime.now()
+                    );
+                    log.debug("벡터 저장 완료: careTargetId={}, questionIdx={}", 
+                        careTarget.getCareTargetId(), questionIdx);
+                }
             }
 
-            // 5. 첫 번째 질문인 경우 질문만 먼저 저장 (답변은 다음 호출에서 저장됨)
-            if (questionIdx == 0) {
-                ScenarioQuestion firstQuestion = questions.get(0);
-                initializeTranscript(callSid, firstQuestion.getQuestionText());
-            }
+            // 5. 첫 번째 질문인 경우 질문만 먼저 저장하지 않음 (변형된 질문 생성 후 저장)
 
             // 6. 다음 질문이 있는지 확인
+            log.info("다음 질문 확인: questionIdx={}, questions.size()={}", questionIdx, questions.size());
+            
             if (questionIdx < questions.size()) {
                 ScenarioQuestion nextQuestion = questions.get(questionIdx);
+                String originalQuestion = nextQuestion.getQuestionText();
+                CareTarget careTarget = call.getCareTarget();
                 
-                // 다음 질문을 물어보고, 다시 이 엔드포인트를 호출하도록 설정
+                log.info("다음 질문 생성 시작: questionIdx={}, originalQuestion={}", questionIdx, originalQuestion);
+                
+                // 6-1. 동적 질문 생성 (과거 기록 참고)
+                String contextualQuestion = questionGenerationService.generateContextualQuestion(
+                    originalQuestion, 
+                    careTarget,
+                    questionIdx > 0 && speechResult != null ? speechResult : null
+                );
+                
+                log.info("변형된 질문 생성 완료: questionIdx={}, contextualQuestion={}", questionIdx, contextualQuestion);
+                
+                // 6-2. 변형된 질문을 transcript에 저장 (실제로 물어본 질문)
+                updateTranscriptWithQuestion(callSid, contextualQuestion);
+                
+                // 6-3. 변형된 질문으로 음성 송출
+                String nextActionUrl = ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=" + (questionIdx + 1);
+                log.info("다음 질문 송출: questionIdx={}, nextQuestionIdx={}, actionUrl={}", 
+                    questionIdx, questionIdx + 1, nextActionUrl);
+                
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
                         .speechTimeout("auto")
-                        .action(ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=" + (questionIdx + 1))
+                        .action(nextActionUrl)
                         .method(com.twilio.http.HttpMethod.POST)
-                        .say(new Say.Builder(nextQuestion.getQuestionText())
+                        .say(new Say.Builder(contextualQuestion)
                                 .language(Say.Language.KO_KR)
                                 .voice(Say.Voice.POLLY_SEOYEON)
                                 .build())
                         .build());
             } else {
                 // 모든 질문 완료 - 요청사항 질문
-                rb.say(new Say.Builder("모든 질문이 완료되었습니다. 추가적으로 하실 말씀이나 요청사항이 있으신가요?")
+                rb.say(new Say.Builder("ㅈ추가적으로 하실 말씀이나 요청사항이 있으신가요?")
                         .language(Say.Language.KO_KR)
                         .voice(Say.Voice.POLLY_SEOYEON)
                         .build());
@@ -579,9 +675,9 @@ public class TwilioController {
     }
 
     /**
-     * 첫 번째 질문 초기화 (transcript에 질문만 저장)
+     * 질문을 transcript에 저장 (변형된 질문 사용)
      */
-    private void initializeTranscript(String callSid, String firstQuestion) {
+    private void updateTranscriptWithQuestion(String callSid, String contextualQuestion) {
         try {
             Optional<Call> callOpt = callRepository.findByCallSid(callSid);
             if (callOpt.isEmpty()) {
@@ -590,21 +686,65 @@ public class TwilioController {
 
             Call call = callOpt.get();
             
-            // CallRecording이 없으면 생성하고 첫 번째 질문만 저장
+            // CallRecording이 있으면 질문 추가, 없으면 생성
             Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
             
-            if (recordingOpt.isEmpty()) {
+            if (recordingOpt.isPresent()) {
+                CallRecording recording = recordingOpt.get();
+                String existingTranscript = recording.getTranscript() != null ? recording.getTranscript() : "";
+                // 기존 transcript가 있으면 새 줄로 추가, 없으면 질문만 저장
+                String newTranscript = existingTranscript.isEmpty()
+                        ? "AI: " + contextualQuestion
+                        : existingTranscript + "\n\nAI: " + contextualQuestion;
+                recording.updateTranscript(newTranscript);
+                callRecordingRepository.save(recording);
+                log.info("질문 저장 (transcript): callSid={}, question={}", callSid, contextualQuestion);
+            } else {
+                // CallRecording이 없으면 새로 생성
                 CallRecording recording = CallRecording.builder()
                         .call(call)
                         .file(null)  // 녹음 파일은 나중에 저장될 때 설정됨
-                        .transcript("AI: " + firstQuestion)
+                        .transcript("AI: " + contextualQuestion)
                         .build();
                 callRecordingRepository.save(recording);
-                log.info("첫 번째 질문 초기화: callSid={}, question={}", callSid, firstQuestion);
+                log.info("첫 번째 질문 저장 (transcript): callSid={}, question={}", callSid, contextualQuestion);
             }
         } catch (Exception e) {
-            log.error("첫 번째 질문 초기화 실패: callSid={}, error={}", callSid, e.getMessage(), e);
+            log.error("질문 저장 실패 (transcript): callSid={}, error={}", callSid, e.getMessage(), e);
         }
+    }
+    
+    /**
+     * transcript에서 마지막 질문 가져오기
+     */
+    private String getLastQuestionFromTranscript(String callSid) {
+        try {
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            if (callOpt.isEmpty()) {
+                return null;
+            }
+
+            Call call = callOpt.get();
+            Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
+            
+            if (recordingOpt.isPresent()) {
+                CallRecording recording = recordingOpt.get();
+                String transcript = recording.getTranscript();
+                if (transcript != null && !transcript.isEmpty()) {
+                    // "AI: "로 시작하는 마지막 줄 찾기
+                    String[] lines = transcript.split("\n");
+                    for (int i = lines.length - 1; i >= 0; i--) {
+                        String line = lines[i].trim();
+                        if (line.startsWith("AI: ")) {
+                            return line.substring(4); // "AI: " 제거
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("transcript에서 질문 가져오기 실패: callSid={}, error={}", callSid, e.getMessage(), e);
+        }
+        return null;
     }
 
     /**

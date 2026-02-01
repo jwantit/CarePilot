@@ -7,6 +7,7 @@ import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.carepilot.dto.config.scenario.ScenarioDTO;
 import com.carepilot.dto.config.scenario.ScenarioQuestionDTO;
+import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.config.ScenarioQuestionRepository;
@@ -26,6 +27,7 @@ public class ScenarioServiceImpl implements ScenarioService {
 
     private final ScenarioRepository scenarioRepository;
     private final ScenarioQuestionRepository scenarioQuestionRepository;
+    private final CallScheduleRepository callScheduleRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
@@ -166,10 +168,13 @@ public class ScenarioServiceImpl implements ScenarioService {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new RuntimeException("Scenario not found"));
 
-        // 질문들 먼저 삭제
+        // 1. 관련 CallSchedule의 scenario를 NULL로 설정
+        callScheduleRepository.clearScenarioByScenarioId(scenarioId);
+
+        // 2. 질문들 삭제
         scenarioQuestionRepository.deleteByScenario(scenario);
 
-        // 시나리오 삭제
+        // 3. 시나리오 삭제
         scenarioRepository.delete(scenario);
     }
 
