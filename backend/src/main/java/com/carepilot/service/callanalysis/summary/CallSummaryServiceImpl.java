@@ -5,6 +5,7 @@ import com.carepilot.dto.callanalysis.CallSummaryResultDTO;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -29,11 +30,11 @@ public class CallSummaryServiceImpl implements CallSummaryService {
             .map(s -> String.format("  - %s: %s", s.name(), s.getMatchingExamples()))
             .collect(Collectors.joining("\n"));
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final ChatClient chatClient;
 
     public CallSummaryServiceImpl(
-            @Autowired(required = false) ChatClient.Builder chatClientBuilder) {
-        this.chatClientBuilder = chatClientBuilder;
+            @Autowired(required = false) @Qualifier("openaiChatClient") ChatClient chatClient) {
+        this.chatClient = chatClient;
     }
 
     @Override
@@ -46,16 +47,14 @@ public class CallSummaryServiceImpl implements CallSummaryService {
                     .build();
         }
 
-        if (chatClientBuilder == null) {
-            log.warn("ChatClient not configured (missing api-key?). Returning empty summary.");
+        if (chatClient == null) {
+            log.warn("ChatClient not configured (openaiChatClient). Returning empty summary.");
             return CallSummaryResultDTO.builder()
                     .summary(null)
                     .aiMemo(null)
                     .signalsJson("[]")
                     .build();
         }
-
-        ChatClient chatClient = chatClientBuilder.build();
 
         String systemPrompt = """
                 당신은 케어 대상자와의 통화 내용을 분석하는 어시스턴트입니다.

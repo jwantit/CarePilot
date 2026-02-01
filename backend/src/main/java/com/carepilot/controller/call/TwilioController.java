@@ -23,6 +23,7 @@ import com.carepilot.service.call.emergency.EmergencyDetectionService;
 import com.carepilot.service.call.emergency.EmergencyDetectionResult;
 import com.carepilot.service.call.generation.QuestionGenerationService;
 import com.carepilot.service.call.vector.CallVectorStoreService;
+import com.carepilot.service.callanalysis.CallAnalysisService;
 import com.carepilot.service.notification.NotificationService;
 import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
@@ -61,6 +62,10 @@ import java.util.UUID;
 @Log4j2
 public class TwilioController {
 
+    // Twilio Gather 설정 전역 변수
+    private static final String GATHER_SPEECH_TIMEOUT = "auto";
+    private static final int GATHER_TIMEOUT = 20;
+
     private final CallRepository callRepository;
     private final CallRecordingRepository callRecordingRepository;
     private final CareTargetRepository careTargetRepository;
@@ -72,6 +77,7 @@ public class TwilioController {
     private final EmergencyDetectionService emergencyDetectionService;
     private final QuestionGenerationService questionGenerationService;
     private final NotificationService notificationService;
+    private final CallAnalysisService callAnalysisService;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
 
@@ -133,17 +139,10 @@ public class TwilioController {
                         String originalQuestion = firstQuestion.getQuestionText();
                         CareTarget careTarget = call.getCareTarget();
                         
-                        // 첫 번째 질문도 변형된 질문 생성 (이전 답변이 없으므로 거의 변형 없음)
-                        String contextualQuestion = originalQuestion; // 기본값: 원래 질문
-                        if (questionGenerationService != null && careTarget != null) {
-                            contextualQuestion = questionGenerationService.generateContextualQuestion(
-                                originalQuestion, 
-                                careTarget,
-                                null // 첫 번째 질문이므로 이전 답변 없음
-                            );
-                        }
+                        // 첫 번째 질문은 시나리오 텍스트 그대로 사용 (동적 생성 스킵)
+                        String contextualQuestion = originalQuestion;
                         
-                        // 변형된 질문을 transcript에 저장
+                        // 질문을 transcript에 저장
                         updateTranscriptWithQuestion(callSid, contextualQuestion);
                         
                         // 변형된 질문을 바로 읽어줌
@@ -153,7 +152,8 @@ public class TwilioController {
                         rb.gather(new Gather.Builder()
                                 .inputs(Collections.singletonList(Gather.Input.SPEECH))
                                 .language(Gather.Language.KO_KR)
-                                .speechTimeout("auto")
+                                .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                                .timeout(GATHER_TIMEOUT)
                                 .action(firstActionUrl)
                                 .method(com.twilio.http.HttpMethod.POST)
                                 .say(new Say.Builder(contextualQuestion)
@@ -167,7 +167,8 @@ public class TwilioController {
                     rb.gather(new Gather.Builder()
                             .inputs(Collections.singletonList(Gather.Input.SPEECH))
                             .language(Gather.Language.KO_KR)
-                            .speechTimeout("auto")
+                            .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                            .timeout(GATHER_TIMEOUT)
                             .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
                             .method(com.twilio.http.HttpMethod.POST)
                             .say(new Say.Builder("오늘 컨디션이 어떠신지 말씀해 주세요.")
@@ -185,7 +186,8 @@ public class TwilioController {
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
-                        .speechTimeout("auto")
+                        .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                        .timeout(GATHER_TIMEOUT)
                         .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
                         .method(com.twilio.http.HttpMethod.POST)
                         .say(new Say.Builder("오늘 컨디션이 어떠신지 말씀해 주세요.")
@@ -248,7 +250,8 @@ public class TwilioController {
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
-                        .speechTimeout("auto")
+                        .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                        .timeout(GATHER_TIMEOUT)
                         .action(ngrokBaseUrl + "/api/twilio/voice/gather-speech")
                         .method(com.twilio.http.HttpMethod.POST)
                         .say(new Say.Builder("오늘 컨디션이 어떠신지 말씀해 주세요.")
@@ -363,7 +366,8 @@ public class TwilioController {
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
-                        .speechTimeout("auto")
+                        .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                        .timeout(GATHER_TIMEOUT)
                         .action(nextActionUrl)
                         .method(com.twilio.http.HttpMethod.POST)
                         .say(new Say.Builder(contextualQuestion)
@@ -373,7 +377,7 @@ public class TwilioController {
                         .build());
             } else {
                 // 모든 질문 완료 - 요청사항 질문
-                rb.say(new Say.Builder("ㅈ추가적으로 하실 말씀이나 요청사항이 있으신가요?")
+                rb.say(new Say.Builder("추가적으로 하실 말씀이나 요청사항이 있으신가요?")
                         .language(Say.Language.KO_KR)
                         .voice(Say.Voice.POLLY_SEOYEON)
                         .build());
@@ -381,7 +385,8 @@ public class TwilioController {
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
-                        .speechTimeout("auto")
+                        .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                        .timeout(GATHER_TIMEOUT)
                         .action(ngrokBaseUrl + "/api/twilio/voice/final-request")
                         .method(com.twilio.http.HttpMethod.POST)
                         .build());
@@ -442,7 +447,8 @@ public class TwilioController {
         rb.gather(new Gather.Builder()
                 .inputs(Collections.singletonList(Gather.Input.SPEECH))
                 .language(Gather.Language.KO_KR)
-                .speechTimeout("auto")
+                .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                .timeout(GATHER_TIMEOUT)
                 .action(ngrokBaseUrl + "/api/twilio/voice/final-request")
                 .method(com.twilio.http.HttpMethod.POST)
                 .build());
@@ -575,6 +581,15 @@ public class TwilioController {
 
             log.info("녹음 파일 저장 완료: callId={}, recordingId={}, fileId={}, storagePath={}",
                     call.getCallId(), callRecording.getRecordingId(), savedFile.getFileId(), storagePath);
+
+            // [추가] 통화 분석 및 위험도 점수 생성 (AI 요약 포함)
+            try {
+                log.info("통화 분석 시작: callId={}", call.getCallId());
+                callAnalysisService.analyze(call.getCallId());
+                log.info("통화 분석 완료: callId={}", call.getCallId());
+            } catch (Exception e) {
+                log.error("통화 분석 중 오류 발생: callId={}, error={}", call.getCallId(), e.getMessage(), e);
+            }
         } catch (Exception e) {
             log.error("녹음 파일 저장 실패: callSid={}, error={}", callSid, e.getMessage(), e);
         }
