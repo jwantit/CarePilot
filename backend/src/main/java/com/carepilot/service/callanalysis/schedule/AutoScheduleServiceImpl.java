@@ -3,13 +3,14 @@ package com.carepilot.service.callanalysis.schedule;
 import com.carepilot.domain.call.*;
 import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
-import com.carepilot.domain.task.AITask;
-import com.carepilot.domain.task.AITaskStatus;
-import com.carepilot.domain.task.AITaskType;
+import com.carepilot.domain.task.Task;
+import com.carepilot.domain.task.TaskSourceType;
+import com.carepilot.domain.task.TaskStatus;
+import com.carepilot.domain.task.TaskType;
 import com.carepilot.dto.callanalysis.ScheduleExtractionResultDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
-import com.carepilot.repository.task.AITaskRepository;
+import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -36,7 +37,7 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
     private final CallScheduleRepository callScheduleRepository;
     private final NotificationService notificationService;
     private final ScheduleExtractionService scheduleExtractionService;
-    private final AITaskRepository aiTaskRepository;
+    private final TaskRepository taskRepository;
     private final ChatClient chatClient;
 
     public AutoScheduleServiceImpl(
@@ -44,13 +45,13 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
             CallScheduleRepository callScheduleRepository,
             NotificationService notificationService,
             ScheduleExtractionService scheduleExtractionService,
-            AITaskRepository aiTaskRepository,
+            TaskRepository taskRepository,
             @Autowired(required = false) @Qualifier("openaiChatClient") ChatClient chatClient) {
         this.callRepository = callRepository;
         this.callScheduleRepository = callScheduleRepository;
         this.notificationService = notificationService;
         this.scheduleExtractionService = scheduleExtractionService;
-        this.aiTaskRepository = aiTaskRepository;
+        this.taskRepository = taskRepository;
         this.chatClient = chatClient;
     }
 
@@ -193,7 +194,7 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
             return;
         }
 
-        AITask aiTask = null;
+        Task aiTask = null;
         try {
             // "요청사항: " 이후의 텍스트 추출
             int index = transcript.lastIndexOf("요청사항: ");
@@ -219,34 +220,35 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
                 log.info("[스케줄 자동화] ai_memo 업데이트 완료: callId={}, memo={}", callId, requirementMemo);
 
                 if (extractionResult.getIsScheduleChangeRequest()) {
-                    // 스케줄 변경 전에 AITask 생성
-                    aiTask = AITask.builder()
+                    // 스케줄 변경 전에 Task 생성 (sourceType=AI)
+                    aiTask = Task.builder()
                             .organization(call.getOrganization())
-                            .taskType(AITaskType.SCHEDULE_CHANGE)
+                            .sourceType(TaskSourceType.AI)
+                            .type(TaskType.SCHEDULE_CHANGE)
                             .call(call)
                             .careTarget(call.getCareTarget())
-                            .status(AITaskStatus.WAITING)
+                            .status(TaskStatus.WAITING)
                             .startedAt(LocalDateTime.now())
                             .result("스케줄 변경 자동화 작업 시작: " + requestText)
                             .build();
-                    aiTask = aiTaskRepository.save(aiTask);
-                    log.info("[스케줄 자동화] AITask 생성: aiTaskId={}", aiTask.getAiTaskId());
+                    aiTask = taskRepository.save(aiTask);
+                    log.info("[스케줄 자동화] Task(AI) 생성: taskId={}", aiTask.getTaskId());
 
                     log.info("[스케줄 자동화] 스케줄 업데이트 시작: callId={}", callId);
                     processAutoScheduleUpdate(callId, extractionResult);
                     
-                    // 스케줄 업데이트 성공 후 AITask 상태 업데이트 (최신 Call 조회)
+                    // 스케줄 업데이트 성공 후 Task 상태 업데이트 (최신 Call 조회)
                     if (aiTask != null) {
                         Call updatedCall = callRepository.findById(callId).orElse(null);
-                        aiTask = aiTaskRepository.findById(aiTask.getAiTaskId()).orElse(null);
+                        aiTask = taskRepository.findById(aiTask.getTaskId()).orElse(null);
                         if (aiTask != null && updatedCall != null) {
                             aiTask.updateSchedule(updatedCall.getCallSchedule());
-                            aiTask.updateStatus(AITaskStatus.SUCCESS, 
+                            aiTask.updateResultAndStatus(TaskStatus.SUCCESS, 
                                     "스케줄 변경 자동화 작업 완료: " + extractionResult.getOriginalText(),
                                     LocalDateTime.now());
-                            aiTaskRepository.save(aiTask);
-                            log.info("[스케줄 자동화] AITask 완료 처리: aiTaskId={}, scheduleId={}", 
-                                    aiTask.getAiTaskId(), 
+                            taskRepository.save(aiTask);
+                            log.info("[스케줄 자동화] Task(AI) 완료 처리: taskId={}, scheduleId={}", 
+                                    aiTask.getTaskId(), 
                                     updatedCall.getCallSchedule() != null ? updatedCall.getCallSchedule().getScheduleId() : "null");
                         }
                     }
@@ -259,19 +261,19 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
         } catch (Exception e) {
             log.error("[스케줄 자동화] 처리 중 오류 발생: {}", e.getMessage(), e);
             
-            // 오류 발생 시 AITask 상태를 FAILED로 업데이트
+            // 오류 발생 시 Task 상태를 FAILED로 업데이트
             if (aiTask != null) {
                 try {
-                    aiTask = aiTaskRepository.findById(aiTask.getAiTaskId()).orElse(null);
+                    aiTask = taskRepository.findById(aiTask.getTaskId()).orElse(null);
                     if (aiTask != null) {
-                        aiTask.updateStatus(AITaskStatus.FAILED,
+                        aiTask.updateResultAndStatus(TaskStatus.FAILED,
                                 "스케줄 변경 자동화 작업 실패: " + e.getMessage(),
                                 LocalDateTime.now());
-                        aiTaskRepository.save(aiTask);
-                        log.info("[스케줄 자동화] AITask 실패 처리: aiTaskId={}", aiTask.getAiTaskId());
+                        taskRepository.save(aiTask);
+                        log.info("[스케줄 자동화] Task(AI) 실패 처리: taskId={}", aiTask.getTaskId());
                     }
                 } catch (Exception ex) {
-                    log.error("[스케줄 자동화] AITask 실패 처리 중 오류: {}", ex.getMessage(), ex);
+                    log.error("[스케줄 자동화] Task(AI) 실패 처리 중 오류: {}", ex.getMessage(), ex);
                 }
             }
         }

@@ -11,6 +11,7 @@ import { getStaffList } from '../../api/user/userApi';
 import { toast } from 'react-hot-toast';
 
 const defaultFilters = {
+  sourceType: 'USER',
   status: '',
   priority: '',
   type: '',
@@ -25,6 +26,7 @@ export const useTaskList = () => {
 
   const buildParams = useCallback(() => {
     const params = {};
+    if (filters.sourceType) params.sourceType = filters.sourceType;
     if (filters.status) params.status = filters.status;
     if (filters.priority) params.priority = filters.priority;
     if (filters.type) params.type = filters.type;

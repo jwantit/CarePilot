@@ -28,6 +28,7 @@ const TaskFormModal = ({
   open,
   onClose,
   onSubmit,
+  onDelete,
   mode = 'create',
   initialTask = null,
   careTargetList = [],
@@ -184,20 +185,38 @@ const TaskFormModal = ({
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#008080] focus:border-[#008080] outline-none"
               />
             </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                취소
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-[#008080] rounded-lg hover:bg-[#006666]"
-              >
-                {mode === 'edit' ? '수정' : '등록'}
-              </button>
+            <div className="flex justify-between pt-2">
+              <div>
+                {mode === 'edit' && onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('정말 삭제하시겠습니까?')) {
+                        onDelete(initialTask?.taskId);
+                        onClose();
+                      }
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#008080] rounded-lg hover:bg-[#006666]"
+                >
+                  {mode === 'edit' ? '저장' : '등록'}
+                </button>
+              </div>
             </div>
           </form>
         </div>

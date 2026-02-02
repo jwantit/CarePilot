@@ -22,7 +22,7 @@ const TaskTable = ({
   onStart,
   onComplete,
   onEdit,
-  onDelete,
+  onDetail,
   onAssignChange,
   staffList,
 }) => {
@@ -140,27 +140,21 @@ const TaskTable = ({
                         완료
                       </button>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => onDetail && onDetail(task)}
+                      className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    >
+                      상세
+                    </button>
                     {task.status !== 'DONE' && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => onEdit && onEdit(task)}
-                          className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        >
-                          수정
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            window.confirm('삭제하시겠습니까?') &&
-                            onDelete &&
-                            onDelete(task.taskId)
-                          }
-                          className="px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-700 hover:bg-red-200"
-                        >
-                          삭제
-                        </button>
-                      </>
+                      <button
+                        type="button"
+                        onClick={() => onEdit && onEdit(task)}
+                        className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      >
+                        수정
+                      </button>
                     )}
                     {task.status === 'DONE' && <span className="text-gray-400 text-xs">-</span>}
                   </div>

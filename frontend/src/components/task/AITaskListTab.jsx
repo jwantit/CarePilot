@@ -7,7 +7,7 @@ import Loading from '../common/Loading';
 
 const AITaskListTab = () => {
   const { aiTaskList, loading, filters, updateFilter } = useAITaskList();
-  const [selectedAiTaskId, setSelectedAiTaskId] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   if (loading) {
     return (
@@ -22,12 +22,12 @@ const AITaskListTab = () => {
       <AITaskFilters filters={filters} updateFilter={updateFilter} />
       <AITaskTable
         aiTaskList={aiTaskList}
-        onDetail={(aiTaskId) => setSelectedAiTaskId(aiTaskId)}
+        onDetail={(taskId) => setSelectedTaskId(taskId)}
       />
       <AITaskDetailModal
-        open={!!selectedAiTaskId}
-        onClose={() => setSelectedAiTaskId(null)}
-        aiTaskId={selectedAiTaskId}
+        open={!!selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+        taskId={selectedTaskId}
       />
     </>
   );

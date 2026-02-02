@@ -21,15 +21,16 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    //작업 목록 조회 (필터: status, priority, type, assignedToUserId)
+    //작업 목록 조회 (필터: sourceType=USER|AI, status, priority, type, assignedToUserId)
     @GetMapping
     public ResponseEntity<List<TaskListResponseDTO>> getTaskList(
+            @RequestParam(required = false) String sourceType,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Long assignedToUserId) {
-        log.info("GET /api/tasks 요청: status={}, priority={}, type={}, assignedToUserId={}", status, priority, type, assignedToUserId);
-        return ResponseEntity.ok(taskService.getTaskList(status, priority, type, assignedToUserId));
+        log.info("GET /api/tasks 요청: sourceType={}, status={}, priority={}, type={}, assignedToUserId={}", sourceType, status, priority, type, assignedToUserId);
+        return ResponseEntity.ok(taskService.getTaskList(sourceType, status, priority, type, assignedToUserId));
     }
 
     //작업 상세 조회

@@ -1,8 +1,12 @@
 package com.carepilot.domain.task;
 
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.caretarget.CareTargetGroup;
+import com.carepilot.domain.call.Call;
+import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.enums.Priority;
+import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
@@ -28,11 +32,14 @@ public class Task extends BaseEntity {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", length = 20)
+    private TaskSourceType sourceType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "care_target_id")
     private CareTarget careTarget;
 
-    // @Column(name = "title", nullable = false, length = 255)
     @Column(name = "title", length = 255)
     private String title;
 
@@ -40,22 +47,18 @@ public class Task extends BaseEntity {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    // @Column(name = "type", nullable = false, length = 50)
     @Column(name = "type", length = 50)
     private TaskType type;
 
     @Enumerated(EnumType.STRING)
-    // @Column(name = "priority", nullable = false, length = 20)
     @Column(name = "priority", length = 20)
     private Priority priority = Priority.MEDIUM;
 
     @Enumerated(EnumType.STRING)
-    // @Column(name = "status", nullable = false, length = 20)
     @Column(name = "status", length = 20)
     private TaskStatus status = TaskStatus.WAITING;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "created_by", nullable = false)
     @JoinColumn(name = "created_by")
     private User createdBy;
 
@@ -69,11 +72,36 @@ public class Task extends BaseEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "call_id")
+    private Call call;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private CallSchedule schedule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_id")
+    private Notification notification;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private CareTargetGroup group;
+
+    @Column(name = "result", columnDefinition = "TEXT")
+    private String result;
+
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
     @Builder
-    public Task(Organization organization, CareTarget careTarget, String title,
+    public Task(Organization organization, TaskSourceType sourceType, CareTarget careTarget, String title,
                String description, TaskType type, Priority priority, TaskStatus status,
-               User createdBy, User assignedTo, LocalDateTime dueDate, LocalDateTime completedAt) {
+               User createdBy, User assignedTo, LocalDateTime dueDate, LocalDateTime completedAt,
+               Call call, CallSchedule schedule, Notification notification, CareTargetGroup group,
+               String result, LocalDateTime startedAt) {
         this.organization = organization;
+        this.sourceType = sourceType;
         this.careTarget = careTarget;
         this.title = title;
         this.description = description;
@@ -84,14 +112,32 @@ public class Task extends BaseEntity {
         this.assignedTo = assignedTo;
         this.dueDate = dueDate;
         this.completedAt = completedAt;
+        this.call = call;
+        this.schedule = schedule;
+        this.notification = notification;
+        this.group = group;
+        this.result = result;
+        this.startedAt = startedAt;
     }
 
-    /** 상태 변경 (대기/진행중/완료) */
+    /** 상태 변경 (대기/진행중/완료) - USER용 */
     public void changeStatus(TaskStatus status) {
         this.status = status;
         if (status == TaskStatus.DONE) {
             this.completedAt = LocalDateTime.now();
         }
+    }
+
+    /** AI 작업 상태 및 결과 업데이트 */
+    public void updateResultAndStatus(TaskStatus status, String result, LocalDateTime completedAt) {
+        this.status = status;
+        this.result = result;
+        this.completedAt = completedAt;
+    }
+
+    /** AI 작업 스케줄 업데이트 */
+    public void updateSchedule(CallSchedule schedule) {
+        this.schedule = schedule;
     }
 
     /** 할당자 변경 */

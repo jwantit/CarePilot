@@ -60,9 +60,9 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {aiTaskList.map((row) => (
-              <tr key={row.aiTaskId} className="hover:bg-gray-50 transition-colors">
+              <tr key={row.taskId} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 text-sm text-gray-700">
-                  {getAITaskTypeLabel(row.taskType)}
+                  {getAITaskTypeLabel(row.type)}
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -88,7 +88,7 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    onClick={() => onDetail && onDetail(row.aiTaskId)}
+                    onClick={() => onDetail && onDetail(row.taskId)}
                     className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
                   >
                     상세

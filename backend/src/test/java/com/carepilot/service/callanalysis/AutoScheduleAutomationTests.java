@@ -4,14 +4,15 @@ import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.notification.NotificationType;
-import com.carepilot.domain.task.AITask;
-import com.carepilot.domain.task.AITaskStatus;
-import com.carepilot.domain.task.AITaskType;
+import com.carepilot.domain.task.Task;
+import com.carepilot.domain.task.TaskSourceType;
+import com.carepilot.domain.task.TaskStatus;
+import com.carepilot.domain.task.TaskType;
 import com.carepilot.dto.callanalysis.ScheduleExtractionResultDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.notification.NotificationRepository;
-import com.carepilot.repository.task.AITaskRepository;
+import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.service.callanalysis.schedule.AutoScheduleService;
 import com.carepilot.service.callanalysis.schedule.ScheduleExtractionService;
 import lombok.extern.log4j.Log4j2;
@@ -53,7 +54,7 @@ class AutoScheduleAutomationTests {
     private NotificationRepository notificationRepository;
 
     @Autowired
-    private AITaskRepository aiTaskRepository;
+    private TaskRepository taskRepository;
 
     @Test
     @DisplayName("자연어 요청에서 스케줄 변경 정보 추출 테스트 (LLM 연동)")
@@ -219,31 +220,32 @@ class AutoScheduleAutomationTests {
                 .isTrue();
         log.info("  ✓ ai_memo에 요구사항 분석 결과가 정상적으로 추가되었습니다.");
         
-        // Step 4-2: AITask 생성 확인
-        log.info("[Step 4-2] AITask 생성 확인...");
-        List<AITask> aiTasks = aiTaskRepository.findAll().stream()
+        // Step 4-2: Task(AI) 생성 확인
+        log.info("[Step 4-2] Task(AI) 생성 확인...");
+        List<Task> aiTasks = taskRepository.findAll().stream()
+                .filter(t -> t.getSourceType() == TaskSourceType.AI)
                 .filter(t -> t.getCall() != null && t.getCall().getCallId().equals(callId))
-                .filter(t -> t.getTaskType() == AITaskType.SCHEDULE_CHANGE)
+                .filter(t -> t.getType() == TaskType.SCHEDULE_CHANGE)
                 .toList();
         
         assertThat(aiTasks).isNotEmpty();
-        AITask aiTask = aiTasks.get(0);
-        log.info("  - AITask ID: {}", aiTask.getAiTaskId());
-        log.info("  - Task Type: {}", aiTask.getTaskType());
+        Task aiTask = aiTasks.get(0);
+        log.info("  - Task ID: {}", aiTask.getTaskId());
+        log.info("  - Task Type: {}", aiTask.getType());
         log.info("  - Status: {}", aiTask.getStatus());
         log.info("  - Result: {}", aiTask.getResult());
         log.info("  - Started At: {}", aiTask.getStartedAt() != null ? aiTask.getStartedAt().format(DATE_TIME_FORMATTER) : "null");
         log.info("  - Completed At: {}", aiTask.getCompletedAt() != null ? aiTask.getCompletedAt().format(DATE_TIME_FORMATTER) : "null");
         log.info("  - Schedule ID: {}", aiTask.getSchedule() != null ? aiTask.getSchedule().getScheduleId() : "null");
         
-        assertThat(aiTask.getStatus()).isEqualTo(AITaskStatus.SUCCESS);
+        assertThat(aiTask.getStatus()).isEqualTo(TaskStatus.SUCCESS);
         assertThat(aiTask.getResult()).contains("스케줄 변경 자동화 작업 완료");
         assertThat(aiTask.getCompletedAt()).isNotNull();
         if (updatedSchedule != null) {
             assertThat(aiTask.getSchedule()).isNotNull();
             assertThat(aiTask.getSchedule().getScheduleId()).isEqualTo(updatedSchedule.getScheduleId());
         }
-        log.info("  ✓ AITask가 정상적으로 생성되고 완료 처리되었습니다.");
+        log.info("  ✓ Task(AI)가 정상적으로 생성되고 완료 처리되었습니다.");
         
         // Step 4-3: 스케줄 업데이트 확인
         log.info("[Step 4-3] 스케줄 업데이트 확인...");
@@ -287,7 +289,7 @@ class AutoScheduleAutomationTests {
         log.info("=== 테스트 완료 ===");
         log.info("요약:");
         log.info("  ✓ 요구사항 분석 결과가 ai_memo에 추가됨");
-        log.info("  ✓ AITask가 생성되고 SUCCESS 상태로 완료됨");
+        log.info("  ✓ Task(AI)가 생성되고 SUCCESS 상태로 완료됨");
         log.info("  ✓ 스케줄이 다음 주 수요일 오후 3시로 업데이트됨");
         log.info("  ✓ 알림이 생성됨");
     }

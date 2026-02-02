@@ -24,7 +24,6 @@ public enum ErrorCode {
 
     // 작업 관련
     TASK_NOT_FOUND("작업을 찾을 수 없습니다."),
-    AI_TASK_NOT_FOUND("AI 처리 내역을 찾을 수 없습니다."),
     CARE_TARGET_NOT_FOUND("케어 대상을 찾을 수 없습니다."),
 
     // 기타

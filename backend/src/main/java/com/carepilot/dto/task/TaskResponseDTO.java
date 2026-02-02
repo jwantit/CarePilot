@@ -7,12 +7,16 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 통합 작업 상세 응답 (USER + AI)
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class TaskResponseDTO {
     private Long taskId;
+    private String sourceType;  // AI | USER
     private Long organizationId;
     private Long careTargetId;
     private String careTargetName;
@@ -29,4 +33,11 @@ public class TaskResponseDTO {
     private LocalDateTime completedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    // AI용 필드
+    private Long callId;
+    private Long scheduleId;
+    private Long notificationId;
+    private Long groupId;
+    private String result;
+    private LocalDateTime startedAt;
 }

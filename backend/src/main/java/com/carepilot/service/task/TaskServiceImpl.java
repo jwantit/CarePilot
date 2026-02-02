@@ -5,6 +5,7 @@ import com.carepilot.common.exception.ErrorCode;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.task.Task;
+import com.carepilot.domain.task.TaskSourceType;
 import com.carepilot.domain.task.TaskStatus;
 import com.carepilot.domain.task.TaskType;
 import com.carepilot.domain.user.User;
@@ -35,18 +36,21 @@ public class TaskServiceImpl implements TaskService {
     private final CareTargetRepository careTargetRepository;
     private final UserUtil userUtil;
 
-    //작업 목록 조회 (필터: status, priority, type, assignedToUserId(작업 할당자))
+    private static final int RESULT_SUMMARY_MAX_LENGTH = 100;
+
+    //작업 목록 조회 (필터: sourceType, status, priority, type, assignedToUserId)
     @Override
     @Transactional(readOnly = true)
-    public List<TaskListResponseDTO> getTaskList(String status, String priority, String type, Long assignedToUserId) {
+    public List<TaskListResponseDTO> getTaskList(String sourceType, String status, String priority, String type, Long assignedToUserId) {
         User currentUser = userUtil.getCurrentUser();
         Long orgId = currentUser.getOrganization().getOrganizationId();
 
+        TaskSourceType sourceTypeEnum = parseSourceType(sourceType);
         TaskStatus taskStatus = parseTaskStatus(status);
         Priority priorityEnum = parsePriority(priority);
         TaskType taskType = parseTaskType(type);
 
-        // 할당자: 같은 조직 사용자만 허용
+        // 할당자: 같은 조직 사용자만 허용 (USER 전용)
         Long assigneeFilter = null;
         if (assignedToUserId != null) {
             User assignee = userRepository.findByUserId(assignedToUserId)
@@ -58,7 +62,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        List<Task> tasks = taskRepository.findByOrganizationAndFilters(orgId, taskStatus, priorityEnum, taskType, assigneeFilter);
+        List<Task> tasks = taskRepository.findByOrganizationAndFilters(orgId, sourceTypeEnum, taskStatus, priorityEnum, taskType, assigneeFilter);
         return tasks.stream().map(this::toListResponseDTO).collect(Collectors.toList());
     }
 
@@ -82,10 +86,11 @@ public class TaskServiceImpl implements TaskService {
 
         Task task = Task.builder()
                 .organization(currentUser.getOrganization())
+                .sourceType(TaskSourceType.USER)
                 .careTarget(careTarget)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .type(taskType != null ? taskType : TaskType.NORMAL)
+                .type(taskType != null ? taskType : TaskType.OTHER)
                 .priority(priority != null ? priority : Priority.MEDIUM)
                 .status(TaskStatus.WAITING)
                 .createdBy(currentUser)
@@ -100,6 +105,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponseDTO updateTask(Long taskId, TaskRequestDTO request) {
         Task task = getTaskInOrg(taskId);
+        if (task.getSourceType() != TaskSourceType.USER) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 수정할 수 없습니다.");
+        }
         Long orgId = task.getOrganization().getOrganizationId();
 
         CareTarget careTarget = request.getCareTargetId() != null
@@ -122,10 +130,13 @@ public class TaskServiceImpl implements TaskService {
         return toResponseDTO(task);
     }
 
-    // 작업 상태 변경
+    // 작업 상태 변경 (USER 전용)
     @Override
     public void updateStatus(Long taskId, String status) {
         Task task = getTaskInOrg(taskId);
+        if (task.getSourceType() != TaskSourceType.USER) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 상태 변경할 수 없습니다.");
+        }
         TaskStatus taskStatus = parseTaskStatus(status);
         if (taskStatus == null) {
             throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "유효하지 않은 상태값입니다.");
@@ -135,10 +146,13 @@ public class TaskServiceImpl implements TaskService {
         log.info("작업 상태 변경: taskId={}, status={}", taskId, status);
     }
 
-    // 작업 할당 변경
+    // 작업 할당 변경 (USER 전용)
     @Override
     public void updateAssign(Long taskId, Long assignedToUserId) {
         Task task = getTaskInOrg(taskId);
+        if (task.getSourceType() != TaskSourceType.USER) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 할당 변경할 수 없습니다.");
+        }
         Long orgId = task.getOrganization().getOrganizationId();
         User assignee = assignedToUserId != null ? resolveUserInOrg(assignedToUserId, orgId) : null;
         task.assignTo(assignee);
@@ -149,6 +163,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTask(Long taskId) {
         Task task = getTaskInOrg(taskId);
+        if (task.getSourceType() != TaskSourceType.USER) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 삭제할 수 없습니다.");
+        }
         taskRepository.delete(task);
         log.info("작업 삭제: taskId={}", taskId);
     }
@@ -186,6 +203,15 @@ public class TaskServiceImpl implements TaskService {
         return user;
     }
 
+    private static TaskSourceType parseSourceType(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return TaskSourceType.valueOf(value.toUpperCase().trim());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private static TaskStatus parseTaskStatus(String value) {
         if (value == null || value.isBlank()) return null;
         try {
@@ -193,6 +219,12 @@ public class TaskServiceImpl implements TaskService {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private String resultSummary(String result) {
+        if (result == null) return null;
+        if (result.length() <= RESULT_SUMMARY_MAX_LENGTH) return result;
+        return result.substring(0, RESULT_SUMMARY_MAX_LENGTH) + "...";
     }
 
     private static Priority parsePriority(String value) {
@@ -218,6 +250,7 @@ public class TaskServiceImpl implements TaskService {
         if (t.getOrganization() != null) t.getOrganization().getName();
         return TaskListResponseDTO.builder()
                 .taskId(t.getTaskId())
+                .sourceType(t.getSourceType() != null ? t.getSourceType().name() : null)
                 .title(t.getTitle())
                 .careTargetId(t.getCareTarget() != null ? t.getCareTarget().getCareTargetId() : null)
                 .careTargetName(t.getCareTarget() != null ? t.getCareTarget().getName() : null)
@@ -228,6 +261,9 @@ public class TaskServiceImpl implements TaskService {
                 .assignedToName(t.getAssignedTo() != null ? t.getAssignedTo().getName() : null)
                 .dueDate(t.getDueDate())
                 .completedAt(t.getCompletedAt())
+                .resultSummary(resultSummary(t.getResult()))
+                .startedAt(t.getStartedAt())
+                .createdAt(t.getCreatedAt())
                 .build();
     }
 
@@ -239,6 +275,7 @@ public class TaskServiceImpl implements TaskService {
         if (t.getAssignedTo() != null) t.getAssignedTo().getName();
         return TaskResponseDTO.builder()
                 .taskId(t.getTaskId())
+                .sourceType(t.getSourceType() != null ? t.getSourceType().name() : null)
                 .organizationId(t.getOrganization().getOrganizationId())
                 .careTargetId(t.getCareTarget() != null ? t.getCareTarget().getCareTargetId() : null)
                 .careTargetName(t.getCareTarget() != null ? t.getCareTarget().getName() : null)
@@ -255,6 +292,12 @@ public class TaskServiceImpl implements TaskService {
                 .completedAt(t.getCompletedAt())
                 .createdAt(t.getCreatedAt())
                 .updatedAt(t.getUpdatedAt())
+                .callId(t.getCall() != null ? t.getCall().getCallId() : null)
+                .scheduleId(t.getSchedule() != null ? t.getSchedule().getScheduleId() : null)
+                .notificationId(t.getNotification() != null ? t.getNotification().getNotificationId() : null)
+                .groupId(t.getGroup() != null ? t.getGroup().getGroupId() : null)
+                .result(t.getResult())
+                .startedAt(t.getStartedAt())
                 .build();
     }
 }

@@ -2,7 +2,7 @@ import { apiClient } from "../apiClient";
 
 const host = `/tasks`;
 
-// 작업 목록 조회 (필터: status, priority, type, assignedToUserId)
+// 작업 목록 조회 (필터: sourceType=USER|AI, status, priority, type, assignedToUserId)
 export const getTaskList = async (params = {}) => {
   const res = await apiClient.get(host, { params });
   return res.data;

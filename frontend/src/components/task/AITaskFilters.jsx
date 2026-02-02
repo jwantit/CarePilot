@@ -19,8 +19,8 @@ const AITaskFilters = ({ filters, updateFilter }) => {
 
       <span className="text-sm font-medium text-gray-700 ml-2">유형</span>
       <select
-        value={filters.taskType ?? ''}
-        onChange={(e) => updateFilter('taskType', e.target.value)}
+        value={filters.type ?? ''}
+        onChange={(e) => updateFilter('type', e.target.value)}
         className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#008080] focus:border-[#008080] outline-none"
       >
         {AI_TASK_TYPE_OPTIONS.map((opt) => (
