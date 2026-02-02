@@ -91,5 +91,21 @@ public class AITask extends BaseEntity {
         this.startedAt = startedAt;
         this.completedAt = completedAt;
     }
+
+    /**
+     * 작업 상태와 결과를 업데이트합니다.
+     */
+    public void updateStatus(AITaskStatus status, String result, LocalDateTime completedAt) {
+        this.status = status;
+        this.result = result;
+        this.completedAt = completedAt;
+    }
+
+    /**
+     * 스케줄을 업데이트합니다.
+     */
+    public void updateSchedule(CallSchedule schedule) {
+        this.schedule = schedule;
+    }
 }
 

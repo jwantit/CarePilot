@@ -11,6 +11,7 @@ import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.RiskScoreRepository;
 import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.service.callanalysis.risk.CallRiskAnalysisService;
+import com.carepilot.service.callanalysis.schedule.AutoScheduleService;
 import com.carepilot.service.callanalysis.summary.CallSummaryService;
 import com.carepilot.service.config.risk.RiskConfigService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
     private final RiskScoreRepository riskScoreRepository;
     private final CallSummaryService callSummaryService;
     private final CallRiskAnalysisService callRiskAnalysisService;
+    private final AutoScheduleService autoScheduleService;
     private final RiskConfigService riskConfigService;
 
     @Override
@@ -52,7 +54,19 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
 
         String transcript = recording.getTranscript();
 
-        CallSummaryResultDTO summaryResult = callSummaryService.summarize(transcript);
+        CallSummaryResultDTO summaryResult;
+        try {
+            summaryResult = callSummaryService.summarize(transcript);
+        } catch (Exception e) {
+            log.error("통화 요약 분석 실패: callId={}, error={}", callId, e.getMessage(), e);
+            // 요약 실패 시 빈 결과로 처리하여 나머지 분석은 계속 진행
+            summaryResult = CallSummaryResultDTO.builder()
+                    .summary("AI 분석을 수행할 수 없습니다.")
+                    .aiMemo("AI 분석 중 오류가 발생했습니다.")
+                    .signalsJson("[]")
+                    .build();
+        }
+        
         String signalsJson = summaryResult.getSignalsJson() != null ? summaryResult.getSignalsJson() : "[]";
         call.updateAiResult(
                 summaryResult.getSummary(),
@@ -60,7 +74,16 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
                 signalsJson);
         callRepository.save(call);
 
-        RiskAnalysisResultDTO riskResult = callRiskAnalysisService.analyze(signalsJson, transcript);
+        RiskAnalysisResultDTO riskResult;
+        try {
+            riskResult = callRiskAnalysisService.analyze(signalsJson, transcript);
+        } catch (Exception e) {
+            log.error("위험도 분석 실패: callId={}, error={}", callId, e.getMessage(), e);
+            // 위험도 분석 실패 시 기본값으로 처리
+            riskResult = RiskAnalysisResultDTO.builder()
+                    .riskScore(0)
+                    .build();
+        }
 
         // RiskConfigService를 사용하여 조직의 risk config를 가져오고 risk_level을 계산
         Long organizationId = call.getOrganization().getOrganizationId();
@@ -78,6 +101,9 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
         riskScoreRepository.save(riskScore);
 
         log.info("Analysis completed for callId={}, riskScore={}", callId, riskResult.getRiskScore());
+
+        // 사용자의 요청사항(요청사항: ...)이 있다면 스케줄 자동화 처리
+        autoScheduleService.processAutoScheduleTask(callId, transcript);
 
         CallAnalyzeResponseDTO response = CallAnalyzeResponseDTO.builder()
                 .callId(callId)

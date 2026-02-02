@@ -102,13 +102,14 @@ public class Call extends BaseEntity {
     }
 
     /**
-     * 통화 종료 시 end_time과 duration을 업데이트합니다.
+     * 통화 종료 시 end_time과 duration을 업데이트하고 상태를 SUCCESS로 변경합니다.
      */
     public void completeCall() {
         this.endTime = LocalDateTime.now();
         if (this.startTime != null && this.endTime != null) {
             this.duration = (int) Duration.between(this.startTime, this.endTime).getSeconds();
         }
+        this.status = CallStatus.SUCCESS;
     }
 
     // AI 분석 결과(요약, 메모, 시그널)를 반영. 통화 분석 파이프라인에서 호출.
@@ -116,6 +117,27 @@ public class Call extends BaseEntity {
         this.summary = summary;
         this.aiMemo = aiMemo;
         this.signals = signals;
+    }
+
+    /**
+     * AI 메모에 내용을 추가합니다. 기존 내용이 있으면 줄바꿈 후 추가합니다.
+     */
+    public void appendAiMemo(String additionalMemo) {
+        if (additionalMemo == null || additionalMemo.isBlank()) {
+            return;
+        }
+        if (this.aiMemo == null || this.aiMemo.isBlank()) {
+            this.aiMemo = additionalMemo;
+        } else {
+            this.aiMemo = this.aiMemo + "\n\n" + additionalMemo;
+        }
+    }
+
+    /**
+     * AI 메모를 새로운 내용으로 교체합니다.
+     */
+    public void updateAiMemo(String newMemo) {
+        this.aiMemo = newMemo;
     }
 }
 

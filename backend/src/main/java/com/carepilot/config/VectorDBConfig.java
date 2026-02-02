@@ -136,7 +136,7 @@ public class VectorDBConfig {
 //mxbai 임베팅 + 저장소2-----------------------------------------------------------------------------------------------------
     // [Bean 2] 전화 기록/시나리오 전용 저장소
     @Bean(name = "callLogVectorStore")
-    public VectorStore callLogVectorStore(@Qualifier("mxbaiEmbeddingModel") OllamaEmbeddingModel embeddingModel, JedisPooled jedis) {
+    public VectorStore callLogVectorStore(@Qualifier("bgeEmbeddingModel") OllamaEmbeddingModel embeddingModel, JedisPooled jedis) {
         return RedisVectorStore.builder(jedis, embeddingModel)
                 .indexName(c2IndexName)
                 .prefix(c2Prefix)
