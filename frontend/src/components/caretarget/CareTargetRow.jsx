@@ -30,7 +30,7 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
 
   return (
     // //--------- [체크박스 영역] grid-cols-7 -> grid-cols-8 변경 ---------
-    <div className={`grid grid-cols-8 py-4 px-4 text-sm text-center items-center hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 ${isSelected ? 'bg-teal-50/30' : ''}`}>
+    <div className={`grid grid-cols-8 py-4 px-4 text-sm text-center items-center hover:bg-gray-50 transition-colors border-b border-gray-100 ${isSelected ? 'bg-teal-50/30' : ''}`}>
       
       {/* 체크박스 열 */}
       <div className="flex justify-center">

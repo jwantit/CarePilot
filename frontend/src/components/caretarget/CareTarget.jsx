@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { AutoSizer, List } from 'react-virtualized';
+import 'react-virtualized/styles.css';
 import CareTargetRow from "./CareTargetRow";
 import { getCareTargetAllList } from '../../api/caretarget/careTargetApi';
 
@@ -53,35 +55,53 @@ function CareTarget({
     );
   }
 
-  return (
-    <div className="w-full">
-      <div className="divide-y divide-gray-100">
-        {careTargetList && careTargetList.length > 0 ? (
-          careTargetList.map((patient) => (
-            <CareTargetRow 
-              key={patient.careTargetId} 
-              data={patient} 
-              organizationId={organizationId}
-              // //--------- [체크박스 영역] 개별 행에 체크 상태 및 핸들러 전달 ---------
-              isSelected={selectedIds?.includes(patient.careTargetId)}
-              onSelectChange={onSelectChange}
-              // //--------- [체크박스 영역] 끝 ---------
-            />
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center p-20 bg-gray-50/30">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl text-gray-300">!</span>
-            </div>
-            <p className="text-gray-500 font-medium">
-              {keyword ? `"${keyword}"에 대한 검색 결과가 없습니다.` : "등록된 환자 데이터가 없습니다."}
-            </p>
-            <p className="text-gray-400 text-sm mt-1">
-              {keyword ? "검색어를 다시 확인해 주세요." : "상단의 '환자 등록' 버튼을 통해 추가해 보세요."}
-            </p>
-          </div>
-        )}
+  // 가상 스크롤을 위한 row renderer
+  const rowRenderer = ({ key, index, style }) => {
+    const patient = careTargetList[index];
+    if (!patient) return null;
+    
+    return (
+      <div key={key} style={style}>
+        <CareTargetRow 
+          data={patient} 
+          organizationId={organizationId}
+          isSelected={selectedIds?.includes(patient.careTargetId)}
+          onSelectChange={onSelectChange}
+        />
       </div>
+    );
+  };
+
+  if (careTargetList && careTargetList.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 bg-gray-50/30">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <span className="text-2xl text-gray-300">!</span>
+        </div>
+        <p className="text-gray-500 font-medium">
+          {keyword ? `"${keyword}"에 대한 검색 결과가 없습니다.` : "등록된 환자 데이터가 없습니다."}
+        </p>
+        <p className="text-gray-400 text-sm mt-1">
+          {keyword ? "검색어를 다시 확인해 주세요." : "상단의 '환자 등록' 버튼을 통해 추가해 보세요."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full" style={{ height: '600px' }}>
+      <AutoSizer>
+        {({ height, width }) => (
+          <List
+            width={width}
+            height={height}
+            rowCount={careTargetList.length}
+            rowHeight={73} // CareTargetRow의 예상 높이 (py-4 포함)
+            rowRenderer={rowRenderer}
+            overscanRowCount={5} // 성능 최적화를 위한 추가 렌더링 행 수
+          />
+        )}
+      </AutoSizer>
     </div>
   );
 }

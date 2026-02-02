@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AutoSizer, Table, Column } from 'react-virtualized';
+import 'react-virtualized/styles.css';
 
 /**
  * 알림 테이블 컴포넌트
@@ -68,92 +70,221 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     }
   };
 
+  // 가상 스크롤을 위한 row getter
+  const getRow = ({ index }) => {
+    return notifications[index];
+  };
+
+  // 각 컬럼의 cell renderer
+  const severityCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    const severityBadge = getSeverityBadge(rowData.severity);
+    return (
+      <div className="px-4 py-3 whitespace-nowrap h-full flex items-center">
+        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${severityBadge.color}`}>
+          {severityBadge.label}
+        </span>
+      </div>
+    );
+  };
+
+  const titleCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    return (
+      <div className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap truncate h-full flex items-center">
+        {rowData.title || '-'}
+      </div>
+    );
+  };
+
+  const descriptionCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    return (
+      <div className="px-4 py-3 text-sm text-gray-600 truncate h-full flex items-center">
+        {rowData.description || '-'}
+      </div>
+    );
+  };
+
+  const careTargetCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    return (
+      <div className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap h-full flex items-center">
+        {rowData.careTarget?.name || '-'}
+      </div>
+    );
+  };
+
+  const typeCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    return (
+      <div className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap h-full flex items-center">
+        {getTypeLabel(rowData.type)}
+      </div>
+    );
+  };
+
+  const occurredAtCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    return (
+      <div className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap h-full flex items-center">
+        {formatDateTime(rowData.occurredAt)}
+      </div>
+    );
+  };
+
+  const statusCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    const isUnread = rowData.status === 'ACTIVE';
+    return (
+      <div className="px-4 py-3 text-sm whitespace-nowrap h-full flex items-center">
+        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+          isUnread 
+            ? 'bg-blue-100 text-blue-700'
+            : 'bg-green-100 text-green-700'
+        }`}>
+          {getStatusLabel(rowData.status)}
+        </span>
+      </div>
+    );
+  };
+
+  const actionCellRenderer = ({ rowData }) => {
+    if (!rowData) return null;
+    const isUnread = rowData.status === 'ACTIVE';
+    return (
+      <div className="px-4 py-3 text-center whitespace-nowrap h-full flex items-center justify-center">
+        {isUnread ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConfirm(e, rowData.notificationId);
+            }}
+            className="px-3 py-1.5 bg-teal-500 text-white text-xs font-bold rounded hover:bg-teal-600 transition-colors shadow-sm"
+          >
+            확인
+          </button>
+        ) : (
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] text-gray-400">확인완료</span>
+            <span className="text-xs text-gray-600 font-medium">{rowData.resolvedBy?.name || '시스템'}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const rowClassName = ({ index }) => {
+    if (index < 0 || index >= notifications.length) return '';
+    const notification = notifications[index];
+    const isUnread = notification?.status === 'ACTIVE';
+    return `hover:bg-gray-50 transition-colors cursor-pointer ${isUnread ? 'bg-teal-50/20' : ''}`;
+  };
+
+  const headerRenderer = ({ label, columnData }) => {
+    return (
+      <div className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase bg-gray-50 border-b border-gray-200 h-full flex items-center">
+        {label}
+      </div>
+    );
+  };
+
+  // 동적 row height 계산 (내용에 따라)
+  const getRowHeight = ({ index }) => {
+    return 60; // 고정 높이
+  };
+
+  if (notifications.length === 0) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+        <div className="px-4 py-8 text-center text-gray-500">
+          알림이 없습니다.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] table-fixed">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="w-24 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">심각도</th>
-              <th className="w-48 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">제목</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">설명</th>
-              <th className="w-32 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">케어대상자</th>
-              <th className="w-28 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">유형</th>
-              <th className="w-44 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">발생시간</th>
-              <th className="w-24 px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">상태</th>
-              <th className="w-28 px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">작업</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {notifications.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
-                  알림이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              notifications.map((notification) => {
-                const severityBadge = getSeverityBadge(notification.severity);
-                const isUnread = notification.status === 'ACTIVE';
-                
-                return (
-                  <tr
-                    key={notification.notificationId}
-                    className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                      isUnread ? 'bg-teal-50/20' : ''
-                    }`}
-                    onClick={() => handleRowClick(notification)}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${severityBadge.color}`}>
-                        {severityBadge.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap truncate">
-                      {notification.title || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 truncate">
-                      {notification.description || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-                      {notification.careTarget?.name || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-                      {getTypeLabel(notification.type)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                      {formatDateTime(notification.occurredAt)}
-                    </td>
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                        isUnread 
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-green-100 text-green-700'
-                      }`}>
-                        {getStatusLabel(notification.status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      {isUnread ? (
-                        <button
-                          onClick={(e) => handleConfirm(e, notification.notificationId)}
-                          className="px-3 py-1.5 bg-teal-500 text-white text-xs font-bold rounded hover:bg-teal-600 transition-colors shadow-sm"
-                        >
-                          확인
-                        </button>
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] text-gray-400">확인완료</span>
-                          <span className="text-xs text-gray-600 font-medium">{notification.resolvedBy?.name || '시스템'}</span>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+      <div style={{ height: '600px', width: '100%' }}>
+        <AutoSizer>
+          {({ height, width }) => (
+            <Table
+              width={width}
+              height={height}
+              headerHeight={48}
+              rowHeight={getRowHeight}
+              rowCount={notifications.length}
+              rowGetter={getRow}
+              rowClassName={rowClassName}
+              onRowClick={({ rowData }) => handleRowClick(rowData)}
+              overscanRowCount={5}
+              gridStyle={{ outline: 'none' }}
+            >
+              <Column
+                label="심각도"
+                dataKey="severity"
+                width={100}
+                cellRenderer={severityCellRenderer}
+                headerRenderer={headerRenderer}
+              />
+              <Column
+                label="제목"
+                dataKey="title"
+                width={200}
+                cellRenderer={titleCellRenderer}
+                headerRenderer={headerRenderer}
+              />
+              <Column
+                label="설명"
+                dataKey="description"
+                width={300}
+                cellRenderer={descriptionCellRenderer}
+                headerRenderer={headerRenderer}
+                flexGrow={1}
+              />
+              <Column
+                label="케어대상자"
+                dataKey="careTarget"
+                width={150}
+                cellRenderer={careTargetCellRenderer}
+                headerRenderer={headerRenderer}
+              />
+              <Column
+                label="유형"
+                dataKey="type"
+                width={120}
+                cellRenderer={typeCellRenderer}
+                headerRenderer={headerRenderer}
+              />
+              <Column
+                label="발생시간"
+                dataKey="occurredAt"
+                width={200}
+                cellRenderer={occurredAtCellRenderer}
+                headerRenderer={headerRenderer}
+              />
+              <Column
+                label="상태"
+                dataKey="status"
+                width={100}
+                cellRenderer={statusCellRenderer}
+                headerRenderer={headerRenderer}
+              />
+              <Column
+                label="작업"
+                dataKey="action"
+                width={120}
+                cellRenderer={actionCellRenderer}
+                headerRenderer={({ label }) => (
+                  <div className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase bg-gray-50 border-b border-gray-200 h-full flex items-center justify-center">
+                    {label}
+                  </div>
+                )}
+              />
+            </Table>
+          )}
+        </AutoSizer>
       </div>
 
       {/* 상세 보기 모달 */}
