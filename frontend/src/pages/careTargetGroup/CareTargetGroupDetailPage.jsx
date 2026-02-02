@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Users, Phone, Calendar, ClipboardList, User, Edit3, Trash2, List, UserPlus, Activity } from 'lucide-react';
-import { getCareGroupDetail, deleteCareGroup, updateCareGroup, addCareTargetGroup } from '../../api/caretarget/careTargetGroupApi';
+import { getCareGroupDetail, deleteCareGroup, updateCareGroup, addCareTargetGroup, getScenarioList } from '../../api/caretarget/careTargetGroupApi';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
 import CareGroupEditModal from '../../components/careTargetGroup/careTargetGroupDetail/CareGroupEditModal';
@@ -19,6 +19,7 @@ const CareTargetGroupDetailPage = () => {
 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [scenarios, setScenarios] = useState([]);
 
   // 1. 그룹 정보 수정 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -27,6 +28,7 @@ const CareTargetGroupDetailPage = () => {
     groupName: '',
     groupDescription: '',
     groupStatus: true,
+    scenarioId: null,
     careTargetIds: [] // 제외할 ID들이 담기는 배열
   });
 
@@ -40,6 +42,10 @@ const CareTargetGroupDetailPage = () => {
       setLoading(true);
       const data = await getCareGroupDetail(organizationId, groupId);
       setFormData(data);
+      
+      // 시나리오 리스트 조회
+      const scenarioRes = await getScenarioList(organizationId);
+      setScenarios(Array.isArray(scenarioRes) ? scenarioRes : (scenarioRes.data || []));
     } catch (error) {
       console.error("그룹 상세 조회 실패:", error);
     } finally {
@@ -59,6 +65,7 @@ const CareTargetGroupDetailPage = () => {
       groupName: formData.groupName,
       groupDescription: formData.groupDescription,
       groupStatus: formData.groupStatus,
+      scenarioId: formData.scenarioId,
       careTargetIds: [], // 모달 열 때 제외 리스트 초기화
     });
     setIsEditModalOpen(true);
@@ -81,6 +88,7 @@ const CareTargetGroupDetailPage = () => {
         groupName: editData.groupName,
         groupDescription: editData.groupDescription,
         groupStatus: editData.groupStatus,
+        scenarioId: editData.scenarioId,
         careTargetIds: excludedIds 
       };
   
@@ -301,6 +309,7 @@ const CareTargetGroupDetailPage = () => {
         editData={editData}
         setEditData={setEditData}
         careList={formData?.careList}
+        scenarios={scenarios}
         onSave={handleUpdateSubmit} 
       />
 

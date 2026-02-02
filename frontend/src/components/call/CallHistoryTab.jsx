@@ -27,6 +27,28 @@ const CallHistoryTab = () => {
     loadHistory();
   }, []);
 
+  const getRiskLevelDisplay = (riskLevel) => {
+    const displayLevel = riskLevel || "LOW";
+    
+    const getRiskStyle = (level) => {
+      switch (level) {
+        case 'CRITICAL': return 'bg-purple-100 text-purple-700 border-purple-200';
+        case 'HIGH': return 'bg-red-100 text-red-600 border-red-200';
+        case 'MEDIUM': return 'bg-orange-100 text-orange-600 border-orange-200';
+        case 'LOW':
+        default: return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      }
+    };
+    
+    return (
+      <div className="flex justify-center items-center">
+        <span className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${getRiskStyle(displayLevel)}`}>
+          {displayLevel}
+        </span>
+      </div>
+    );
+  };
+
   const openDetailModal = async (callId) => {
     setIsModalOpen(true);
     setDetail(null);
@@ -179,6 +201,7 @@ const CallHistoryTab = () => {
               <th className="px-3 py-2 border">유형</th>
               <th className="px-3 py-2 border">통화 시간</th>
               <th className="px-3 py-2 border">결과</th>
+              <th className="px-3 py-2 border">위험도</th>
               <th className="px-3 py-2 border">상세</th>
             </tr>
           </thead>
@@ -196,6 +219,9 @@ const CallHistoryTab = () => {
                   {item.statusLabel || item.status}
                 </td>
                 <td className="px-3 py-2 border text-sm">
+                  {getRiskLevelDisplay(item.riskLevel)}
+                </td>
+                <td className="px-3 py-2 border text-sm">
                   <button
                     type="button"
                     className="rounded bg-[#008080] px-3 py-1 text-white transition hover:bg-[#006666]"
@@ -210,7 +236,7 @@ const CallHistoryTab = () => {
               <tr>
                 <td
                   className="px-3 py-4 border text-center text-sm text-gray-500"
-                  colSpan="7"
+                  colSpan="8"
                 >
                   표시할 통화 기록이 없습니다.
                 </td>
@@ -254,8 +280,7 @@ const CallHistoryTab = () => {
                       <strong>상태:</strong> {detail.statusLabel || detail.status}
                     </p>
                     <p>
-                      <strong>위험도:</strong> {detail.riskLevel ?? "NONE"} (
-                      {detail.riskScore ?? "-"})
+                      <strong>위험도:</strong> {getRiskLevelDisplay(detail.riskLevel)}
                     </p>
                   </div>
 

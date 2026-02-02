@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getUpcomingSchedules, deleteSchedule, restoreSchedule } from "../../api/callApi";
-import ScheduleModal from "./ScheduleModal"; // 모달 임포트
+import ScheduleModal from "./ScheduleModal";
+import { useSelector } from "react-redux";
 
 const CallScheduleTab = () => {
+  const { user } = useSelector((state) => state.auth);
+  const organizationId = user?.organizationId ?? null; // 로그인 사용자 업체 ID (없으면 null)
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -443,8 +446,8 @@ const CallScheduleTab = () => {
       <ScheduleModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        onSaveSuccess={fetchSchedules} // 저장 성공 시 목록 갱신
-        organizationId={1} // 현재 접속자의 조직 ID
+        onSaveSuccess={fetchSchedules}
+        organizationId={organizationId}
         editingSchedule={editingSchedule}
       />
     </div>

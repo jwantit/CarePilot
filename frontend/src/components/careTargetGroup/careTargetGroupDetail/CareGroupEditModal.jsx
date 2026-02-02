@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Check, Activity, Trash2 } from 'lucide-react';
+import { X, Check, Activity, Trash2, BookOpen, CheckCircle2 } from 'lucide-react';
 
-const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, onSave }) => {
+const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, scenarios, onSave }) => {
   
   useEffect(() => {
     if (isOpen) {
@@ -62,6 +62,36 @@ const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, 
                 onChange={(e) => setEditData(prev => ({ ...prev, groupDescription: e.target.value }))}
                 className="w-full mt-1 px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-slate-700 h-24 resize-none outline-none"
               />
+            </div>
+
+            {/* 시나리오 선택 섹션 */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">
+                <BookOpen size={12} style={{ color: '#008080' }} /> 시나리오 선택
+              </label>
+              <div className="max-h-32 overflow-y-auto pr-1 space-y-2 custom-scrollbar border rounded-2xl p-2 border-slate-100 bg-slate-50">
+                {scenarios && scenarios.length > 0 ? (
+                  scenarios.map((sc) => (
+                    <div
+                      key={sc.scenarioId}
+                      onClick={() => setEditData(prev => ({ ...prev, scenarioId: sc.scenarioId }))}
+                      className={`p-3 px-4 rounded-xl cursor-pointer transition-all border-2 flex justify-between items-center ${
+                        editData.scenarioId === sc.scenarioId ? 'border-teal-500 bg-teal-50/30' : 'bg-white border-slate-50 hover:border-slate-200'
+                      }`}
+                    >
+                      <div className="space-y-0.5">
+                        <p className={`text-sm font-bold ${editData.scenarioId === sc.scenarioId ? 'text-teal-700' : 'text-slate-700'}`}>
+                          {sc.scenarioName}
+                        </p>
+                        <p className="text-[11px] text-slate-400 font-medium">{sc.scenarioDescription}</p>
+                      </div>
+                      {editData.scenarioId === sc.scenarioId && <CheckCircle2 size={16} className="text-teal-500" />}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-2">사용 가능한 시나리오가 없습니다.</p>
+                )}
+              </div>
             </div>
 
             {/* ✅ 다시 추가된 활성/비활성 토글 섹션 */}
