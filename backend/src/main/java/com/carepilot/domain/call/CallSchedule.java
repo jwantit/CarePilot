@@ -119,6 +119,11 @@ public class CallSchedule extends BaseEntity {
         this.createdBy = createdBy;
     }
 
+    /** 시나리오 변경 (통화 시 사용할 시나리오) */
+    public void updateScenario(com.carepilot.domain.config.Scenario scenario) {
+        this.scenario = scenario;
+    }
+
     public void applyUpdates(CareTarget careTarget,
                              LocalDateTime scheduledTime,
                              ScheduleType type,

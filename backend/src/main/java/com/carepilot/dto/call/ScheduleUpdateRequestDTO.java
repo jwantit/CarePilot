@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class ScheduleUpdateRequestDTO {
     private Long careTargetId;
+    private Long scenarioId;    // 선택 시나리오 (통화 시 사용)
     private LocalDateTime scheduledTime;
     private String type;
     private String priority;

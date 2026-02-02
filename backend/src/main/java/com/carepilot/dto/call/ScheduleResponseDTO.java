@@ -22,6 +22,7 @@ public class ScheduleResponseDTO {
     private String targetType;
     private String targetTypeLabel;
     private String targetGroupName;
+    private Long scenarioId;     // 통화 시 사용 시나리오 (선택)
     private String type;         // 인희성, 반복 등
     private String typeLabel;    // 한국어
     private String priority;     // 높음(Orange), 보통(Blue), 긴급(Red)
@@ -48,6 +49,7 @@ public class ScheduleResponseDTO {
                 .targetType(targetType != null ? targetType.name() : null)
                 .targetTypeLabel(mapTargetTypeLabel(targetType))
                 .targetGroupName(group != null ? group.getGroupName() : null)
+                .scenarioId(schedule.getScenario() != null ? schedule.getScenario().getScenarioId() : null)
                 .type(schedule.getType().name())
                 .typeLabel(mapTypeLabel(schedule.getType()))
                 .priority(schedule.getPriority().name())

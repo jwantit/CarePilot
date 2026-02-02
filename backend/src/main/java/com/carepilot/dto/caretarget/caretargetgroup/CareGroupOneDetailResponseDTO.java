@@ -16,6 +16,7 @@ public class CareGroupOneDetailResponseDTO {
     private Long groupId;
     private String groupName;
     private String groupDescription;
+    private Long scenarioId;
     private String scenarioName;
     private String scenarioDescription;
     private String careTargetCount;
@@ -33,7 +34,6 @@ public class CareGroupOneDetailResponseDTO {
 
     //그룹통화 스케줄
     private List<CallScheduleListDTO> scheduleList;
-
 
 
 

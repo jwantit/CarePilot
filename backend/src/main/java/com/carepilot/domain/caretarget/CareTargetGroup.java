@@ -72,6 +72,10 @@ public class CareTargetGroup extends BaseEntity {
         }
     }
 
+    public void updateScenario(Scenario scenario) {
+        this.scenario = scenario;
+    }
+
 
 }
 
