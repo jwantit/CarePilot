@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.config;
 
 import com.carepilot.dto.config.scenario.ScenarioDTO;
 import com.carepilot.service.config.scenario.ScenarioService;

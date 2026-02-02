@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.config;
 
 import com.carepilot.dto.config.NotificationConfigDTO;
 import com.carepilot.service.config.notification.NotificationConfigService;

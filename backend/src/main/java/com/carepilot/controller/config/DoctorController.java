@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.config;
 
 import com.carepilot.domain.config.DoctorRole;
 import com.carepilot.dto.config.DoctorDTO;

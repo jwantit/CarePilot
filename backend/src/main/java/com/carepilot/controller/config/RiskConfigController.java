@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.config;
 
 import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.service.config.risk.RiskConfigService;
