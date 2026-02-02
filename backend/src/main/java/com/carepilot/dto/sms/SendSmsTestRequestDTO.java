@@ -1,4 +1,4 @@
-package com.carepilot.dto.call;
+package com.carepilot.dto.sms;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
