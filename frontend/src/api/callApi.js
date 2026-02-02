@@ -55,3 +55,15 @@ export const getInboundSmsList = async () => {
   const res = await apiClient.get(`/sms/test/inbound-sms`);
   return res.data;
 };
+
+// 9-1. [테스트용] 수신+발신 통합 메시지 목록 (나/AI/수신 구분)
+export const getSmsMessages = async () => {
+  const res = await apiClient.get(`/sms/test/messages`);
+  return res.data;
+};
+
+// 10. [테스트용] SMS 발송
+export const sendSmsTest = async ({ to, message }) => {
+  const res = await apiClient.post(`/sms/test/send-sms`, { to, message });
+  return res.data;
+};

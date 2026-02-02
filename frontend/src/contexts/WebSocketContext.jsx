@@ -14,6 +14,13 @@ export function WebSocketProvider({ children }) {
 
   // 알림 처리 함수
   const handleNotification = useCallback((message) => {
+    // 수신 문자 알림: 토스트 없이 배지 숫자만 갱신 (SmsChatWidget에서 구독)
+    if (message.type === 'NEW_INBOUND_SMS') {
+      const delta = message.delta != null ? message.delta : 1;
+      window.dispatchEvent(new CustomEvent('sms-unread', { detail: { delta } }));
+      return;
+    }
+
     const severity = message.severity;
     const title = message.title || message.text || '새 알림이 도착했습니다!';
     const description = message.text || message.description || '';
