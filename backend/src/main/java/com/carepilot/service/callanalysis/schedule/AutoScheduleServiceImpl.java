@@ -3,12 +3,19 @@ package com.carepilot.service.callanalysis.schedule;
 import com.carepilot.domain.call.*;
 import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
+import com.carepilot.domain.task.AITask;
+import com.carepilot.domain.task.AITaskStatus;
+import com.carepilot.domain.task.AITaskType;
 import com.carepilot.dto.callanalysis.ScheduleExtractionResultDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
+import com.carepilot.repository.task.AITaskRepository;
 import com.carepilot.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +28,6 @@ import java.time.temporal.TemporalAdjusters;
 
 @Service
 @Log4j2
-@RequiredArgsConstructor
 public class AutoScheduleServiceImpl implements AutoScheduleService {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -30,6 +36,23 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
     private final CallScheduleRepository callScheduleRepository;
     private final NotificationService notificationService;
     private final ScheduleExtractionService scheduleExtractionService;
+    private final AITaskRepository aiTaskRepository;
+    private final ChatClient chatClient;
+
+    public AutoScheduleServiceImpl(
+            CallRepository callRepository,
+            CallScheduleRepository callScheduleRepository,
+            NotificationService notificationService,
+            ScheduleExtractionService scheduleExtractionService,
+            AITaskRepository aiTaskRepository,
+            @Autowired(required = false) @Qualifier("openaiChatClient") ChatClient chatClient) {
+        this.callRepository = callRepository;
+        this.callScheduleRepository = callScheduleRepository;
+        this.notificationService = notificationService;
+        this.scheduleExtractionService = scheduleExtractionService;
+        this.aiTaskRepository = aiTaskRepository;
+        this.chatClient = chatClient;
+    }
 
     @Override
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
@@ -164,11 +187,13 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
     }
 
     @Override
+    @Transactional
     public void processAutoScheduleTask(Long callId, String transcript) {
         if (transcript == null || !transcript.contains("요청사항: ")) {
             return;
         }
 
+        AITask aiTask = null;
         try {
             // "요청사항: " 이후의 텍스트 추출
             int index = transcript.lastIndexOf("요청사항: ");
@@ -183,9 +208,49 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
                         extractionResult.getDayOfWeek(), 
                         extractionResult.getTargetTime());
 
+                // Call 조회
+                Call call = callRepository.findById(callId)
+                        .orElseThrow(() -> new RuntimeException("Call not found: " + callId));
+
+                // LLM을 사용하여 요구사항을 한 줄로 정리
+                String requirementMemo = generateRequirementMemo(requestText, extractionResult);
+                call.updateAiMemo(requirementMemo);
+                callRepository.save(call);
+                log.info("[스케줄 자동화] ai_memo 업데이트 완료: callId={}, memo={}", callId, requirementMemo);
+
                 if (extractionResult.getIsScheduleChangeRequest()) {
+                    // 스케줄 변경 전에 AITask 생성
+                    aiTask = AITask.builder()
+                            .organization(call.getOrganization())
+                            .taskType(AITaskType.SCHEDULE_CHANGE)
+                            .call(call)
+                            .careTarget(call.getCareTarget())
+                            .status(AITaskStatus.WAITING)
+                            .startedAt(LocalDateTime.now())
+                            .result("스케줄 변경 자동화 작업 시작: " + requestText)
+                            .build();
+                    aiTask = aiTaskRepository.save(aiTask);
+                    log.info("[스케줄 자동화] AITask 생성: aiTaskId={}", aiTask.getAiTaskId());
+
                     log.info("[스케줄 자동화] 스케줄 업데이트 시작: callId={}", callId);
                     processAutoScheduleUpdate(callId, extractionResult);
+                    
+                    // 스케줄 업데이트 성공 후 AITask 상태 업데이트 (최신 Call 조회)
+                    if (aiTask != null) {
+                        Call updatedCall = callRepository.findById(callId).orElse(null);
+                        aiTask = aiTaskRepository.findById(aiTask.getAiTaskId()).orElse(null);
+                        if (aiTask != null && updatedCall != null) {
+                            aiTask.updateSchedule(updatedCall.getCallSchedule());
+                            aiTask.updateStatus(AITaskStatus.SUCCESS, 
+                                    "스케줄 변경 자동화 작업 완료: " + extractionResult.getOriginalText(),
+                                    LocalDateTime.now());
+                            aiTaskRepository.save(aiTask);
+                            log.info("[스케줄 자동화] AITask 완료 처리: aiTaskId={}, scheduleId={}", 
+                                    aiTask.getAiTaskId(), 
+                                    updatedCall.getCallSchedule() != null ? updatedCall.getCallSchedule().getScheduleId() : "null");
+                        }
+                    }
+                    
                     log.info("[스케줄 자동화] 스케줄 업데이트 완료: callId={}", callId);
                 } else {
                     log.info("[스케줄 자동화] 스케줄 변경 요청이 아님: callId={}", callId);
@@ -193,6 +258,57 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
             }
         } catch (Exception e) {
             log.error("[스케줄 자동화] 처리 중 오류 발생: {}", e.getMessage(), e);
+            
+            // 오류 발생 시 AITask 상태를 FAILED로 업데이트
+            if (aiTask != null) {
+                try {
+                    aiTask = aiTaskRepository.findById(aiTask.getAiTaskId()).orElse(null);
+                    if (aiTask != null) {
+                        aiTask.updateStatus(AITaskStatus.FAILED,
+                                "스케줄 변경 자동화 작업 실패: " + e.getMessage(),
+                                LocalDateTime.now());
+                        aiTaskRepository.save(aiTask);
+                        log.info("[스케줄 자동화] AITask 실패 처리: aiTaskId={}", aiTask.getAiTaskId());
+                    }
+                } catch (Exception ex) {
+                    log.error("[스케줄 자동화] AITask 실패 처리 중 오류: {}", ex.getMessage(), ex);
+                }
+            }
+        }
+    }
+
+    /**
+     * LLM을 사용하여 요구사항을 한 줄 메모로 정리합니다.
+     */
+    private String generateRequirementMemo(String requestText, ScheduleExtractionResultDTO extractionResult) {
+        if (chatClient == null) {
+            log.warn("[스케줄 자동화] ChatClient 미설정, 기본 메모 반환");
+            return "요구사항: " + requestText;
+        }
+
+        try {
+            String prompt = String.format(
+                    "다음 요구사항을 간결하게 한 줄로 정리해주세요. 포맷이나 구조화된 형식 없이 자연스러운 문장으로 작성해주세요.\n\n" +
+                    "요구사항: %s\n" +
+                    "요일: %s\n" +
+                    "시간: %s\n" +
+                    "스케줄 변경 요청 여부: %s",
+                    requestText,
+                    extractionResult.getDayOfWeek() != null ? extractionResult.getDayOfWeek() : "미지정",
+                    extractionResult.getTargetTime() != null ? extractionResult.getTargetTime() : "미지정",
+                    extractionResult.getIsScheduleChangeRequest() ? "예" : "아니오"
+            );
+
+            String memo = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .content();
+
+            log.info("[스케줄 자동화] LLM으로 생성된 메모: {}", memo);
+            return memo != null && !memo.trim().isEmpty() ? memo.trim() : "요구사항: " + requestText;
+        } catch (Exception e) {
+            log.error("[스케줄 자동화] LLM 메모 생성 실패: {}", e.getMessage(), e);
+            return "요구사항: " + requestText;
         }
     }
 }

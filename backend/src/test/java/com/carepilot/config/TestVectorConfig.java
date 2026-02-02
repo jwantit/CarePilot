@@ -1,9 +1,12 @@
 package com.carepilot.config;
 
 import lombok.extern.log4j.Log4j2;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class TestVectorConfig {
 
-    @Bean(name = "c1VectorStore")
+    @Bean(name = "ChatBotVectorStore")
     @Primary
     public VectorStore testVectorStore() {
         return new InMemoryTestVectorStore();
@@ -33,6 +36,12 @@ public class TestVectorConfig {
     @Bean(name = "callLogVectorStore")
     public VectorStore testCallLogVectorStore() {
         return new InMemoryTestVectorStore();
+    }
+
+    @Bean
+    @Primary
+    public ChatMemory chatMemory() {
+        return new InMemoryChatMemory();
     }
 
     /**
@@ -49,15 +58,15 @@ public class TestVectorConfig {
                 this.documents.put(id, doc);
                 this.metadataMap.put(id, new HashMap<>(doc.getMetadata()));
                 log.debug("테스트 VectorStore에 문서 추가: id={}, content={}", 
-                    id, doc.getContent() != null && doc.getContent().length() > 50 
-                        ? doc.getContent().substring(0, 50) + "..." 
-                        : doc.getContent());
+                    id, doc.getText() != null && doc.getText().length() > 50
+                        ? doc.getText().substring(0, 50) + "..."
+                        : doc.getText());
             }
             log.info("테스트 VectorStore에 {}개 문서 추가 완료", documents.size());
         }
 
         @Override
-        public Optional<Boolean> delete(List<String> idList) {
+        public void delete(List<String> idList) {
             int deleted = 0;
             for (String id : idList) {
                 if (documents.remove(id) != null) {
@@ -66,7 +75,17 @@ public class TestVectorConfig {
                 }
             }
             log.debug("테스트 VectorStore에서 {}개 문서 삭제", deleted);
-            return Optional.of(deleted > 0);
+        }
+
+        @Override
+        public void delete(Filter.Expression expression) {
+            // 테스트용: Expression 기반 삭제는 간단히 모든 문서 삭제로 처리
+            // 실제 구현에서는 expression을 파싱하여 필터링해야 함
+            log.debug("테스트 VectorStore에서 Expression 기반 삭제 요청 (모든 문서 삭제)");
+            int deleted = documents.size();
+            documents.clear();
+            metadataMap.clear();
+            log.debug("테스트 VectorStore에서 {}개 문서 삭제", deleted);
         }
 
         @Override
@@ -83,7 +102,7 @@ public class TestVectorConfig {
             // 간단한 텍스트 매칭 기반 검색 (실제 벡터 검색 대신)
             List<Document> results = documents.values().stream()
                 .filter(doc -> {
-                    String content = doc.getContent();
+                    String content = doc.getText();
                     if (content == null) return false;
                     // 쿼리가 내용에 포함되어 있거나, 내용이 쿼리에 포함되어 있으면 매칭
                     return content.toLowerCase().contains(query.toLowerCase()) 

@@ -4,10 +4,14 @@ import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.notification.NotificationType;
+import com.carepilot.domain.task.AITask;
+import com.carepilot.domain.task.AITaskStatus;
+import com.carepilot.domain.task.AITaskType;
 import com.carepilot.dto.callanalysis.ScheduleExtractionResultDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.notification.NotificationRepository;
+import com.carepilot.repository.task.AITaskRepository;
 import com.carepilot.service.callanalysis.schedule.AutoScheduleService;
 import com.carepilot.service.callanalysis.schedule.ScheduleExtractionService;
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +51,9 @@ class AutoScheduleAutomationTests {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private AITaskRepository aiTaskRepository;
 
     @Test
     @DisplayName("자연어 요청에서 스케줄 변경 정보 추출 테스트 (LLM 연동)")
@@ -108,6 +116,7 @@ class AutoScheduleAutomationTests {
         log.info("생성된 알림: {}", notifications.get(0).getDescription());
     }
 
+    @Commit
     @Test
     @DisplayName("Call ID 62, CareTarget ID 3 - 요청사항 분석부터 스케줄 업데이트까지 전체 프로세스 테스트")
     void testScheduleExtractionAndUpdateForCall62() {
@@ -169,19 +178,75 @@ class AutoScheduleAutomationTests {
         
         assertThat(call.getCareTarget().getCareTargetId()).isEqualTo(careTargetId);
 
-        // Step 3: 스케줄 업데이트 실행
+        // Step 3: 스케줄 업데이트 실행 (processAutoScheduleTask 사용)
         log.info("[Step 3] 스케줄 업데이트 실행...");
         LocalDateTime beforeNextRunAt = call.getCallSchedule() != null 
                 ? call.getCallSchedule().getNextRunAt() 
                 : null;
         
-        autoScheduleService.processAutoScheduleUpdate(callId, extractionResult);
+        // ai_memo 확인 (업데이트 전)
+        String aiMemoBefore = call.getAiMemo();
+        log.info("  - 업데이트 전 ai_memo: {}", aiMemoBefore != null ? aiMemoBefore.substring(0, Math.min(100, aiMemoBefore.length())) + "..." : "null");
+        
+        // transcript 생성 (요청사항 포함)
+        String transcript = "AI: 오늘 컨디션이 어떠신가요?\n케어대상: 괜찮습니다.\n\n요청사항: " + requestText;
+        
+        // processAutoScheduleTask 호출 (요구사항 분석 및 스케줄 업데이트)
+        autoScheduleService.processAutoScheduleTask(callId, transcript);
 
         // Step 4: 업데이트 결과 확인
         log.info("[Step 4] 업데이트 결과 확인...");
         Call updatedCall = callRepository.findById(callId).orElseThrow();
         CallSchedule updatedSchedule = updatedCall.getCallSchedule();
         
+        // Step 4-1: ai_memo에 요구사항 분석 결과가 추가되었는지 확인
+        log.info("[Step 4-1] ai_memo 확인...");
+        String aiMemoAfter = updatedCall.getAiMemo();
+        log.info("  - 업데이트 후 ai_memo: {}", aiMemoAfter != null ? aiMemoAfter : "null");
+        assertThat(aiMemoAfter).isNotNull();
+        assertThat(aiMemoAfter).isNotEmpty();
+        // LLM이 생성한 자연스러운 메모이므로 요청사항 내용이 포함되어 있는지 확인
+        // "수요일", "3시", "오후" 등의 키워드 중 하나라도 포함되어 있는지 확인
+        String lowerMemo = aiMemoAfter.toLowerCase();
+        boolean containsRelevantInfo = lowerMemo.contains("수요일") || 
+                                       lowerMemo.contains("wednesday") || 
+                                       lowerMemo.contains("3시") || 
+                                       lowerMemo.contains("15시") || 
+                                       lowerMemo.contains("오후") ||
+                                       lowerMemo.contains("다음");
+        assertThat(containsRelevantInfo)
+                .withFailMessage("ai_memo에 요청사항 관련 정보가 포함되어야 합니다. 실제 메모: %s", aiMemoAfter)
+                .isTrue();
+        log.info("  ✓ ai_memo에 요구사항 분석 결과가 정상적으로 추가되었습니다.");
+        
+        // Step 4-2: AITask 생성 확인
+        log.info("[Step 4-2] AITask 생성 확인...");
+        List<AITask> aiTasks = aiTaskRepository.findAll().stream()
+                .filter(t -> t.getCall() != null && t.getCall().getCallId().equals(callId))
+                .filter(t -> t.getTaskType() == AITaskType.SCHEDULE_CHANGE)
+                .toList();
+        
+        assertThat(aiTasks).isNotEmpty();
+        AITask aiTask = aiTasks.get(0);
+        log.info("  - AITask ID: {}", aiTask.getAiTaskId());
+        log.info("  - Task Type: {}", aiTask.getTaskType());
+        log.info("  - Status: {}", aiTask.getStatus());
+        log.info("  - Result: {}", aiTask.getResult());
+        log.info("  - Started At: {}", aiTask.getStartedAt() != null ? aiTask.getStartedAt().format(DATE_TIME_FORMATTER) : "null");
+        log.info("  - Completed At: {}", aiTask.getCompletedAt() != null ? aiTask.getCompletedAt().format(DATE_TIME_FORMATTER) : "null");
+        log.info("  - Schedule ID: {}", aiTask.getSchedule() != null ? aiTask.getSchedule().getScheduleId() : "null");
+        
+        assertThat(aiTask.getStatus()).isEqualTo(AITaskStatus.SUCCESS);
+        assertThat(aiTask.getResult()).contains("스케줄 변경 자동화 작업 완료");
+        assertThat(aiTask.getCompletedAt()).isNotNull();
+        if (updatedSchedule != null) {
+            assertThat(aiTask.getSchedule()).isNotNull();
+            assertThat(aiTask.getSchedule().getScheduleId()).isEqualTo(updatedSchedule.getScheduleId());
+        }
+        log.info("  ✓ AITask가 정상적으로 생성되고 완료 처리되었습니다.");
+        
+        // Step 4-3: 스케줄 업데이트 확인
+        log.info("[Step 4-3] 스케줄 업데이트 확인...");
         if (updatedSchedule != null) {
             log.info("  - 업데이트 전 nextRunAt: {}", 
                     beforeNextRunAt != null ? beforeNextRunAt.format(DATE_TIME_FORMATTER) : "null");
@@ -195,6 +260,7 @@ class AutoScheduleAutomationTests {
             
             // 요일 확인 (다음 주 수요일)
             assertThat(updatedSchedule.getNextRunAt().getDayOfWeek().name()).isEqualTo("WEDNESDAY");
+            log.info("  ✓ 스케줄이 정상적으로 업데이트되었습니다.");
         } else {
             log.warn("  - CallSchedule이 null입니다. 신규 스케줄이 생성되었을 수 있습니다.");
             // 신규 스케줄 생성 확인
@@ -216,8 +282,14 @@ class AutoScheduleAutomationTests {
         log.info("  - 생성된 알림 개수: {}", notifications.size());
         log.info("  - 알림 제목: {}", notifications.get(0).getTitle());
         log.info("  - 알림 내용: {}", notifications.get(0).getDescription());
+        log.info("  ✓ 알림이 정상적으로 생성되었습니다.");
 
         log.info("=== 테스트 완료 ===");
+        log.info("요약:");
+        log.info("  ✓ 요구사항 분석 결과가 ai_memo에 추가됨");
+        log.info("  ✓ AITask가 생성되고 SUCCESS 상태로 완료됨");
+        log.info("  ✓ 스케줄이 다음 주 수요일 오후 3시로 업데이트됨");
+        log.info("  ✓ 알림이 생성됨");
     }
 }
 

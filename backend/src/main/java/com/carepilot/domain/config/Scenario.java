@@ -5,6 +5,7 @@ import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -52,6 +53,7 @@ public class Scenario extends BaseEntity {
     private String riskCriteria;
 
     @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore  // 순환 참조 방지: Notification -> Call -> CallSchedule -> Scenario -> questions -> ScenarioQuestion -> scenario -> ...
     private List<ScenarioQuestion> questions = new ArrayList<>();
 
     // CallSchedule과의 양방향 관계 (선택적)

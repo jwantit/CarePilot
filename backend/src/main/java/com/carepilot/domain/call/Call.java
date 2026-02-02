@@ -118,5 +118,26 @@ public class Call extends BaseEntity {
         this.aiMemo = aiMemo;
         this.signals = signals;
     }
+
+    /**
+     * AI 메모에 내용을 추가합니다. 기존 내용이 있으면 줄바꿈 후 추가합니다.
+     */
+    public void appendAiMemo(String additionalMemo) {
+        if (additionalMemo == null || additionalMemo.isBlank()) {
+            return;
+        }
+        if (this.aiMemo == null || this.aiMemo.isBlank()) {
+            this.aiMemo = additionalMemo;
+        } else {
+            this.aiMemo = this.aiMemo + "\n\n" + additionalMemo;
+        }
+    }
+
+    /**
+     * AI 메모를 새로운 내용으로 교체합니다.
+     */
+    public void updateAiMemo(String newMemo) {
+        this.aiMemo = newMemo;
+    }
 }
 
