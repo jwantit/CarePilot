@@ -12,12 +12,15 @@ import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.config.ScenarioQuestion;
+import com.carepilot.domain.sms.SmsType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.repository.config.ScenarioRepository;
+import com.carepilot.domain.sms.InboundSms;
 import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.repository.sms.InboundSmsRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.service.call.emergency.EmergencyDetectionService;
 import com.carepilot.service.call.emergency.EmergencyDetectionResult;
@@ -33,6 +36,10 @@ import com.carepilot.domain.user.UserRole;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.repository.notification.NotificationRepository;
 import java.util.ArrayList;
+import com.carepilot.service.sms.ScheduleChangeService;
+import com.carepilot.service.prescription.PrescriptionService;
+import com.carepilot.service.sms.SmsTypeService;
+import com.carepilot.service.upload.UploadFileService;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Gather;
 import com.twilio.twiml.voice.Say;
@@ -43,6 +50,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -51,10 +59,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Base64;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/twilio")
@@ -80,6 +92,11 @@ public class TwilioController {
     private final CallAnalysisService callAnalysisService;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final InboundSmsRepository inboundSmsRepository;
+    private final UploadFileService uploadFileService;
+    private final SmsTypeService smsTypeService;
+    private final ScheduleChangeService scheduleChangeService;
+    private final PrescriptionService prescriptionService;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -138,17 +155,17 @@ public class TwilioController {
                         ScenarioQuestion firstQuestion = questions.get(0);
                         String originalQuestion = firstQuestion.getQuestionText();
                         CareTarget careTarget = call.getCareTarget();
-                        
+
                         // 첫 번째 질문은 시나리오 텍스트 그대로 사용 (동적 생성 스킵)
                         String contextualQuestion = originalQuestion;
                         
                         // 질문을 transcript에 저장
                         updateTranscriptWithQuestion(callSid, contextualQuestion);
-                        
+
                         // 변형된 질문을 바로 읽어줌
                         String firstActionUrl = ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=1";
                         log.info("첫 번째 질문 송출: actionUrl={}, question={}", firstActionUrl, contextualQuestion);
-                        
+
                         rb.gather(new Gather.Builder()
                                 .inputs(Collections.singletonList(Gather.Input.SPEECH))
                                 .language(Gather.Language.KO_KR)
@@ -220,8 +237,8 @@ public class TwilioController {
             @RequestParam(value = "questionIdx", defaultValue = "0") int questionIdx) {
 
         VoiceResponse.Builder rb = new VoiceResponse.Builder();
-        
-        log.info("handleConversation 호출: callSid={}, questionIdx={}, speechResult={}", 
+
+        log.info("handleConversation 호출: callSid={}, questionIdx={}, speechResult={}",
             callSid, questionIdx, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
 
         try {
@@ -276,49 +293,49 @@ public class TwilioController {
 
             // 4. 이전 답변이 있다면 처리
             String previousContextualQuestion = null; // 이전에 실제로 물어본 변형된 질문
-            log.info("답변 처리 시작: speechResult={}, questionIdx={}", 
+            log.info("답변 처리 시작: speechResult={}, questionIdx={}",
                 speechResult != null && !speechResult.trim().isEmpty() ? "있음" : "없음", questionIdx);
-            
+
             if (speechResult != null && !speechResult.trim().isEmpty() && questionIdx > 0) {
                 // 이전 질문 텍스트 가져오기
                 ScenarioQuestion previousQuestion = questions.get(questionIdx - 1);
                 CareTarget careTarget = call.getCareTarget();
-                
+
                 // 이전에 저장된 변형된 질문 가져오기 (transcript에서)
                 previousContextualQuestion = getLastQuestionFromTranscript(callSid);
                 if (previousContextualQuestion == null || previousContextualQuestion.isEmpty()) {
                     // transcript에서 찾지 못하면 원래 질문 사용 (fallback)
                     previousContextualQuestion = previousQuestion.getQuestionText();
                 }
-                
+
                 // 4-1. 긴급 상황 감지
                 String scenarioPurpose = scenario.getDescription() != null ? scenario.getDescription() : "";
                 EmergencyDetectionResult emergencyResult = emergencyDetectionService.detectEmergency(
                     speechResult, scenarioPurpose);
-                
+
                 if (emergencyResult.isEmergency()) {
                     // 긴급 상황: 시나리오 중단 및 대응 멘트 송출
                     rb.say(new Say.Builder(emergencyResult.getEmergencyMessage())
                             .language(Say.Language.KO_KR)
                             .voice(Say.Voice.POLLY_SEOYEON)
                             .build());
-                    
+
                     // 답변 저장 (변형된 질문 사용)
                     saveAnswer(callSid, previousContextualQuestion, speechResult);
-                    
+
                     // 긴급 상황 알림 전송 (WebSocket + DB 저장)
                     sendEmergencyNotification(call, careTarget, speechResult, emergencyResult.getEmergencyMessage());
-                    
-                    log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}", 
+
+                    log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}",
                         callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
-                    
+
                     // 통화 종료
                     return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
                 }
-                
+
                 // 4-2. 답변 저장 및 벡터 저장 (변형된 질문 사용)
                 saveAnswer(callSid, previousContextualQuestion, speechResult);
-                
+
                 // VectorStore에 저장 (임베딩은 자동 생성됨)
                 // 벡터 저장 시에는 원래 질문 사용 (메타데이터용)
                 if (careTarget != null) {
@@ -329,7 +346,7 @@ public class TwilioController {
                         null, // embedding은 VectorStore가 자동 생성
                         java.time.LocalDateTime.now()
                     );
-                    log.debug("벡터 저장 완료: careTargetId={}, questionIdx={}", 
+                    log.debug("벡터 저장 완료: careTargetId={}, questionIdx={}",
                         careTarget.getCareTargetId(), questionIdx);
                 }
             }
@@ -338,31 +355,31 @@ public class TwilioController {
 
             // 6. 다음 질문이 있는지 확인
             log.info("다음 질문 확인: questionIdx={}, questions.size()={}", questionIdx, questions.size());
-            
+
             if (questionIdx < questions.size()) {
                 ScenarioQuestion nextQuestion = questions.get(questionIdx);
                 String originalQuestion = nextQuestion.getQuestionText();
                 CareTarget careTarget = call.getCareTarget();
-                
+
                 log.info("다음 질문 생성 시작: questionIdx={}, originalQuestion={}", questionIdx, originalQuestion);
-                
+
                 // 6-1. 동적 질문 생성 (과거 기록 참고)
                 String contextualQuestion = questionGenerationService.generateContextualQuestion(
-                    originalQuestion, 
+                    originalQuestion,
                     careTarget,
                     questionIdx > 0 && speechResult != null ? speechResult : null
                 );
-                
+
                 log.info("변형된 질문 생성 완료: questionIdx={}, contextualQuestion={}", questionIdx, contextualQuestion);
-                
+
                 // 6-2. 변형된 질문을 transcript에 저장 (실제로 물어본 질문)
                 updateTranscriptWithQuestion(callSid, contextualQuestion);
-                
+
                 // 6-3. 변형된 질문으로 음성 송출
                 String nextActionUrl = ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=" + (questionIdx + 1);
-                log.info("다음 질문 송출: questionIdx={}, nextQuestionIdx={}, actionUrl={}", 
+                log.info("다음 질문 송출: questionIdx={}, nextQuestionIdx={}, actionUrl={}",
                     questionIdx, questionIdx + 1, nextActionUrl);
-                
+
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
@@ -597,6 +614,166 @@ public class TwilioController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * [테스트용] 수신 SMS/MMS 웹훅 - Twilio 콘솔에서 "A MESSAGE COMES IN" URL로 설정
+     * POST /api/twilio/sms/inbound
+     */
+    @PostMapping("/sms/inbound")
+    @Transactional
+    public ResponseEntity<String> handleInboundSms(
+            HttpServletRequest request,
+            @RequestParam(value = "MessageSid") String messageSid,
+            @RequestParam(value = "From") String from,
+            @RequestParam(value = "To") String to,
+            @RequestParam(value = "Body", required = false, defaultValue = "") String body) {
+
+        log.info("수신 SMS/MMS: messageSid={}, from={}, to={}, body={}", messageSid, from, to, body);
+
+        List<String> savedPaths = new ArrayList<>();
+        List<String> contentTypes = new ArrayList<>();
+
+        try {
+            Long organizationId = organizationRepository.findAll().stream()
+                    .findFirst()
+                    .map(Organization::getOrganizationId)
+                    .orElse(null);
+
+            int numMedia = 0;
+            String numMediaStr = request.getParameter("NumMedia");
+            if (numMediaStr != null && !numMediaStr.isEmpty()) {
+                numMedia = Integer.parseInt(numMediaStr);
+            }
+
+            for (int i = 0; i < numMedia; i++) {
+                String mediaUrl = request.getParameter("MediaUrl" + i);
+                String mediaContentType = request.getParameter("MediaContentType" + i);
+                if (mediaUrl != null && !mediaUrl.isEmpty()) {
+                    String path = downloadAndSaveMmsMedia(mediaUrl);
+                    if (path != null) {
+                        savedPaths.add(path);
+                        contentTypes.add(mediaContentType != null ? mediaContentType : "");
+                        if (organizationId != null) {
+                            uploadFileService.createUploadFileForExistingPath(path, organizationId, mediaContentType);
+                        }
+                    }
+                }
+            }
+
+            // Body에 포함된 이미지 URL 다운로드 (기존 UploadFileService 활용)
+            if (organizationId != null && body != null && !body.isBlank()) {
+                Pattern urlPattern = Pattern.compile("https?://[^\\s]+");
+                Matcher matcher = urlPattern.matcher(body);
+                while (matcher.find()) {
+                    String url = matcher.group().replaceAll("[.,;:!?)]+$", "");
+                    String path = uploadFileService.saveFromUrl(url, organizationId, 0L);
+                    if (path != null) {
+                        savedPaths.add(path);
+                        contentTypes.add("image/jpeg");
+                    }
+                }
+            }
+
+            String mediaPathsStr = savedPaths.isEmpty() ? null : String.join(",", savedPaths);
+            String mediaTypesStr = contentTypes.isEmpty() ? null : String.join(",", contentTypes);
+
+            InboundSms inboundSms = inboundSmsRepository.save(InboundSms.builder()
+                    .messageSid(messageSid)
+                    .fromNumber(from)
+                    .toNumber(to)
+                    .body(body != null ? body : "")
+                    .mediaPaths(mediaPathsStr)
+                    .mediaContentTypes(mediaTypesStr)
+                    .build());
+
+            // CareTarget 매칭 (From 번호)
+            CareTarget careTarget = findCareTargetByFromNumber(from);
+
+            // SmsType 분류 (SMS_AI_MEMO, SCHEDULE_CHANGE, PRESCRIPTION, UNKNOWN)
+            SmsType smsType = smsTypeService.classify(inboundSms);
+            inboundSms.updateClassification(careTarget, smsType, LocalDateTime.now());
+
+            // SCHEDULE_CHANGE: 예약 변경 처리 (개인만, 그룹/파싱실패는 TODO 보류)
+            if (smsType == SmsType.SCHEDULE_CHANGE) {
+                try {
+                    scheduleChangeService.processScheduleChange(inboundSms);
+                } catch (Exception e) {
+                    log.warn("예약 변경 처리 실패 inboundSmsId={}: {}", inboundSms.getInboundSmsId(), e.getMessage());
+                }
+            }
+
+            // PRESCRIPTION: 처방전 이미지 OCR/LLM 분석 및 DB 저장
+            if (smsType == SmsType.PRESCRIPTION) {
+                try {
+                    prescriptionService.processPrescription(inboundSms);
+                } catch (Exception e) {
+                    log.warn("처방전 분석 처리 실패 inboundSmsId={}: {}", inboundSms.getInboundSmsId(), e.getMessage());
+                }
+            }
+
+            log.info("수신 SMS/MMS 저장 완료: messageSid={}, mediaCount={}, smsType={}, careTargetId={}",
+                    messageSid, savedPaths.size(), smsType, careTarget != null ? careTarget.getCareTargetId() : null);
+        } catch (Exception e) {
+            log.error("수신 SMS/MMS 처리 실패: messageSid={}, error={}", messageSid, e.getMessage(), e);
+        }
+
+        // 204 No Content: 회신하지 않음 (200+TwiML 시 "Sent from your Twilio trial account - ..." 자동 회신됨)
+        return ResponseEntity.noContent().build();
+    }
+
+    /** From 번호로 CareTarget 매칭 (Twilio 형식 +8210... → 010... 비교) */
+    private CareTarget findCareTargetByFromNumber(String fromNumber) {
+        if (fromNumber == null || fromNumber.isBlank()) {
+            return null;
+        }
+        String normalized = fromNumber.replaceAll("[^0-9]", "");
+        if (normalized.startsWith("82") && normalized.length() >= 10) {
+            normalized = "0" + normalized.substring(2);
+        } else if (!normalized.startsWith("0") && normalized.length() >= 9) {
+            normalized = "0" + normalized;
+        }
+        final String target = normalized;
+        return careTargetRepository.findAll().stream()
+                .filter(t -> t.getTargetPhone() != null
+                        && t.getTargetPhone().replaceAll("[^0-9]", "").equals(target))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String downloadAndSaveMmsMedia(String mediaUrl) {
+        try {
+            String auth = twilioAccountSid + ":" + twilioAuthToken;
+            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+
+            URL url = new URL(mediaUrl);
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+
+            String contentType = connection.getContentType();
+            String ext = "bin";
+            if (contentType != null) {
+                if (contentType.contains("jpeg") || contentType.contains("jpg")) ext = "jpg";
+                else if (contentType.contains("png")) ext = "png";
+                else if (contentType.contains("gif")) ext = "gif";
+                else if (contentType.contains("webp")) ext = "webp";
+                else if (contentType.contains("video") || contentType.contains("mp4")) ext = "mp4";
+            }
+
+            String storagePath = "MMS/" + UUID.randomUUID() + "." + ext;
+            Path filePath = Paths.get("uploads", storagePath);
+            Files.createDirectories(filePath.getParent());
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            log.info("MMS 미디어 다운로드 완료: url={}, path={}", mediaUrl, storagePath);
+            return storagePath;
+        } catch (Exception e) {
+            log.error("MMS 미디어 다운로드 실패: url={}, error={}", mediaUrl, e.getMessage(), e);
+            return null;
+        }
+    }
+
     private String cleanXml(String rawXml) {
         String trimmed = rawXml.trim();
         return trimmed.startsWith("<?xml") ? trimmed : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + trimmed;
@@ -742,7 +919,7 @@ public class TwilioController {
             log.error("질문 저장 실패 (transcript): callSid={}, error={}", callSid, e.getMessage(), e);
         }
     }
-    
+
     /**
      * transcript에서 마지막 질문 가져오기
      */
@@ -755,7 +932,7 @@ public class TwilioController {
 
             Call call = callOpt.get();
             Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
-            
+
             if (recordingOpt.isPresent()) {
                 CallRecording recording = recordingOpt.get();
                 String transcript = recording.getTranscript();
@@ -835,7 +1012,7 @@ public class TwilioController {
      * 같은 Call에 대해 하나의 조직 공유 알림만 생성 (user_id = null)
      * 조직별 WebSocket 토픽(/topic/org/{organizationId})으로 브로드캐스트
      */
-    private void sendEmergencyNotification(Call call, CareTarget careTarget, 
+    private void sendEmergencyNotification(Call call, CareTarget careTarget,
                                           String emergencyAnswer, String emergencyMessage) {
         try {
             Organization organization = call.getOrganization();
@@ -845,11 +1022,11 @@ public class TwilioController {
             }
 
             // 같은 Call에 대해 이미 긴급 알림이 생성되었는지 확인
-            List<com.carepilot.domain.notification.Notification> existingNotifications = 
+            List<com.carepilot.domain.notification.Notification> existingNotifications =
                 notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.EMERGENCY);
-            
+
             if (!existingNotifications.isEmpty()) {
-                log.info("이미 긴급 알림이 생성되어 중복 방지: callId={}, 기존 알림 개수={}", 
+                log.info("이미 긴급 알림이 생성되어 중복 방지: callId={}, 기존 알림 개수={}",
                     call.getCallId(), existingNotifications.size());
                 return;
             }
@@ -859,7 +1036,7 @@ public class TwilioController {
             String title = String.format("긴급 상황 발생: %s", careTargetName);
             String description = String.format("케어대상자 '%s'의 통화 중 긴급 상황이 감지되었습니다.\n\n" +
                     "감지된 답변: %s\n" +
-                    "대응 메시지: %s", 
+                    "대응 메시지: %s",
                     careTargetName, emergencyAnswer, emergencyMessage);
 
             // 조직 공유 알림 생성 (user_id = null, 하나만 생성)
@@ -873,11 +1050,11 @@ public class TwilioController {
                 call,
                 careTarget
             );
-            
-            log.info("긴급 알림 생성 완료: organizationId={}, careTargetName={}", 
+
+            log.info("긴급 알림 생성 완료: organizationId={}, careTargetName={}",
                 organization.getOrganizationId(), careTargetName);
         } catch (Exception e) {
-            log.error("긴급 알림 전송 중 오류 발생: callId={}, error={}", 
+            log.error("긴급 알림 전송 중 오류 발생: callId={}, error={}",
                 call.getCallId(), e.getMessage(), e);
         }
     }

@@ -28,12 +28,16 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -170,6 +174,127 @@ public class UploadFileService {
     }
 
 
+    /**
+     * URL에서 이미지를 다운로드하여 로컬 저장 및 UploadFile 등록 (수신 문자 URL용)
+     *
+     * @param imageUrl      다운로드할 이미지 URL (직접 이미지 링크)
+     * @param organizationId 조직 ID
+     * @param targetId      InboundSms ID (저장 경로용)
+     * @return 저장된 storagePath (실패 시 null)
+     */
+    public String saveFromUrl(String imageUrl, Long organizationId, Long targetId) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; CarePilot/1.0)");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode < 200 || responseCode >= 300) {
+                log.warn("[FILE][SAVE_FROM_URL] HTTP {} for url={}", responseCode, imageUrl);
+                return null;
+            }
+
+            String contentType = connection.getContentType();
+            if (contentType != null && !contentType.toLowerCase().contains("image")) {
+                log.warn("[FILE][SAVE_FROM_URL] Not image content-type: {} for url={}", contentType, imageUrl);
+                return null;
+            }
+            String ext = ".jpg";
+            if (contentType != null) {
+                if (contentType.toLowerCase().contains("png")) ext = ".png";
+                else if (contentType.toLowerCase().contains("gif")) ext = ".gif";
+                else if (contentType.toLowerCase().contains("webp")) ext = ".webp";
+            } else if (imageUrl.toLowerCase().matches(".*\\.(png|gif|webp)(\\?.*)?$")) {
+                if (imageUrl.toLowerCase().contains(".png")) ext = ".png";
+                else if (imageUrl.toLowerCase().contains(".gif")) ext = ".gif";
+                else if (imageUrl.toLowerCase().contains(".webp")) ext = ".webp";
+            }
+
+            String originalName = "image" + ext;
+            String storageKey = generateStorageKey(UploadTargetType.INBOUND_SMS, targetId, originalName, "");
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                saveToLocalFromStream(storageKey, inputStream);
+            }
+
+            long fileSize = 0;
+            try {
+                Path path = Paths.get(BASE_DIR, storageKey);
+                if (Files.exists(path)) fileSize = Files.size(path);
+            } catch (IOException ignored) {}
+
+            String thumbnailStorageKey = null;
+            if (isImageFile(contentType != null ? contentType : "image/jpeg")) {
+                try {
+                    thumbnailStorageKey = generateThumbnail(storageKey, UploadTargetType.INBOUND_SMS, targetId, originalName);
+                } catch (Exception e) {
+                    log.warn("[FILE][SAVE_FROM_URL] Thumbnail failed for {}", imageUrl, e);
+                }
+            }
+
+            Organization organization = organizationRepository.findById(organizationId)
+                    .orElseThrow(() -> new IllegalArgumentException("조직 정보가 없습니다."));
+
+            UploadFile saved = uploadFileRepository.save(UploadFile.builder()
+                    .organization(organization)
+                    .targetType(UploadTargetType.INBOUND_SMS)
+                    .fileType(UploadFileType.IMAGE)
+                    .notice(null)
+                    .careTarget(null)
+                    .call(null)
+                    .originalName(originalName)
+                    .storagePath(storageKey)
+                    .contentType(contentType != null ? contentType : "image/jpeg")
+                    .thumbnailStoragePath(thumbnailStorageKey)
+                    .fileSize(fileSize)
+                    .uploadedBy(null)
+                    .build());
+
+            log.info("[FILE][SAVE_FROM_URL] success url={}, path={}", imageUrl, storageKey);
+            return saved.getStoragePath();
+        } catch (Exception e) {
+            log.error("[FILE][SAVE_FROM_URL] failed url={}, error={}", imageUrl, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 이미 디스크에 저장된 파일(MMS 등)에 대한 UploadFile 레코드 생성
+     * prescription 등에서 upload_file_id 참조용
+     */
+    public UploadFile createUploadFileForExistingPath(String storagePath, Long organizationId, String contentType) {
+        if (storagePath == null || organizationId == null) return null;
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new IllegalArgumentException("조직 정보가 없습니다."));
+        long fileSize = 0;
+        try {
+            Path path = Paths.get(BASE_DIR, storagePath);
+            if (Files.exists(path)) fileSize = Files.size(path);
+        } catch (IOException ignored) {}
+        return uploadFileRepository.save(UploadFile.builder()
+                .organization(organization)
+                .targetType(UploadTargetType.INBOUND_SMS)
+                .fileType(UploadFileType.IMAGE)
+                .notice(null)
+                .careTarget(null)
+                .call(null)
+                .originalName(storagePath.substring(storagePath.lastIndexOf('/') + 1))
+                .storagePath(storagePath)
+                .contentType(contentType != null ? contentType : "image/jpeg")
+                .thumbnailStoragePath(null)
+                .fileSize(fileSize)
+                .uploadedBy(null)
+                .build());
+    }
+
+    public Optional<UploadFile> findUploadFileByStoragePath(String storagePath) {
+        return storagePath == null ? Optional.empty() : uploadFileRepository.findFirstByStoragePath(storagePath);
+    }
+
     //저장후 반환-------------------
     UploadFileResponseDTO toDTO(UploadFile file){
         return UploadFileResponseDTO.builder()
@@ -186,6 +311,7 @@ public class UploadFileService {
     private UploadFileType determineFileType(UploadTargetType targetType, String contentType) {
         if (targetType == UploadTargetType.CARE_TARGET) return UploadFileType.IMAGE;
         if (targetType == UploadTargetType.CALL_LOG) return UploadFileType.AUDIO;
+        if (targetType == UploadTargetType.INBOUND_SMS) return UploadFileType.IMAGE;
 
         if (contentType.contains("image")) return UploadFileType.IMAGE;
         if (contentType.contains("pdf") || contentType.contains("word") || contentType.contains("text")) return UploadFileType.DOCUMENT;
@@ -251,6 +377,14 @@ public class UploadFileService {
         } catch (Exception e) {
             throw new RuntimeException("File save failed", e);
         }
+    }
+
+    /** URL에서 InputStream으로 로컬 저장 (saveFromUrl 전용) */
+    private void saveToLocalFromStream(String storageKey, InputStream inputStream) throws IOException {
+        Path path = Paths.get(BASE_DIR, storageKey);
+        Files.createDirectories(path.getParent());
+        Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+        log.info("[FILE][UPLOAD_FROM_URL] {}", path.toAbsolutePath());
     }
     //-------------------------------------------------------------------------------------------------
 
