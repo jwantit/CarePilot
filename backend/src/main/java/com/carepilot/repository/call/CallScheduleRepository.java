@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +43,32 @@ public interface CallScheduleRepository extends JpaRepository<CallSchedule, Long
     List<CallSchedule> findAllByGroupIdAndOrgId(
             @Param("groupId") Long groupId,
             @Param("organizationId") Long organizationId);
+
+
+    @Query("SELECT cs FROM CallSchedule cs " +
+            "WHERE cs.group.groupId = :groupId " +
+            "AND cs.organization.organizationId = :organizationId " +
+            "AND cs.targetType = com.carepilot.domain.call.ScheduleTargetType.GROUP " +
+            "AND cs.scheduledTime >= :now " +
+            "ORDER BY cs.scheduledTime ASC")
+    List<CallSchedule> findAllUpcomingByGroupIdAndOrgId(
+            @Param("groupId") Long groupId,
+            @Param("organizationId") Long organizationId,
+            @Param("now") java.time.LocalDateTime now
+    );
+
+
+    @Query("SELECT s FROM CallSchedule s " +
+            "WHERE s.organization.organizationId = :organizationId " +
+            "AND s.careTarget.careTargetId = :careTargetId " +
+            "AND s.scheduledTime >= :now " +
+            "ORDER BY s.scheduledTime ASC")
+    List<CallSchedule> findByCareTargetId(
+            @Param("organizationId") Long organizationId,
+            @Param("careTargetId") Long careTargetId,
+            @Param("now") java.time.LocalDateTime now
+    );
+    void deleteByGroupGroupId(Long groupId);
 
     // Scenario 삭제 시 관련 CallSchedule의 scenario를 NULL로 설정
     @Modifying

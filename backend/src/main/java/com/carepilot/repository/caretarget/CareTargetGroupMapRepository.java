@@ -65,6 +65,11 @@ public interface CareTargetGroupMapRepository extends JpaRepository<CareTargetGr
     void deleteByCareTargetIds(@Param("careTargetIds") List<Long> careTargetIds,
                                @Param("organizationId") Long organizationId);
 
+    //RAG
+    @Query("SELECT m.group FROM CareTargetGroupMap m " +
+            "WHERE m.careTarget.careTargetId = :careTargetId")
+    List<CareTargetGroup> findGroupsByCareTargetId(@Param("careTargetId") Long careTargetId);
+
 
 
 }

@@ -6,6 +6,7 @@ import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.call.ScheduleStatus;
 import com.carepilot.domain.notification.RiskLevel;
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.dto.call.CallDetailResponseDTO;
 import com.carepilot.dto.call.CallResponseDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
@@ -18,6 +19,7 @@ import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
+import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.service.config.risk.RiskConfigService;
 import com.carepilot.service.sms.ScheduleNotificationService;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,11 +33,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.repository.call.RiskScoreRepository;
-import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import java.time.LocalDateTime;
@@ -59,26 +59,26 @@ public class CallServiceImpl implements CallService {
     @Override
     public List<CallResponseDTO> getCallHistory() {
         List<Call> calls = callRepository.findAllByOrderByStartTimeDesc();
-        
+
         if (calls.isEmpty()) {
             return Collections.emptyList();
         }
-        
+
         return calls.stream()
                 .map(call -> {
                     RiskScore riskScore = riskScoreRepository.findFirstByCall_CallIdOrderByCalculatedAtDesc(call.getCallId())
                             .orElse(null);
-                    
+
                     // 각 통화의 조직 ID로 RiskConfig 조회
                     Long organizationId = call.getOrganization().getOrganizationId();
                     RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
-                    
+
                     // riskScore 점수를 기반으로 riskLevel 계산
                     RiskLevel riskLevel = null;
                     if (riskScore != null && riskScore.getRiskScore() != null) {
                         riskLevel = riskConfigService.resolveLevel(riskScore.getRiskScore(), riskConfig);
                     }
-                    
+
                     return CallResponseDTO.from(call, riskScore, riskLevel);
                 })
                 .collect(Collectors.toList());
@@ -148,7 +148,7 @@ public class CallServiceImpl implements CallService {
         // 3. 위험도 점수 조회 (해당 통화로 생성된 위험 지수)
         RiskScore riskScore = riskScoreRepository.findFirstByCall_CallIdOrderByCalculatedAtDesc(callId)
                 .orElse(null);
-        
+
         // 4. 조직의 RiskConfig를 기반으로 riskLevel 계산
         RiskLevel calculatedRiskLevel = null;
         if (riskScore != null && riskScore.getRiskScore() != null) {

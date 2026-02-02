@@ -3,10 +3,18 @@ package com.carepilot.controller;
 import com.carepilot.dto.aiChat.AiChatRequest;
 import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.security.util.UserUtil;
+import com.carepilot.service.aiChat.CarePilotPromptProviderService;
+import com.carepilot.service.aiChat.CarePilotToolsService;
 import com.carepilot.service.aiChat.VectorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,65 +28,80 @@ import java.util.stream.Collectors;
 public class AiChatBotController {
 
     private final UserUtil userUtil;
+    private final ChatClient chatgpt;
+    private final ChatMemory chatMemory;
+    private final VectorStore vectorStore; //백터 임베딩
+    private final CarePilotToolsService carePilotToolsService; // 실제 행동을 수행할 도구
+    private final CarePilotPromptProviderService carePilotPromptProviderService;
     private final VectorService vectorService;
-    private final ChatClient ollama;
-    private final ChatClient openai;
 
     public AiChatBotController(
             UserUtil userUtil,
-            VectorService vectorService,
-            @Qualifier("ollamaChatClient") ChatClient ollama,
-            @Qualifier("openaiChatClient") ChatClient openai
+            @Qualifier("openaiChatClient") ChatClient chatgpt,
+            ChatMemory chatMemory,
+            @Qualifier("ChatBotVectorStore") VectorStore chatBotVectorStore,
+            CarePilotToolsService carePilotToolsService,
+            CarePilotPromptProviderService carePilotPromptProviderService, // 주입
+            VectorService vectorService
     ) {
         this.userUtil = userUtil;
+        this.chatgpt = chatgpt;
+        this.chatMemory = chatMemory;
+        this.vectorStore = chatBotVectorStore;
+        this.carePilotToolsService = carePilotToolsService;
+        this.carePilotPromptProviderService = carePilotPromptProviderService;
         this.vectorService = vectorService;
-        this.ollama = ollama;
-        this.openai = openai;
     }
 
-    /**
-     * [복구된 테스트용 데이터 저장 API]
-     * 브라우저 실행: http://localhost:8080/api/ai/test/save
-     */
-    @GetMapping("/test/save")
-    public String testSave() {
-        // 테스트용 가상 데이터 저장 (VectorService를 통해 Redis로 전송)
-        vectorService.savePatientToVectorDb("P_001", "홍길동", "HANSIM_01",
-                "홍길동 환자는 고혈압이 있으며 매일 오전 9시에 약을 복용해야 합니다.");
-
-        vectorService.savePatientToVectorDb("P_002", "이영희", "SEOUL_02",
-                "김영남 환자는 최근 무릎 수술을 받아 거동이 불편하므로 보행 보조가 필요합니다.");
-
-        return "✅ 테스트 데이터가 Redis Vector Store(carepilot:)에 저장되었습니다!";
-    }
-
-    /**
-     * [RAG 기반] AI 채팅 API
-     */
     @PostMapping("/chat")
     public String chat(@RequestBody AiChatRequest request) {
         UserDTO userDTO = userUtil.getCurrentUserDTO();
         String userMessage = request.getMessage();
+        String userIdMemory = userDTO.getUserId().toString();
+        Long userId = userDTO.getUserId();
+        String userName = userDTO.getName();
 
-        // 1. Redis에서 관련 지식 검색 (최대 10개)
-        List<Document> relevantDocs = vectorService.searchRelevantData(userMessage);
 
+        log.info("유저({}) 질문: {}", userIdMemory, userMessage);
 
-        log.info(relevantDocs.toString());
+        List<Message> lastMessages = chatMemory.get(userIdMemory, 10);
 
-        // 2. 검색된 문서들을 하나의 텍스트(Context)로 합치기 (중요!)
-        String context = relevantDocs.stream()
-                .map(Document::getText)
-                .collect(Collectors.joining("\n"));
-        log.info("검색모델" + context);
+        String historyText = lastMessages.stream()
+                .map(Message::getText)
+                // [필터링 조건 추가]
+                .filter(text -> text != null && text.trim().length() > 2) // 너무 짧은 메시지(1, 응, 네) 제외
+                .filter(text -> !text.matches("^[0-9]+(번|위)?$"))        // 숫자만 있거나 '1번' 같은 형식 제외
+                .collect(Collectors.joining(" "));
 
-        // 3. AI 호출
-        return ollama.prompt()
-                .system(s -> s.text("너는 전문적인 케어 파일럿 비서야. " +
-                                "반드시 아래 제공된 [참고 정보]만을 근거로 답변해줘. " +
-                                "정보에 없는 내용은 추측하지 말고 모른다고 답변해.\n\n" +
-                                "[참고 정보]\n{context}")
-                        .param("context", context))
+        String searchQuery = String.format("상황: %s, 질문: %s", historyText, userMessage);
+
+        List<Document> searchResults =
+                vectorService.searchRelevantData(searchQuery, userDTO.getOrganizationId());
+
+        // 2. 검색된 데이터를 하나의 문자열로 합치기
+        StringBuilder contextBuilder = new StringBuilder();
+        if (searchResults.isEmpty()) {
+            log.warn("검색된 데이터가 없습니다!");
+            contextBuilder.append("관련된 환자 정보를 찾을 수 없습니다.");
+        } else {
+            for (Document doc : searchResults) {
+                contextBuilder.append(doc.getFormattedContent()).append("\n");
+            }
+        }
+
+        String dynamicPrompt = carePilotPromptProviderService.getDynamicPrompt(historyText, userDTO.getOrganizationId(), userName);
+
+        log.info("=== [최종 주입될 프롬프트 확인] ===\n{}", dynamicPrompt);
+        String finalSystemPrompt = dynamicPrompt.replace("{question_answer_context}", contextBuilder);
+
+        // 4. ChatClient 실행 (QuestionAnswerAdvisor 제거)
+        return chatgpt.prompt()
+                .advisors(
+                        // [기능 1] 단기 기억 유지
+                        new MessageChatMemoryAdvisor(chatMemory, userIdMemory, 10)
+                )
+                .tools(carePilotToolsService) // [기능 3] 수정/예약 툴 연결
+                .system(finalSystemPrompt)
                 .user(userMessage)
                 .call()
                 .content();

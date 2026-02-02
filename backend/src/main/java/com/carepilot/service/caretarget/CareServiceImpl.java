@@ -18,8 +18,10 @@ import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.service.aiChat.CareTargetSyncEvent;
 import com.carepilot.service.config.risk.RiskConfigService;
 import com.carepilot.service.upload.UploadFileService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional; // 1. 임포트 확인!
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,7 @@ public class CareServiceImpl implements CareService {
     private final RiskScoreRepository riskScoreRepository;
     private final CareTargetGroupMapRepository careTargetGroupMapRepository;
     private final RiskConfigService riskConfigService;
+    private final ApplicationEventPublisher eventPublisher;
 
     //대량 환자등록 ---------------------------------------------------------------------------
     @Override
@@ -336,5 +339,56 @@ public class CareServiceImpl implements CareService {
         if (careTargetIds == null || careTargetIds.isEmpty()) return;
         careTargetGroupMapRepository.deleteByCareTargetIds(careTargetIds, organizationId);
         careTargetRepository.deleteAllById(careTargetIds);
+        eventPublisher.publishEvent(new CareTargetSyncEvent(organizationId ,"UPDATE",""));
+
     }
+//Tool------------------------------------------------------------------------------------
+    @Transactional
+    public String updateToolCareTarget(CareTargetInsertRequestDTO updateDto, Long careTargetId) {
+        CareTarget careTarget = careTargetRepository.findById(careTargetId)
+                .orElseThrow(() -> new RuntimeException("해당 환자를 찾을 수 없습니다. ID: " + careTargetId));
+
+        // 변경된 상세 내용을 담을 리스트
+        List<String> changeDetails = new ArrayList<>();
+
+        if (updateDto.getName() != null) changeDetails.add("- 성함: " + updateDto.getName());
+        if (updateDto.getAge() > 0) changeDetails.add("- 나이: " + updateDto.getAge() + "세");
+        if (updateDto.getGender() != null) changeDetails.add("- 성별: " + updateDto.getGender());
+        if (updateDto.getTargetPhone() != null) changeDetails.add("- 연락처: " + updateDto.getTargetPhone());
+        if (updateDto.getDisease() != null) changeDetails.add("- 주요 질환: " + updateDto.getDisease());
+        if (updateDto.getGuardianName() != null) changeDetails.add("- 보호자 성함: " + updateDto.getGuardianName());
+        if (updateDto.getGuardianPhone() != null) changeDetails.add("- 보호자 연락처: " + updateDto.getGuardianPhone());
+        if (updateDto.getGuardianRelationship() != null) changeDetails.add("- 보호자 관계: " + updateDto.getGuardianRelationship());
+
+        if (changeDetails.isEmpty()) {
+            return "수정할 정보가 전달되지 않아 변경된 내용이 없습니다.";
+        }
+
+        // 엔티티 업데이트 로직
+        careTarget.updateFromAi(
+                updateDto.getName(),
+                updateDto.getAge() > 0 ? updateDto.getAge() : null,
+                updateDto.getGender(),
+                updateDto.getTargetPhone(),
+                updateDto.getDisease(),
+                updateDto.getGuardianName(),
+                updateDto.getGuardianPhone(),
+                updateDto.getGuardianRelationship()
+        );
+
+        log.info("✅ [DB 업데이트 완료] ID: {}, 변경 내용: {}", careTargetId, String.join(", ", changeDetails));
+
+        return String.format(
+                "[수정 성공] 대상자 ID: %d | 변경 항목: %s. " +
+                        "사용자에게 변경 완료 사실을 간결하게 알리고 추가 요청을 확인하세요.",
+                careTargetId,
+                String.join(", ", changeDetails)
+        );
+    }
+
+    //위험 데이타 툴---------------------------------------------------------------------------
+//    @Override
+//    public CareTargetDetailResponseDTO getCareTargetDetail(Long organizationId, Long careTargetId) {
+//
+//    }
 }

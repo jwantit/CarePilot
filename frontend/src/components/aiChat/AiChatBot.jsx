@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
-import { sendAiChatMessage } from '../../api/aiChat/aiChatBot'; // 경로 확인 필요
+import { sendAiChatMessage } from '../../api/aiChat/aiChatBotApi'; // 경로 확인 필요
 import { useAuth } from '../../hooks/useAuth';
 
 const AiChatBot = () => {
@@ -27,20 +27,9 @@ const AiChatBot = () => {
     userOrganizationNumber: userOrganizationNumber,
     userRole: userRole,
   });
- 
-  
+
   // 채팅창 하단 자동 스크롤을 위한 Ref
   const scrollRef = useRef(null);
-
-  const formData = {
-    organizationId: organizationId,
-    role: role,
-    userId: userId,
-    userName: userName,
-    userOrganization: userOrganization,
-    userOrganizationNumber: userOrganizationNumber,
-    userRole: userRole,
-  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -53,10 +42,9 @@ const AiChatBot = () => {
   
     const userMessage = input;
     
-    // 백엔드 AiChatRequest 구조와 정확히 일치시킴
     const requestPayload = {
         message: userMessage,
-        props: userInfo  // userInfo가 AiPropsDTO와 필드명이 같아야 함
+        props: userInfo 
     };
   
     setMessages((prev) => [...prev, { id: Date.now(), text: userMessage, sender: 'user' }]);
@@ -64,7 +52,6 @@ const AiChatBot = () => {
     setIsLoading(true);
   
     try {
-      // 위에서 만든 깔끔한 데이터를 보냄
       const aiResponse = await sendAiChatMessage(requestPayload);
   
       setMessages((prev) => [
@@ -72,11 +59,16 @@ const AiChatBot = () => {
         { id: Date.now() + 1, text: aiResponse, sender: 'ai' },
       ]);
     } catch (error) {
-      // ... 에러 처리
+      console.error("채팅 에러:", error);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, text: "오류가 발생했습니다. 다시 시도해주세요.", sender: 'ai' },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
+
   if (!isOpen) {
     return (
       <button
@@ -89,10 +81,11 @@ const AiChatBot = () => {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 w-80 h-[500px] bg-white rounded-3xl shadow-xl flex flex-col z-[1000] border border-gray-200">
+    /* 가로폭 w-80 -> w-[450px], 높이 h-[500px] -> h-[600px] 수정 */
+    <div className="fixed bottom-8 right-8 w-[450px] h-[600px] bg-white rounded-3xl shadow-xl flex flex-col z-[1000] border border-gray-200">
       {/* 헤더 */}
       <div className="flex justify-between items-center p-4 bg-teal-600 text-white rounded-t-3xl">
-        <h3 className="text-lg font-bold">EXAONE AI 비서</h3>
+        <h3 className="text-lg font-bold">CarePilot AI 비서</h3>
         <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-teal-700 rounded-full">
           <X className="h-5 w-5" />
         </button>
@@ -109,10 +102,13 @@ const AiChatBot = () => {
         
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm ${
-              msg.sender === 'user' ? 'bg-teal-500 text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm'
+            <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
+              msg.sender === 'user' 
+                ? 'bg-teal-500 text-white rounded-br-none' 
+                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm'
             }`}>
-              {msg.text}
+              {/* 줄바꿈 보존을 위해 white-space 추가 */}
+              <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
             </div>
           </div>
         ))}
@@ -121,7 +117,7 @@ const AiChatBot = () => {
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-white border border-gray-200 text-gray-400 px-4 py-2 rounded-2xl rounded-bl-none text-xs animate-pulse">
-              엑사원이 생각 중입니다...
+              비서가 생각 중입니다...
             </div>
           </div>
         )}

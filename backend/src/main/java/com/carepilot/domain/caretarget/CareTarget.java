@@ -85,5 +85,18 @@ public class CareTarget extends SoftDeleteEntity {
         this.guardianRelationship = dto.getGuardianRelationship();
         this.doctor = doctor;
     }
+
+    public void updateFromAi(String name, Integer age, String gender, String targetPhone,
+                             String disease, String guardianName, String guardianPhone, String relationship) {
+        // null이 아닐 때만 기존 값을 유지하고 업데이트함
+        if (name != null) this.name = name;
+        if (age != null) this.age = age;
+        if (gender != null) this.gender = gender;
+        if (targetPhone != null) this.targetPhone = targetPhone;
+        if (disease != null) this.disease = disease;
+        if (guardianName != null) this.guardianName = guardianName;
+        if (guardianPhone != null) this.guardianPhone = guardianPhone;
+        if (guardianRelationship != null) this.guardianRelationship = relationship;
+    }
 }
 

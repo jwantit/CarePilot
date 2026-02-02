@@ -40,6 +40,9 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
             @Param("organizationId") Long organizationId
     );
 
+    @Query("SELECT ct.careTargetId FROM CareTarget ct WHERE ct.organization.organizationId = :organizationId")
+    List<Long> findIdsByOrganizationId(@Param("organizationId") Long organizationId);
+
 
 }
 

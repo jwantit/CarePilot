@@ -106,9 +106,9 @@ public class CallVectorStoreService {
                     .limit(3)
                     .forEach(doc -> {
                         Map<String, Object> metadata = doc.getMetadata();
-                        String contentPreview = doc.getContent() != null && doc.getContent().length() > 50 
-                            ? doc.getContent().substring(0, 50) + "..." 
-                            : doc.getContent();
+                        String contentPreview = doc.getText() != null && doc.getText().length() > 50
+                            ? doc.getText().substring(0, 50) + "..."
+                            : doc.getText();
                         log.info("  - 문서 ID: {}, 내용: {}, 메타데이터: {}", 
                             doc.getId(), contentPreview, metadata);
                     });
@@ -130,7 +130,7 @@ public class CallVectorStoreService {
                 .map(doc -> {
                     Map<String, Object> metadata = doc.getMetadata();
                     String question = (String) metadata.getOrDefault("question", "");
-                    String answer = (String) metadata.getOrDefault("answer", doc.getContent());
+                    String answer = (String) metadata.getOrDefault("answer", doc.getText());
                     String timestamp = (String) metadata.getOrDefault("timestamp", "");
                     
                     // Spring AI VectorStore는 유사도를 직접 제공하지 않으므로 기본값 사용

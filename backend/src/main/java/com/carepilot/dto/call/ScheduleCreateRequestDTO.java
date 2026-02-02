@@ -4,6 +4,7 @@ import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.ScheduleTargetType;
 import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.user.User;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.call.ScheduleRecurrence;
@@ -47,6 +48,7 @@ public class ScheduleCreateRequestDTO {
                 .memo(this.memo)
                 .createdBy(user)
                 .status(ScheduleStatus.SCHEDULED)
+                .scenario(scenario)
                 .build();
     }
 }

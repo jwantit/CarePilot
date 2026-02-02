@@ -22,7 +22,7 @@ configurations {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.ai:spring-ai-bom:1.0.0-M5"
+        mavenBom "org.springframework.ai:spring-ai-bom:1.0.0-M6"
     }
 }
 
@@ -30,7 +30,7 @@ repositories {
 	mavenCentral()
 }
 ext {
-    set('springAiVersion', "1.0.0-M5")
+    set('springAiVersion', "1.0.0-M6")
 }
 
 dependencies {

@@ -268,6 +268,7 @@ public class CareGroupServiceImpl implements CareGroupService {
 
     @Transactional
     public void deleteGroup(Long groupId) {
+        callScheduleRepository.deleteByGroupGroupId(groupId);
         careTargetGroupMapRepository.deleteByGroupId(groupId);
         careTargetGroupRepository.deleteById(groupId);
     }
