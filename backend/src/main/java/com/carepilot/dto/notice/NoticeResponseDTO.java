@@ -15,6 +15,7 @@ public class NoticeResponseDTO {
     private Long noticeId;
     private String title;
     private String content;
+    private Long writerId;
     private String writerName;
     private Integer viewCount;
     private Boolean isPinned;
@@ -26,6 +27,7 @@ public class NoticeResponseDTO {
                 .noticeId(notice.getNoticeId())
                 .title(notice.getTitle())
                 .content(notice.getContent())
+                .writerId(notice.getUser() != null ? notice.getUser().getUserId() : null)
                 .writerName(notice.getUser() != null ? notice.getUser().getName() : "익명")
                 .viewCount(notice.getViewCount())
                 .isPinned(notice.getIsPinned())

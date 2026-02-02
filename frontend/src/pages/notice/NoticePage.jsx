@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { noticeApi } from "../../api/noticeApi";
-import { useNotices } from "../../hooks/useNotices";
 import Pagination from "../../components/notice/Pagination";
 import NoticeList from "../../components/notice/NoticeList";
 import NoticeForm from "../../components/notice/NoticeForm";
@@ -8,11 +7,9 @@ import NoticeDetail from "../../components/notice/NoticeDetail";
 import { useAuth } from "../../hooks/useAuth";
 
 function NoticePage() {
-  // 1. 커스텀 훅 사용 (목록, 페이징 상태를 여기서 관리)
-  const { notices, currentPage, totalPages, loadNotices } = useNotices();
   const { user } = useAuth();
   const currentUserId = user?.userId || null;
-  const currentOrgId = user?.organizationId || null; // 페이지 내부에서 관리 할 최소한의 UI 상태
+  const currentOrgId = user?.organizationId || null;
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -27,6 +24,37 @@ function NoticePage() {
   const [commentContent, setCommentContent] = useState("");
   const [replyTo, setReplyTo] = useState(null);
 
+  const [notices, setNotices] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState([]); // useNotices에서 가져온 상태
+
+  const loadNotices = async (page = 0) => {
+    try {
+      const response = await noticeApi.getNotices(page);
+      const { content, totalPages, number } = response.data;
+
+      setNotices(Array.isArray(content) ? content : []);
+      setTotalPages(totalPages);
+      setCurrentPage(number);
+    } catch (error) {
+      console.error("데이터 로딩 실패:", error);
+      setNotices([]);
+    }
+  };
+
+  const handleFileChange = (e) => { // useNotices에서 가져온 함수
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const clearFiles = () => setSelectedFiles([]); // useNotices에서 가져온 함수
+
+  useEffect(() => {
+    loadNotices();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentUserId) return alert("로그인이 필요합니다.");
@@ -39,9 +67,9 @@ function NoticePage() {
     };
     try {
       if (editingId) {
-        await noticeApi.updateNotice(editingId, noticeData, currentUserId);
+        await noticeApi.updateNotice(editingId, noticeData, currentUserId, selectedFiles); // selectedFiles 추가
       } else {
-        await noticeApi.createNotice(noticeData, currentUserId);
+        await noticeApi.createNotice(noticeData, currentUserId, selectedFiles); // selectedFiles 추가
       } // 상태 초기화 및 목록 새로고침
 
       setShowForm(false);
@@ -49,6 +77,7 @@ function NoticePage() {
       setTitle("");
       setContent("");
       setIsPinned(false);
+      clearFiles(); // 파일 초기화
       loadNotices(currentPage);
     } catch (error) {
       console.error("저장 실패:", error);

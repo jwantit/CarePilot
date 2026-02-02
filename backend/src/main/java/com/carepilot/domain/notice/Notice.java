@@ -55,8 +55,9 @@ public class Notice extends BaseEntity {
     private Boolean isDeleted = false;
 
     @Builder
-    public Notice(Organization organization, User user, String title,
+    public Notice(Long noticeId, Organization organization, User user, String title,
                   String content, Integer viewCount, Boolean isPinned, Boolean isDeleted) {
+        this.noticeId = noticeId;
         this.organization = organization;
         this.user = user;
         this.title = title;
@@ -87,6 +88,7 @@ public class Notice extends BaseEntity {
         this.isDeleted = status;
     }
 
+    // 권한 검증 로직
     public void validateWriter(Long requestUserId) {
         if (!this.user.getUserId().equals(requestUserId)) {
             throw new RuntimeException("공지사항에 대한 권한이 없습니다.");

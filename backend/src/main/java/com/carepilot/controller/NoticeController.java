@@ -46,7 +46,7 @@ public class NoticeController {
             @RequestParam Long userId,
             @RequestParam Long organizationId) {
 
-        noticeService.saveNotice(noticeSaveRequest, userId, files);
+        noticeService.saveNotice(noticeSaveRequest, userId, organizationId, files);
 
         return ResponseEntity.ok().build();
     }

@@ -3,6 +3,8 @@ package com.carepilot.service.notice;
 import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.notice.Notice;
 import com.carepilot.domain.user.User;
+import com.carepilot.domain.organization.Organization;
+import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.dto.notice.NoticeResponseDTO;
 import com.carepilot.dto.notice.NoticeSaveRequest;
 import com.carepilot.dto.upload.TargetFileDTO;
@@ -25,6 +27,7 @@ public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
     private final UploadFileService uploadFileService;
 
     // 모든 공지사항 조회
@@ -45,24 +48,29 @@ public class NoticeServiceImpl implements NoticeService {
     // 새 글 생성 및 저장
     @Override
     @Transactional
-    public void saveNotice(NoticeSaveRequest request, Long userId, List<MultipartFile> files) {
+    public void saveNotice(NoticeSaveRequest request, Long userId, Long organizationId, List<MultipartFile> files) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. userId=" + userId));
+
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new IllegalArgumentException("조직 정보를 찾을 수 없습니다."));
 
         Notice notice = Notice.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .isPinned(request.getIsPinned())
                 .user(user)
-                .organization(user.getOrganization())
+                .organization(organization)
+                .viewCount(0)
+                .isDeleted(false)
                 .build();
 
-        Notice saveNotice = noticeRepository.save(notice);
+        Notice savedNotice = noticeRepository.save(notice);
 
         if (files != null && !files.isEmpty()) {
             TargetFileDTO fileDTO = TargetFileDTO.builder()
                     .targetType(UploadTargetType.NOTICE) // 공지사항 타입 지정
-                    .targetId(saveNotice.getNoticeId()) // 생성된 게시글 ID
+                    .targetId(savedNotice.getNoticeId()) // 생성된 게시글 ID
                     .organizationId(user.getOrganization().getOrganizationId())
                     .userId(userId)
                     .files(files)

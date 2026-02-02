@@ -1,6 +1,7 @@
 import { apiClient } from "./apiClient";
 
 const host = "/notices";
+const commentsHost = "/notice-comments"; // 댓글 전용 호스트 추가
 
 export const noticeApi = {
   // 공지사항 관련
@@ -9,26 +10,52 @@ export const noticeApi = {
 
   getNotice: (noticeId) => apiClient.get(`${host}/${noticeId}`),
 
-  createNotice: (data, userId) =>
-    apiClient.post(host, data, { params: { userId } }),
+  createNotice: (data, userId, files) => { // files 파라미터 추가
+    const formData = new FormData();
+    formData.append("notice", new Blob([JSON.stringify(data)], { type: "application/json" }));
+    if (files) {
+      files.forEach(file => formData.append("files", file));
+    }
+    formData.append("userId", userId);
+    formData.append("organizationId", data.organizationId); // organizationId 추가 (백엔드에 맞춰)
 
-  updateNotice: (noticeId, data, userId) =>
-    apiClient.put(`${host}/${noticeId}`, data, { params: { userId } }),
+    return apiClient.post(host, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
+  updateNotice: (noticeId, data, userId, files) => { // files 파라미터 추가
+    const formData = new FormData();
+    formData.append("notice", new Blob([JSON.stringify(data)], { type: "application/json" }));
+    if (files) {
+      files.forEach(file => formData.append("files", file));
+    }
+    formData.append("userId", userId);
+    formData.append("organizationId", data.organizationId); // organizationId 추가 (백엔드에 맞춰)
+
+    return apiClient.put(`${host}/${noticeId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 
   deleteNotice: (noticeId, userId) =>
     apiClient.delete(`${host}/${noticeId}`, { params: { userId } }),
 
   // 댓글 관련
-  getComments: (noticeId) => apiClient.get(`${host}/${noticeId}/comments`),
+  getComments: (noticeId) => apiClient.get(`${commentsHost}/${noticeId}/comments`),
 
   createComment: (noticeId, data) =>
-    apiClient.post(`${host}/${noticeId}/comments`, data),
+    apiClient.post(`${commentsHost}/${noticeId}/comments`, data),
 
   updateComment: (commentId, data, userId) =>
-    apiClient.put(`${host}/comments/${commentId}`, data, {
+    apiClient.put(`${commentsHost}/${commentId}`, data, {
       params: { userId },
     }),
 
   deleteComment: (commentId, userId) =>
-    apiClient.delete(`${host}/comments/${commentId}`, { params: { userId } }),
+    apiClient.delete(`${commentsHost}/${commentId}`, { params: { userId } }),
 };

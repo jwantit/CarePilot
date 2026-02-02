@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notices")
+@RequestMapping("/api/notice-comments")
 @RequiredArgsConstructor
 public class NoticeCommentController {
 
@@ -32,7 +32,7 @@ public class NoticeCommentController {
     }
 
     // 댓글 수정
-    @PutMapping("/comments/{commentId}")
+    @PutMapping("/{commentId}")
     public ResponseEntity<Void> updateComment(
             @PathVariable Long commentId,
             @RequestBody CommentSaveRequest request,
@@ -44,7 +44,7 @@ public class NoticeCommentController {
     }
 
     // 댓글 삭제
-    @DeleteMapping("/comments/{commentId}")
+    @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
             @RequestParam Long userId) {

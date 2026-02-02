@@ -14,7 +14,7 @@ public interface NoticeService {
 
     NoticeResponseDTO getNoticeById(Long noticeId);
 
-    void saveNotice(NoticeSaveRequest request, Long userId, List<MultipartFile> files);
+    void saveNotice(NoticeSaveRequest request, Long userId, Long organizationId, List<MultipartFile> files);
     void updateNotice(Long noticeId, NoticeSaveRequest request, Long userId, List<MultipartFile> files);
     void deleteNotice(Long noticeId, Long userId);
     void incrementViewCount(Long noticeId);
