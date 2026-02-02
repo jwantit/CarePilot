@@ -58,6 +58,7 @@ public class Scenario extends BaseEntity {
 
     // CallSchedule과의 양방향 관계 (선택적)
     @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = false)
+    @JsonIgnore // 순환 참조 방지: Scenario -> CallSchedule -> Scenario -> callSchedules -> ...
     private List<CallSchedule> callSchedules = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
