@@ -13,6 +13,7 @@ const CallHistoryTab = () => {
   const [filterType, setFilterType] = useState("");
   const [filterPatient, setFilterPatient] = useState("");
   const [filterResult, setFilterResult] = useState("");
+  const [filterRiskLevel, setFilterRiskLevel] = useState("");
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -29,20 +30,26 @@ const CallHistoryTab = () => {
 
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
-    
+
     const getRiskStyle = (level) => {
       switch (level) {
-        case 'CRITICAL': return 'bg-purple-100 text-purple-700 border-purple-200';
-        case 'HIGH': return 'bg-red-100 text-red-600 border-red-200';
-        case 'MEDIUM': return 'bg-orange-100 text-orange-600 border-orange-200';
-        case 'LOW':
-        default: return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+        case "CRITICAL":
+          return "bg-purple-100 text-purple-700 border-purple-200";
+        case "HIGH":
+          return "bg-red-100 text-red-600 border-red-200";
+        case "MEDIUM":
+          return "bg-orange-100 text-orange-600 border-orange-200";
+        case "LOW":
+        default:
+          return "bg-emerald-50 text-emerald-600 border-emerald-100";
       }
     };
-    
+
     return (
       <div className="flex justify-center items-center">
-        <span className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${getRiskStyle(displayLevel)}`}>
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${getRiskStyle(displayLevel)}`}
+        >
           {displayLevel}
         </span>
       </div>
@@ -109,8 +116,16 @@ const CallHistoryTab = () => {
         !filterPatient || item.careTargetName?.includes(filterPatient);
       const matchesResult =
         !filterResult || (item.statusLabel || item.status) === filterResult;
+      const matchesRiskLevel = !filterRiskLevel || item.riskLevel === filterRiskLevel;
 
-      return matchesFrom && matchesTo && matchesType && matchesPatient && matchesResult;
+      return (
+        matchesFrom &&
+        matchesTo &&
+        matchesType &&
+        matchesPatient &&
+        matchesResult &&
+        matchesRiskLevel
+      );
     });
   }, [
     history,
@@ -119,11 +134,12 @@ const CallHistoryTab = () => {
     filterType,
     filterPatient,
     filterResult,
+    filterRiskLevel,
   ]);
 
   return (
     <div className="relative">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3 rounded border border-gray-200 bg-white p-4 text-xs font-medium uppercase tracking-wide text-gray-500 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded border border-gray-200 bg-white p-4 text-xs font-medium uppercase tracking-wide text-gray-500 shadow-sm">
         <div className="flex flex-col gap-1">
           <span>시간</span>
           <div className="flex gap-2">
@@ -141,55 +157,72 @@ const CallHistoryTab = () => {
             />
           </div>
         </div>
-        <div className="flex flex-col gap-1">
-          <span>유형</span>
-          <select
-            className="h-9 min-w-[140px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
-            value={filterType}
-            onChange={(event) => setFilterType(event.target.value)}
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <span>유형</span>
+            <select
+              className="h-9 min-w-[100px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
+              value={filterType}
+              onChange={(event) => setFilterType(event.target.value)}
+            >
+              <option value="">전체</option>
+              <option value="수신">수신</option>
+              <option value="발신">발신</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>케어 대상</span>
+            <input
+              type="text"
+              className="h-9 min-w-[150px] rounded border border-gray-300 px-2 text-sm text-slate-700"
+              placeholder="이름 검색"
+              value={filterPatient}
+              onChange={(event) => setFilterPatient(event.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>결과</span>
+            <select
+              className="h-9 min-w-[120px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
+              value={filterResult}
+              onChange={(event) => setFilterResult(event.target.value)}
+            >
+              <option value="">전체</option>
+              <option value="성공">성공</option>
+              <option value="실패">실패</option>
+              <option value="무응답">무응답</option>
+              <option value="취소됨">취소됨</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span>위험도</span>
+            <select
+              className="h-9 min-w-[120px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
+              value={filterRiskLevel}
+              onChange={(event) => setFilterRiskLevel(event.target.value)}
+            >
+              <option value="">전체</option>
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setFilterTimeFrom("");
+              setFilterTimeTo("");
+              setFilterType("");
+              setFilterPatient("");
+              setFilterResult("");
+              setFilterRiskLevel("");
+            }}
+            className="h-9 rounded border border-[#008080] bg-[#008080] px-4 text-sm font-medium text-white transition hover:bg-[#006666]"
           >
-            <option value="">전체</option>
-            <option value="수신">수신</option>
-            <option value="발신">발신</option>
-          </select>
+            초기화
+          </button>
         </div>
-        <div className="flex flex-col gap-1">
-          <span>환자명</span>
-          <input
-            type="text"
-            className="h-9 min-w-[200px] rounded border border-gray-300 px-2 text-sm text-slate-700"
-            placeholder="이름 검색"
-            value={filterPatient}
-            onChange={(event) => setFilterPatient(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <span>결과</span>
-          <select
-            className="h-9 min-w-[160px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
-            value={filterResult}
-            onChange={(event) => setFilterResult(event.target.value)}
-          >
-            <option value="">전체</option>
-            <option value="성공">성공</option>
-            <option value="실패">실패</option>
-            <option value="무응답">무응답</option>
-            <option value="취소됨">취소됨</option>
-          </select>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setFilterTimeFrom("");
-            setFilterTimeTo("");
-            setFilterType("");
-            setFilterPatient("");
-            setFilterResult("");
-          }}
-          className="h-9 rounded border border-[#008080] bg-[#008080] px-4 text-sm font-medium text-white transition hover:bg-[#006666]"
-        >
-          초기화
-        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border">
@@ -197,11 +230,11 @@ const CallHistoryTab = () => {
             <tr className="bg-gray-100 text-left text-sm font-medium text-gray-700">
               <th className="px-3 py-2 border">시간</th>
               <th className="px-3 py-2 border">ID</th>
-              <th className="px-3 py-2 border">환자명</th>
+              <th className="px-3 py-2 border">케어 대상</th>
               <th className="px-3 py-2 border">유형</th>
               <th className="px-3 py-2 border">통화 시간</th>
               <th className="px-3 py-2 border">결과</th>
-              <th className="px-3 py-2 border">위험도</th>
+              <th className="px-3 py-2 border text-center">위험도 (점수)</th>
               <th className="px-3 py-2 border">상세</th>
             </tr>
           </thead>
@@ -219,7 +252,12 @@ const CallHistoryTab = () => {
                   {item.statusLabel || item.status}
                 </td>
                 <td className="px-3 py-2 border text-sm">
-                  {getRiskLevelDisplay(item.riskLevel)}
+                  <div className="flex items-center justify-center gap-2">
+                    {getRiskLevelDisplay(item.riskLevel)}
+                    <span className="text-xs text-gray-400">
+                      ({item.riskScore ?? 0}점)
+                    </span>
+                  </div>
                 </td>
                 <td className="px-3 py-2 border text-sm">
                   <button
@@ -271,23 +309,35 @@ const CallHistoryTab = () => {
                 <>
                   <div className="mb-4 grid grid-cols-2 gap-4 text-sm text-gray-600">
                     <p>
+                      <strong>케어 대상:</strong> {detail.patientName}
+                    </p>
+                    <p>
                       <strong>통화 ID:</strong> {detail.callId}
                     </p>
                     <p>
                       <strong>통화 시간:</strong> {detail.startTime}
                     </p>
                     <p>
-                      <strong>상태:</strong> {detail.statusLabel || detail.status}
+                      <strong>상태:</strong>{" "}
+                      {detail.statusLabel || detail.status}
                     </p>
                     <p>
-                      <strong>위험도:</strong> {getRiskLevelDisplay(detail.riskLevel)}
+                      <strong>위험도:</strong>{" "}
+                      <span className="inline-flex items-center gap-2">
+                        {getRiskLevelDisplay(detail.riskLevel)}
+                        <span className="text-xs text-gray-400">
+                          ({detail.riskScore ?? 0}점)
+                        </span>
+                      </span>
                     </p>
                   </div>
 
                   <div className="mb-4 space-y-2">
                     <p className="text-sm font-medium text-gray-700">AI 요약</p>
                     <p className="rounded border bg-gray-50 px-3 py-2 text-sm text-gray-800">
-                      {detail.aiMemo || detail.summary || "요약 정보가 없습니다."}
+                      {detail.aiMemo ||
+                        detail.summary ||
+                        "요약 정보가 없습니다."}
                     </p>
                   </div>
 
@@ -318,13 +368,29 @@ const CallHistoryTab = () => {
                         <span>
                           {detail.recordingContentType ?? "알 수 없는 형식"}
                         </span>
-                        <a
-                          href={recordingUrl}
-                          download={detail.recordingFileName || ""}
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(recordingUrl);
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download =
+                                detail.recordingFileName || "recording.mp3";
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                            } catch (error) {
+                              console.error("Download failed", error);
+                              alert("파일 다운로드에 실패했습니다.");
+                            }
+                          }}
                           className="rounded border border-[#008080] px-2 py-1 text-[#008080] transition hover:bg-[#008080] hover:text-white"
                         >
                           다운로드
-                        </a>
+                        </button>
                       </div>
                     </div>
                   )}
