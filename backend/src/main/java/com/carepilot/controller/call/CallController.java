@@ -328,12 +328,6 @@ public class CallController {
         return schedules.stream()
                 .filter(s -> s.getCareTarget() != null && 
                         s.getCareTarget().getCareTargetId().equals(careTarget.getCareTargetId()))
-//                .filter(s -> {
-//                    // 예약 시간이 현재 시간 기준 1시간 이내인 경우만
-//                    LocalDateTime now = LocalDateTime.now();
-//                    return s.getScheduledTime().isAfter(now.minusHours(1)) &&
-//                           s.getScheduledTime().isBefore(now.plusHours(1));
-//                })
                 .findFirst()
                 .orElse(null); // 예약이 없으면 null 반환 (정상 동작)
     }

@@ -102,13 +102,14 @@ public class Call extends BaseEntity {
     }
 
     /**
-     * 통화 종료 시 end_time과 duration을 업데이트합니다.
+     * 통화 종료 시 end_time과 duration을 업데이트하고 상태를 SUCCESS로 변경합니다.
      */
     public void completeCall() {
         this.endTime = LocalDateTime.now();
         if (this.startTime != null && this.endTime != null) {
             this.duration = (int) Duration.between(this.startTime, this.endTime).getSeconds();
         }
+        this.status = CallStatus.SUCCESS;
     }
 
     // AI 분석 결과(요약, 메모, 시그널)를 반영. 통화 분석 파이프라인에서 호출.
