@@ -5,6 +5,7 @@ import CareTargetUploadModal from '../../components/caretarget/CareTargetUploadM
 import CareTargetInsertModal from '../../components/caretarget/CareTargetInsertModal';
 import CareTargetActionBar from '../../components/caretarget/CareTargetActionBar'; 
 import { deleteCareTarget, uploadCsvCareTarget, uploadOneCareTarget } from '../../api/caretarget/careTargetApi';
+import { makeCallTest } from '../../api/callApi';
 import { useAuth } from '../../hooks/useAuth';
 
 function CareTargetPage() {
@@ -61,8 +62,32 @@ function CareTargetPage() {
     }
 
     if (type === "CALL") {
-      // 통화 로직은 나중에 구현 (생략)
-      console.log("통화 요청 ID 리스트:", selectedIds);
+      const selectedItems = currentList.filter((item) => selectedIds.includes(item.careTargetId));
+      const withPhone = selectedItems.filter((item) => item.careTargetPhone);
+      const noPhone = selectedItems.filter((item) => !item.careTargetPhone);
+
+      if (noPhone.length > 0) {
+        alert(`전화번호가 없는 대상 ${noPhone.length}명은 제외됩니다.\n(${noPhone.map((p) => p.name).join(', ')})`);
+      }
+      if (withPhone.length === 0) {
+        alert("통화 가능한 대상이 없습니다. 전화번호를 확인해 주세요.");
+        return;
+      }
+
+      const now = new Date().toISOString().slice(0, 19);
+      try {
+        for (const item of withPhone) {
+          await makeCallTest({ to: item.careTargetPhone, scheduledTime: now });
+        }
+        alert(`${withPhone.length}명에게 통화 요청이 등록되었습니다.`);
+        setSelectedIds([]);
+      } catch (error) {
+        if (error.response?.status === 403) {
+          alert("권한이 없습니다.");
+        } else {
+          alert("통화 요청 중 오류가 발생했습니다.");
+        }
+      }
     } 
     else if (type === "DELETE") {
       // 2. 삭제 로직

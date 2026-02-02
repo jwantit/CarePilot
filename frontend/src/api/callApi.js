@@ -43,3 +43,15 @@ export const restoreSchedule = async (scheduleId) => {
   const res = await apiClient.post(`${host}/schedules/${scheduleId}/restore`);
   return res.data;
 };
+
+// 8. [테스트용] 즉시 발신 로그 등록 (make-call-test)
+export const makeCallTest = async ({ to, scheduledTime }) => {
+  const res = await apiClient.post(`${host}/make-call-test`, { to, scheduledTime });
+  return res.data;
+};
+
+// 9. [테스트용] 수신 SMS/MMS 목록 조회
+export const getInboundSmsList = async () => {
+  const res = await apiClient.get(`/sms/test/inbound-sms`);
+  return res.data;
+};

@@ -2,6 +2,7 @@ package com.carepilot.repository.call;
 
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.ScheduleStatus;
+import com.carepilot.domain.caretarget.CareTarget;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -45,4 +46,12 @@ public interface CallScheduleRepository extends JpaRepository<CallSchedule, Long
     @Modifying
     @Query("UPDATE CallSchedule cs SET cs.scenario = NULL WHERE cs.scenario.scenarioId = :scenarioId")
     void clearScenarioByScenarioId(@Param("scenarioId") Long scenarioId);
+
+    /** 개인 스케줄: CareTarget의 SCHEDULED 예약을 nextRunAt 기준 오름차순 (가장 가까운 것 먼저) */
+    @Query("SELECT cs FROM CallSchedule cs WHERE cs.careTarget = :careTarget " +
+            "AND cs.group IS NULL AND cs.status = :status " +
+            "ORDER BY COALESCE(cs.nextRunAt, cs.scheduledTime) ASC")
+    List<CallSchedule> findIndividualSchedulesByCareTargetAndStatus(
+            @Param("careTarget") CareTarget careTarget,
+            @Param("status") ScheduleStatus status);
 }
