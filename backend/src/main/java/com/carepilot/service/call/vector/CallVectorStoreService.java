@@ -64,6 +64,41 @@ public class CallVectorStoreService {
     }
     
     /**
+     * 더미 데이터를 벡터로 변환하여 Redis에 저장 (고정 Document ID 사용)
+     * @param documentId 고정 Document ID (중복 방지용)
+     * @param careTargetId 어르신 ID
+     * @param questionText 질문 내용
+     * @param answerText 답변 내용
+     * @param callDateTime 통화 일시
+     */
+    public void saveDummyAnswerVector(String documentId, Long careTargetId, String questionText, 
+                                     String answerText, LocalDateTime callDateTime) {
+        if (answerText == null || answerText.trim().isEmpty()) {
+            log.warn("빈 답변으로 저장 시도: careTargetId={}", careTargetId);
+            return;
+        }
+        
+        try {
+            // Document 생성 (텍스트와 메타데이터 포함)
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("careTargetId", careTargetId.toString());
+            metadata.put("question", questionText != null ? questionText : "");
+            metadata.put("answer", answerText);
+            metadata.put("timestamp", callDateTime != null ? callDateTime.toString() : LocalDateTime.now().toString());
+            metadata.put("isDummyData", "true"); // 더미 데이터 식별용
+            
+            // 고정 Document ID 사용 (같은 ID로 저장하면 중복 방지)
+            Document document = new Document(documentId, answerText, metadata);
+            vectorStore.add(List.of(document));
+            
+            log.debug("더미 데이터 벡터 저장 완료: careTargetId={}, documentId={}, answer={}", 
+                careTargetId, documentId, answerText);
+        } catch (Exception e) {
+            log.error("더미 데이터 벡터 저장 실패: careTargetId={}, error={}", careTargetId, e.getMessage(), e);
+        }
+    }
+    
+    /**
      * KNN 검색으로 유사한 과거 답변 찾기
      * @param careTargetId 어르신 ID
      * @param queryText 검색 쿼리 텍스트 (임베딩은 VectorStore가 자동 생성)

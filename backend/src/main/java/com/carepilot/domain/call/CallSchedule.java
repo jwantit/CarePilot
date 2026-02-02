@@ -7,6 +7,7 @@ import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.enums.*;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CallSchedule extends BaseEntity {
 
     @Id
