@@ -5,7 +5,10 @@ import com.carepilot.domain.call.ScheduleRecurrence;
 import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.caretarget.CareTargetGroupMap;
+import com.carepilot.domain.sms.OutboundSms;
+import com.carepilot.domain.sms.SentBy;
 import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
+import com.carepilot.repository.sms.OutboundSmsRepository;
 import com.carepilot.service.call.TwilioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -23,6 +26,7 @@ public class ScheduleNotificationServiceImpl implements ScheduleNotificationServ
 
     private final TwilioService twilioService;
     private final CareTargetGroupMapRepository careTargetGroupMapRepository;
+    private final OutboundSmsRepository outboundSmsRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,7 +50,14 @@ public class ScheduleNotificationServiceImpl implements ScheduleNotificationServ
             String message = buildMessage(name, timeText);
             try {
                 String parsedPhone = parsePhoneNumber(phone);
-                twilioService.sendSms(parsedPhone, message);
+                String messageSid = twilioService.sendSms(parsedPhone, message);
+                outboundSmsRepository.save(OutboundSms.builder()
+                        .messageSid(messageSid)
+                        .fromNumber(twilioService.getFromNumber())
+                        .toNumber(parsedPhone)
+                        .body(message)
+                        .sentBy(SentBy.AI)
+                        .build());
                 log.info("[ScheduleNotification] 발송 완료 careTargetId={}, to={}", careTarget.getCareTargetId(), phone);
             } catch (Exception e) {
                 log.error("[ScheduleNotification] 발송 실패 careTargetId={}, to={}, error={}",

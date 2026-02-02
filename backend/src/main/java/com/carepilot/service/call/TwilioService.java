@@ -24,6 +24,11 @@ public class TwilioService {
     @Value("${twilio.from-number}")
     private String fromNumber;
 
+    /** 발신 SMS 저장 시 발신 번호로 사용 */
+    public String getFromNumber() {
+        return fromNumber;
+    }
+
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
 
