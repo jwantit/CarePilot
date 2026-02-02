@@ -71,12 +71,20 @@ public class CallScheduleWorkerService {
         }
 
         if (schedule.getType() == ScheduleType.RECURRING && schedule.getRecurrence() != null) {
-            LocalDateTime nextRunAt = calculateNextRunAt(
-                    schedule.getNextRunAt(), schedule.getRecurrence(), schedule.getRecurrenceEndDate());
-            if (nextRunAt != null) {
-                schedule.releaseToScheduled(nextRunAt);
-            } else {
+            LocalDateTime baseTime = schedule.getScheduledTime() != null
+                    ? schedule.getScheduledTime()
+                    : schedule.getNextRunAt();
+            if (baseTime == null) {
                 schedule.completeOneTime(executedAt);
+            } else {
+                LocalDateTime nextRunAt = calculateNextOccurrenceFromScheduledTime(
+                        baseTime, executedAt, schedule.getRecurrence(), schedule.getRecurrenceEndDate());
+                if (nextRunAt != null) {
+                    schedule.releaseToScheduled(nextRunAt);
+                    schedule.advanceScheduledTime(nextRunAt);
+                } else {
+                    schedule.completeOneTime(executedAt);
+                }
             }
         } else {
             schedule.completeOneTime(executedAt);
@@ -105,15 +113,18 @@ public class CallScheduleWorkerService {
         return list;
     }
 
-    // 반복 주기: 다음 실행 시각 계산
-    // DAILY/WEEKLY/MONTHLY 기준 다음 실행 시각. recurrence_end_date 초과 시 null(반복 종료).
-    private LocalDateTime calculateNextRunAt(LocalDateTime current, ScheduleRecurrence recurrence,
-                                             LocalDateTime recurrenceEndDate) {
-        LocalDateTime next = switch (recurrence) {
-            case DAILY -> current.plusDays(1);
-            case WEEKLY -> current.plusWeeks(1);
-            case MONTHLY -> current.plusMonths(1);
-        };
+    /** scheduled_time(주기 시간) 기준으로 executedAt 이후의 "다음 발생일" 계산. recurrence_end_date 초과 시 null. */
+    private LocalDateTime calculateNextOccurrenceFromScheduledTime(
+            LocalDateTime scheduledTime, LocalDateTime executedAt,
+            ScheduleRecurrence recurrence, LocalDateTime recurrenceEndDate) {
+        LocalDateTime next = scheduledTime;
+        while (!next.isAfter(executedAt)) {
+            next = switch (recurrence) {
+                case DAILY -> next.plusDays(1);
+                case WEEKLY -> next.plusWeeks(1);
+                case MONTHLY -> next.plusMonths(1);
+            };
+        }
         if (recurrenceEndDate != null && next.isAfter(recurrenceEndDate)) {
             return null;
         }

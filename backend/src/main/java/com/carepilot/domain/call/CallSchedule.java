@@ -197,6 +197,11 @@ public class CallSchedule extends BaseEntity {
         this.status = ScheduleStatus.SCHEDULED;
     }
 
+    /** 반복 스케줄 실행 후: 주기 기준 시각(scheduled_time)을 다음 발생일로 한 주기만큼 진행 */
+    public void advanceScheduledTime(LocalDateTime newScheduledTime) {
+        this.scheduledTime = newScheduledTime;
+    }
+
     /** 단발 스케줄: 완료 처리 */
     public void completeOneTime(LocalDateTime completedAt) {
         this.completedAt = completedAt;
