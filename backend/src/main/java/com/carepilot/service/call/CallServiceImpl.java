@@ -5,17 +5,21 @@ import com.carepilot.domain.call.CallRecording;
 import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.call.ScheduleStatus;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.dto.call.CallDetailResponseDTO;
 import com.carepilot.dto.call.CallResponseDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.dto.call.ScheduleResponseDTO;
 import com.carepilot.dto.call.ScheduleUpdateRequestDTO;
+import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.call.ScheduleRecurrence;
 import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
+import com.carepilot.service.config.risk.RiskConfigService;
+import com.carepilot.service.sms.ScheduleNotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -23,12 +27,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.repository.call.RiskScoreRepository;
+import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import java.time.LocalDateTime;
@@ -45,11 +52,35 @@ public class CallServiceImpl implements CallService {
     private final RiskScoreRepository riskScoreRepository;
     private final OrganizationRepository organizationRepository;
     private final CareTargetRepository careTargetRepository;
+    private final ScenarioRepository scenarioRepository;
+    private final ScheduleNotificationService scheduleNotificationService;
+    private final RiskConfigService riskConfigService;
 
     @Override
     public List<CallResponseDTO> getCallHistory() {
-        return callRepository.findAllByOrderByStartTimeDesc().stream()
-                .map(CallResponseDTO::from)
+        List<Call> calls = callRepository.findAllByOrderByStartTimeDesc();
+        
+        if (calls.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        return calls.stream()
+                .map(call -> {
+                    RiskScore riskScore = riskScoreRepository.findFirstByCall_CallIdOrderByCalculatedAtDesc(call.getCallId())
+                            .orElse(null);
+                    
+                    // 각 통화의 조직 ID로 RiskConfig 조회
+                    Long organizationId = call.getOrganization().getOrganizationId();
+                    RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
+                    
+                    // riskScore 점수를 기반으로 riskLevel 계산
+                    RiskLevel riskLevel = null;
+                    if (riskScore != null && riskScore.getRiskScore() != null) {
+                        riskLevel = riskConfigService.resolveLevel(riskScore.getRiskScore(), riskConfig);
+                    }
+                    
+                    return CallResponseDTO.from(call, riskScore, riskLevel);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -85,11 +116,23 @@ public class CallServiceImpl implements CallService {
         CareTarget careTarget = careTargetRepository.findById(dto.getCareTargetId())
                 .orElseThrow(() -> new EntityNotFoundException("CareTarget not found"));
 
-        // 2. DTO -> Entity 변환 (생성자 또는 빌더 활용)
-        // ScheduleCreateRequestDTO에 구현된 toEntity 메서드를 호출하거나 여기서 직접 빌드합니다.
-        CallSchedule schedule = dto.toEntity(organization, careTarget, null); // User 정보는 필요시 추가
+        Scenario scenario = null;
+        if (dto.getScenarioId() != null) {
+            scenario = scenarioRepository.findById(dto.getScenarioId()).orElse(null);
+        }
 
-        return callScheduleRepository.save(schedule).getScheduleId();
+        // 2. DTO -> Entity 변환
+        CallSchedule schedule = dto.toEntity(organization, careTarget, null, scenario);
+        schedule = callScheduleRepository.save(schedule);
+
+        // 3. 예약확인 문자 발송
+        try {
+            scheduleNotificationService.sendScheduleConfirmationSms(schedule);
+        } catch (Exception e) {
+            log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", schedule.getScheduleId(), e.getMessage());
+        }
+
+        return schedule.getScheduleId();
     }
 
     @Override
@@ -103,10 +146,18 @@ public class CallServiceImpl implements CallService {
                 .orElse(null);
 
         // 3. 위험도 점수 조회 (해당 통화로 생성된 위험 지수)
-        RiskScore riskScore = riskScoreRepository.findByCall_CallId(callId)
+        RiskScore riskScore = riskScoreRepository.findFirstByCall_CallIdOrderByCalculatedAtDesc(callId)
                 .orElse(null);
+        
+        // 4. 조직의 RiskConfig를 기반으로 riskLevel 계산
+        RiskLevel calculatedRiskLevel = null;
+        if (riskScore != null && riskScore.getRiskScore() != null) {
+            Long organizationId = call.getOrganization().getOrganizationId();
+            RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
+            calculatedRiskLevel = riskConfigService.resolveLevel(riskScore.getRiskScore(), riskConfig);
+        }
 
-        return CallDetailResponseDTO.of(call, recording, riskScore);
+        return CallDetailResponseDTO.of(call, recording, riskScore, calculatedRiskLevel);
     }
 
     @Override
@@ -136,11 +187,22 @@ public class CallServiceImpl implements CallService {
                 recurrenceEnd,
                 priority,
                 dto.getMemo());
+        if (dto.getScenarioId() != null) {
+            Scenario scenario = scenarioRepository.findById(dto.getScenarioId()).orElse(null);
+            existing.updateScenario(scenario);
+        } else {
+            existing.updateScenario(null);
+        }
         if (dto.getScheduledTime() != null && existing.getStatus() == ScheduleStatus.SCHEDULED) {
             existing.rescheduleNextRunAt(dto.getScheduledTime());
         }
 
         callScheduleRepository.save(existing);
+        try {
+            scheduleNotificationService.sendScheduleConfirmationSms(existing);
+        } catch (Exception e) {
+            log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", scheduleId, e.getMessage());
+        }
     }
 
     @Override

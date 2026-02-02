@@ -9,6 +9,7 @@ import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.*;
+import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.dto.upload.TargetFileDTO;
 import com.carepilot.dto.upload.UploadFileResponseDTO;
 import com.carepilot.repository.call.CallRepository;
@@ -17,6 +18,7 @@ import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.service.config.risk.RiskConfigService;
 import com.carepilot.service.upload.UploadFileService;
 import org.springframework.transaction.annotation.Transactional; // 1. 임포트 확인!
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ public class CareServiceImpl implements CareService {
     private final CallRepository callRepository;
     private final RiskScoreRepository riskScoreRepository;
     private final CareTargetGroupMapRepository careTargetGroupMapRepository;
+    private final RiskConfigService riskConfigService;
 
     //대량 환자등록 ---------------------------------------------------------------------------
     @Override
@@ -136,6 +139,7 @@ public class CareServiceImpl implements CareService {
 
         List<CareTarget> careTargets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(organizationId, keyword);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
 
         log.info("케어 대상자 조회 진입");
 
@@ -149,10 +153,8 @@ public class CareServiceImpl implements CareService {
                     .map(call -> call.getStartTime().format(formatter))
                     .orElse(null);
 
-
-
             RiskLevel latestLevel = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId())
-                    .map(RiskScore::getRiskLevel)
+                    .map(rs -> riskConfigService.resolveLevel(rs.getRiskScore(), riskConfig))
                     .orElse(RiskLevel.LOW);
 
             List<UploadFileResponseDTO> tempfiles = uploadFileService.careTargetFiles(organizationId, ct.getCareTargetId());
@@ -235,29 +237,23 @@ public class CareServiceImpl implements CareService {
                 ? tempFiles.get(0).getFileUrl()
                 : null;
 
-        // 5. 위험도 트렌드 로직 (3개월 전부터 현재까지 7일 단위)
-        List<RiskScore> dbScores = riskScoreRepository.findTrendData(careTargetId, LocalDateTime.now().minusMonths(3));
-        List<RiskTrendDTO> trendList = new ArrayList<>();
-
-        LocalDate today = LocalDate.now();
-        LocalDate cursor = today.minusMonths(3);
-
-        while (!cursor.isAfter(today)) {
-            LocalDate weekStart = cursor;
-            LocalDate weekEnd = cursor.plusDays(7);
-
-            int maxScoreInWeek = dbScores.stream()
-                    .filter(rs -> {
-                        LocalDate dataDate = rs.getCalculatedAt().toLocalDate();
-                        return !dataDate.isBefore(weekStart) && dataDate.isBefore(weekEnd);
-                    })
-                    .mapToInt(RiskScore::getRiskScore)
-                    .max()
-                    .orElse(0);
-
-            trendList.add(new RiskTrendDTO(maxScoreInWeek, weekStart.format(formatter)));
-            cursor = weekEnd; // 7일씩 증가
+        // 5. 위험도 추이: 일별 최신 1건만 사용, 최근 14개 일자만
+        List<RiskScore> dbScores = riskScoreRepository.findTrendData(careTargetId, LocalDateTime.now().minusMonths(6));
+        Map<LocalDate, RiskScore> latestPerDay = new LinkedHashMap<>();
+        for (RiskScore rs : dbScores) {
+            if (rs.getCalculatedAt() == null) continue;
+            LocalDate d = rs.getCalculatedAt().toLocalDate();
+            latestPerDay.merge(d, rs, (a, b) -> a.getCalculatedAt().isAfter(b.getCalculatedAt()) ? a : b);
         }
+        List<RiskTrendDTO> trendList = latestPerDay.entrySet().stream()
+                .sorted(Map.Entry.<LocalDate, RiskScore>comparingByKey().reversed())
+                .limit(14)
+                .map(Map.Entry::getValue)
+                .sorted(Comparator.comparing(RiskScore::getCalculatedAt))
+                .map(rs -> new RiskTrendDTO(
+                        rs.getRiskScore() != null ? rs.getRiskScore() : 0,
+                        rs.getCalculatedAt().toLocalDate().format(formatter)))
+                .toList();
 
         // 6. 의사 정보 및 최종 빌드
         CareTargetDoctorResponseDTO doctor = Optional.ofNullable(careTarget.getDoctor())

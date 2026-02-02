@@ -9,8 +9,10 @@ import com.carepilot.dto.callanalysis.RiskAnalysisResultDTO;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.RiskScoreRepository;
+import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.service.callanalysis.risk.CallRiskAnalysisService;
 import com.carepilot.service.callanalysis.summary.CallSummaryService;
+import com.carepilot.service.config.risk.RiskConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
     private final RiskScoreRepository riskScoreRepository;
     private final CallSummaryService callSummaryService;
     private final CallRiskAnalysisService callRiskAnalysisService;
+    private final RiskConfigService riskConfigService;
 
     @Override
     @Transactional
@@ -59,12 +62,17 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
 
         RiskAnalysisResultDTO riskResult = callRiskAnalysisService.analyze(signalsJson, transcript);
 
+        // RiskConfigService를 사용하여 조직의 risk config를 가져오고 risk_level을 계산
+        Long organizationId = call.getOrganization().getOrganizationId();
+        RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
+        var riskLevel = riskConfigService.resolveLevel(riskResult.getRiskScore(), riskConfig);
+
         RiskScore riskScore = RiskScore.builder()
                 .organization(call.getOrganization())
                 .careTarget(call.getCareTarget())
                 .call(call)
                 .riskScore(riskResult.getRiskScore())
-                .riskLevel(null)
+                .riskLevel(riskLevel)
                 .calculatedAt(LocalDateTime.now())
                 .build();
         riskScoreRepository.save(riskScore);

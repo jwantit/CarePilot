@@ -1,6 +1,7 @@
 package com.carepilot.service.config.risk;
 
 import com.carepilot.domain.config.RiskConfig;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.repository.organization.OrganizationRepository;
@@ -73,5 +74,18 @@ public class RiskConfigServiceImpl implements RiskConfigService {
                 .mediumThreshold(saved.getMediumThreshold())
                 .lowThreshold(saved.getLowThreshold())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RiskLevel resolveLevel(Integer riskScore, RiskConfigDTO config) {
+        if (riskScore == null) return RiskLevel.LOW;
+        int critical = config.getCriticalThreshold() != null ? config.getCriticalThreshold() : 90;
+        int high = config.getHighThreshold() != null ? config.getHighThreshold() : 70;
+        int medium = config.getMediumThreshold() != null ? config.getMediumThreshold() : 50;
+        if (riskScore >= critical) return RiskLevel.CRITICAL;
+        if (riskScore >= high) return RiskLevel.HIGH;
+        if (riskScore >= medium) return RiskLevel.MEDIUM;
+        return RiskLevel.LOW;
     }
 }

@@ -4,6 +4,7 @@ import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallRecording;
 import com.carepilot.domain.call.CallStatus;
 import com.carepilot.domain.call.RiskScore;
+import com.carepilot.domain.notification.RiskLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -34,11 +35,11 @@ public class CallDetailResponseDTO {
     private String recordingContentType;
     private Long recordingFileSize;
 
-    // 4. 위험도 정보 (RiskScore)
+    // 4. 위험도 정보 (RiskScore + 계산된 RiskLevel)
     private Integer riskScore;
-    private String riskLevel;   // LOW, MEDIUM, HIGH
+    private String riskLevel;   // LOW, MEDIUM, HIGH, CRITICAL - 계산된 값
 
-    public static CallDetailResponseDTO of(Call call, CallRecording recording, RiskScore riskScore) {
+    public static CallDetailResponseDTO of(Call call, CallRecording recording, RiskScore riskScore, RiskLevel calculatedRiskLevel) {
         String recordingFileName = null;
         String recordingStoragePath = null;
         String recordingContentType = null;
@@ -72,7 +73,7 @@ public class CallDetailResponseDTO {
                 .recordingContentType(recordingContentType)
                 .recordingFileSize(recordingFileSize)
                 .riskScore(riskScore != null ? riskScore.getRiskScore() : null)
-                .riskLevel(riskScore != null ? riskScore.getRiskLevel().name() : "NONE")
+                .riskLevel(calculatedRiskLevel != null ? calculatedRiskLevel.name() : "LOW")
                 .build();
     }
 

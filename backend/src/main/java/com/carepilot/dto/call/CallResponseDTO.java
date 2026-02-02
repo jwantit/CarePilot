@@ -3,6 +3,8 @@ package com.carepilot.dto.call;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallDirection;
 import com.carepilot.domain.call.CallStatus;
+import com.carepilot.domain.call.RiskScore;
+import com.carepilot.domain.notification.RiskLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,8 +22,14 @@ public class CallResponseDTO {
     private String statusLabel; // 한글 라벨
     private String duration;    // "3분 0초" 형식
     private String resultStatus; // 테이블의 '상태' 컬럼
+    private Integer riskScore;   // 위험도 점수
+    private String riskLevel;    // 위험도 레벨 (LOW, MEDIUM, HIGH, CRITICAL) - 계산된 값
 
     public static CallResponseDTO from(Call call) {
+        return from(call, null, null);
+    }
+
+    public static CallResponseDTO from(Call call, RiskScore riskScore, RiskLevel calculatedRiskLevel) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         int totalSeconds = call.getDuration() != null ? call.getDuration() : 0;
@@ -37,6 +45,8 @@ public class CallResponseDTO {
                 .statusLabel(mapStatusLabel(call.getStatus()))
                 .duration(durationStr)
                 .resultStatus("성공")
+                .riskScore(riskScore != null ? riskScore.getRiskScore() : null)
+                .riskLevel(calculatedRiskLevel != null ? calculatedRiskLevel.name() : "LOW")
                 .build();
     }
 
