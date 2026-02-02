@@ -47,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,7 +62,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.time.LocalDateTime;
@@ -97,6 +100,7 @@ public class TwilioController {
     private final SmsTypeService smsTypeService;
     private final ScheduleChangeService scheduleChangeService;
     private final PrescriptionService prescriptionService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -712,6 +716,19 @@ public class TwilioController {
 
             log.info("수신 SMS/MMS 저장 완료: messageSid={}, mediaCount={}, smsType={}, careTargetId={}",
                     messageSid, savedPaths.size(), smsType, careTarget != null ? careTarget.getCareTargetId() : null);
+
+            // 케어대상 문자 도착 시 조직별 WebSocket으로 알림 (프론트 배지 숫자용, 폴링 없음)
+            Long wsOrgId = (careTarget != null && careTarget.getOrganization() != null)
+                    ? careTarget.getOrganization().getOrganizationId()
+                    : organizationId;
+            if (wsOrgId != null) {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("type", "NEW_INBOUND_SMS");
+                payload.put("delta", 1);
+                String topic = "/topic/org/" + wsOrgId;
+                messagingTemplate.convertAndSend(topic, payload);
+                log.debug("SMS 알림 WebSocket 전송: topic={}", topic);
+            }
         } catch (Exception e) {
             log.error("수신 SMS/MMS 처리 실패: messageSid={}, error={}", messageSid, e.getMessage(), e);
         }
