@@ -58,4 +58,8 @@ export const noticeApi = {
 
   deleteComment: (commentId, userId) =>
     apiClient.delete(`${commentsHost}/${commentId}`, { params: { userId } }),
+
+  // 파일 다운로드 관련 (NoticeController에 통합)
+  getAttachment: (fileId) => apiClient.get(`${host}/files/${fileId}/download`, { responseType: 'blob' }),
+  getThumbnail: (fileId) => apiClient.get(`${host}/files/${fileId}/thumbnail`, { responseType: 'blob' }),
 };

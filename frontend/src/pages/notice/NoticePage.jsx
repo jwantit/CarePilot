@@ -27,7 +27,9 @@ function NoticePage() {
   const [notices, setNotices] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedFiles, setSelectedFiles] = useState([]); // useNotices에서 가져온 상태
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [existingFiles, setExistingFiles] = useState([]); // 기존 파일 목록
+  const [deletedFileIds, setDeletedFileIds] = useState([]); // 삭제할 파일 ID 목록
 
   const loadNotices = async (page = 0) => {
     try {
@@ -43,13 +45,17 @@ function NoticePage() {
     }
   };
 
-  const handleFileChange = (e) => { // useNotices에서 가져온 함수
+  const handleFileChange = (e) => {
     if (e.target.files) {
       setSelectedFiles(Array.from(e.target.files));
     }
   };
 
-  const clearFiles = () => setSelectedFiles([]); // useNotices에서 가져온 함수
+  const clearFiles = () => {
+    setSelectedFiles([]);
+    setExistingFiles([]);
+    setDeletedFileIds([]);
+  };
 
   useEffect(() => {
     loadNotices();
@@ -64,12 +70,21 @@ function NoticePage() {
       content,
       isPinned,
       organizationId: currentOrgId,
+      deletedFileIds: editingId ? deletedFileIds : undefined, // 수정 시에만 삭제할 파일 ID 전송
     };
+    
+    const currentEditingId = editingId; // editingId를 변수에 저장 (null로 설정하기 전에)
+    
     try {
-      if (editingId) {
-        await noticeApi.updateNotice(editingId, noticeData, currentUserId, selectedFiles); // selectedFiles 추가
+      if (currentEditingId) {
+        await noticeApi.updateNotice(
+          currentEditingId,
+          noticeData,
+          currentUserId,
+          selectedFiles,
+        );
       } else {
-        await noticeApi.createNotice(noticeData, currentUserId, selectedFiles); // selectedFiles 추가
+        await noticeApi.createNotice(noticeData, currentUserId, selectedFiles);
       } // 상태 초기화 및 목록 새로고침
 
       setShowForm(false);
@@ -79,19 +94,46 @@ function NoticePage() {
       setIsPinned(false);
       clearFiles(); // 파일 초기화
       loadNotices(currentPage);
+      
+      // 수정한 게시물이 상세 화면에 열려있다면 업데이트
+      if (currentEditingId && selectedNotice && selectedNotice.noticeId === currentEditingId) {
+        try {
+          const response = await noticeApi.getNotice(currentEditingId);
+          setSelectedNotice(response.data);
+        } catch (error) {
+          console.error("게시물 업데이트 실패:", error);
+        }
+      }
     } catch (error) {
       console.error("저장 실패:", error);
       alert("공지사항 저장 중 오류가 발생했습니다.");
     }
   };
 
-  const handleEdit = (notice) => {
+  const handleEdit = async (notice) => {
     setEditingId(notice.noticeId);
     setTitle(notice.title);
     setContent(notice.content);
     setIsPinned(notice.isPinned || false);
+    
+    // 기존 파일 목록 로드
+    try {
+      const response = await noticeApi.getNotice(notice.noticeId);
+      setExistingFiles(response.data.files || []);
+      setDeletedFileIds([]);
+    } catch (error) {
+      console.error("파일 목록 로드 실패:", error);
+      setExistingFiles([]);
+      setDeletedFileIds([]);
+    }
+    
     setShowForm(true);
     window.scrollTo(0, 0);
+  };
+  
+  const handleDeleteExistingFile = (fileId) => {
+    setDeletedFileIds([...deletedFileIds, fileId]);
+    setExistingFiles(existingFiles.filter(file => file.fileId !== fileId));
   };
 
   const handleDelete = async (noticeId) => {
@@ -181,13 +223,15 @@ function NoticePage() {
           editingId={editingId}
           setShowForm={setShowForm}
           setEditingId={setEditingId}
+          selectedFiles={selectedFiles}
+          handleFileChange={handleFileChange}
+          existingFiles={existingFiles}
+          onDeleteExistingFile={handleDeleteExistingFile}
         />
       )}
            {" "}
       <NoticeList
         notices={notices}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         onDetail={handleDetail}
       />
            {" "}
@@ -209,6 +253,8 @@ function NoticePage() {
         handleCommentSubmit={handleCommentSubmit}
         loadComments={loadComments}
         currentUserId={currentUserId}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
          {" "}
     </div>

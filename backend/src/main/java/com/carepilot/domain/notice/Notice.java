@@ -11,11 +11,13 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "notice")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = {"user", "organization", "uploadFiles"})
 @org.hibernate.annotations.Where(clause = "is_deleted = false")
 public class Notice extends BaseEntity {
 
@@ -93,5 +95,23 @@ public class Notice extends BaseEntity {
         if (!this.user.getUserId().equals(requestUserId)) {
             throw new RuntimeException("공지사항에 대한 권한이 없습니다.");
         }
+    }
+
+    // 파일 추가 편의 메서드
+    public void addFile(com.carepilot.domain.file.UploadFile file) {
+        this.uploadFiles.add(file);
+        file.setNotice(this);
+    }
+
+    // 파일 제거 편의 메서드
+    public void removeFile(com.carepilot.domain.file.UploadFile file) {
+        this.uploadFiles.remove(file);
+        file.setNotice(null);
+    }
+
+    // 모든 파일 관계를 끊는 메서드 (삭제 시 유용)
+    public void clearFiles() {
+        this.uploadFiles.forEach(file -> file.setNotice(null));
+        this.uploadFiles.clear();
     }
 }

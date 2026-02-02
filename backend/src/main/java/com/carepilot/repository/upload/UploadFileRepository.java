@@ -23,4 +23,7 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, Long> {
 
     Optional<UploadFile> findFirstByStoragePath(String storagePath);
 
+    @Query("SELECT uf FROM UploadFile uf WHERE uf.notice.noticeId = :noticeId")
+    List<UploadFile> findByNoticeId(@Param("noticeId") Long noticeId);
+
 }

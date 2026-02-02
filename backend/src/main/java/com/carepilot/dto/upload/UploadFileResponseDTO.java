@@ -19,5 +19,6 @@ public class UploadFileResponseDTO {
 
         private String fileUrl;           //원본
         private String thumbnailUrl;      // 썸네일이 있다면 썸네일 주소
+        private String storagePath;       // 파일 저장 경로 (프론트엔드에서 getFileUrl 사용용)
 
 }

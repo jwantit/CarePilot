@@ -1,5 +1,6 @@
 import React from "react";
 import CommentItem from "./CommentItem";
+import { getFileUrl } from "../../hooks/fileHelper";
 
 const NoticeDetail = ({
   selectedNotice,
@@ -13,8 +14,12 @@ const NoticeDetail = ({
   handleCommentSubmit,
   loadComments,
   currentUserId,
+  onEdit,
+  onDelete,
 }) => {
   if (!isDetailOpen || !selectedNotice) return null;
+
+  const isWriter = currentUserId && selectedNotice.writerId === currentUserId;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -30,17 +35,96 @@ const NoticeDetail = ({
         <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-4">
           {selectedNotice.title}
         </h2>
-        <div className="flex gap-4 text-sm text-gray-400 mb-6">
-          <span>작성자: {selectedNotice.writerName}</span>
-          <span>조회수: {selectedNotice.viewCount}</span>
-          <span>
-            작성일: {new Date(selectedNotice.createdAt).toLocaleString()}
-          </span>
+        <div className="flex gap-4 text-sm text-gray-400 mb-6 items-center justify-between">
+          <div className="flex gap-4">
+            <span>작성자: {selectedNotice.writerName}</span>
+            <span>조회수: {selectedNotice.viewCount}</span>
+            <span>
+              작성일: {new Date(selectedNotice.createdAt).toLocaleString()}
+            </span>
+          </div>
+          {/* 작성자 본인만 수정/삭제 버튼 표시 */}
+          {isWriter && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setIsDetailOpen(false);
+                  onEdit(selectedNotice);
+                }}
+                className="text-blue-500 hover:text-blue-700 font-medium text-sm px-3 py-1 border border-blue-500 rounded hover:bg-blue-50"
+              >
+                수정
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm("정말 삭제하시겠습니까?")) {
+                    setIsDetailOpen(false);
+                    onDelete(selectedNotice.noticeId);
+                  }
+                }}
+                className="text-red-500 hover:text-red-700 font-medium text-sm px-3 py-1 border border-red-500 rounded hover:bg-red-50"
+              >
+                삭제
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="text-gray-700 leading-relaxed mb-10 whitespace-pre-wrap min-h-[200px]">
           {selectedNotice.content}
+          {/* 파일 내용 본문에 포함 (이미지/오디오) */}
+          {selectedNotice.files &&
+            selectedNotice.files.map((file) => {
+              const isImage = file.contentType.startsWith("image/");
+              const isAudio = file.contentType.startsWith("audio/");
+              const displayUrl = getFileUrl(file.storagePath); // getFileUrl 사용
+
+              if (isImage) {
+                return (
+                  <div key={`img-${file.fileId}`} className="mt-6">
+                    <img
+                      src={displayUrl}
+                      alt={file.originalName}
+                      className="max-w-full h-auto rounded-lg shadow-sm border"
+                    />
+                  </div>
+                );
+              } else if (isAudio) {
+                return (
+                  <div key={`audio-${file.fileId}`} className="mt-6">
+                    <audio controls src={displayUrl} className="w-full">
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                );
+              }
+              return null;
+            })}
         </div>
+
+        {selectedNotice.files && selectedNotice.files.length > 0 && (
+          <div className="mb-10 p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <h4 className="text-sm font-bold text-gray-600 mb-3 flex items-center gap-2">
+              📎 첨부 파일 ({selectedNotice.files.length})
+            </h4>
+            <ul className="space-y-2">
+              {selectedNotice.files.map((file) => (
+                <li key={file.fileId} className="text-sm">
+                  <a
+                    href={file.fileUrl} // 서버에서 제공하는 파일 다운로드/조회 경로
+                    download // download 속성 추가하여 클릭 시 다운로드
+                    className="text-blue-600 hover:underline flex items-center gap-2"
+                  >
+                    <span>{file.originalName}</span>
+                    <span className="text-xs text-gray-400">
+                      ({(file.fileSize / 1024).toFixed(1)} KB)
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* 댓글 섹션 */}
         <div className="border-t pt-8">
@@ -66,7 +150,9 @@ const NoticeDetail = ({
             {/* 답글(대댓글) 작성 시 UI 처리 */}
             {replyTo && (
               <div className="text-xs text-blue-500 mb-1 flex justify-between items-center bg-blue-50 p-2 rounded">
-                <span><strong>{replyTo.writerName}</strong> 님께 답글 작성 중...</span>
+                <span>
+                  <strong>{replyTo.writerName}</strong> 님께 답글 작성 중...
+                </span>
                 <button
                   type="button"
                   onClick={() => setReplyTo(null)}

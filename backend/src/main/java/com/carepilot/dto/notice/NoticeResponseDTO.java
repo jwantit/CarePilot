@@ -36,8 +36,9 @@ public class NoticeResponseDTO {
                         .map(file -> UploadFileResponseDTO.builder()
                                 .fileId(file.getFileId())
                                 .originalName(file.getOriginalName())
-                                .fileUrl(file.getStoragePath())
-                                .thumbnailUrl(file.getThumbnailStoragePath())
+                                .fileUrl("/api/notices/files/" + file.getFileId() + "/download") // 다운로드 URL
+                                .thumbnailUrl(file.getThumbnailStoragePath() != null ? "/api/notices/files/" + file.getFileId() + "/thumbnail" : null) // 썸네일 URL
+                                .storagePath(file.getStoragePath()) // 파일 저장 경로 (프론트엔드에서 getFileUrl 사용용)
                                 .contentType(file.getContentType())
                                 .fileSize(file.getFileSize())
                                 .build())
