@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send } from 'lucide-react';
+import { Bot, X, Send } from 'lucide-react';
 import { sendAiChatMessage } from '../../api/aiChat/aiChatBotApi'; // 경로 확인 필요
 import { useAuth } from '../../hooks/useAuth';
 
@@ -75,14 +75,14 @@ const AiChatBot = () => {
         className="fixed bottom-8 right-8 w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-teal-700 transition-all z-[1000]"
         onClick={() => setIsOpen(true)}
       >
-        <MessageSquare className="h-8 w-8 text-white" />
+        <Bot className="h-8 w-8 text-white" />
       </button>
     );
   }
 
   return (
     /* 가로폭 w-80 -> w-[450px], 높이 h-[500px] -> h-[600px] 수정 */
-    <div className="fixed bottom-8 right-8 w-[450px] h-[600px] bg-white rounded-3xl shadow-xl flex flex-col z-[1000] border border-gray-200">
+    <div className="fixed bottom-8 right-8 w-[450px] h-[600px] bg-white rounded-3xl shadow-xl flex flex-col z-[1001] border border-gray-200">
       {/* 헤더 */}
       <div className="flex justify-between items-center p-4 bg-teal-600 text-white rounded-t-3xl">
         <h3 className="text-lg font-bold">CarePilot AI 비서</h3>
@@ -95,7 +95,7 @@ const AiChatBot = () => {
       <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
         {messages.length === 0 && !isLoading && (
           <div className="text-center text-gray-400 mt-10">
-            <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-20" />
+            <Bot className="h-12 w-12 mx-auto mb-2 opacity-20" />
             <p className="text-sm">무엇을 도와드릴까요?</p>
           </div>
         )}
