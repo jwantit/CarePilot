@@ -11,6 +11,7 @@ import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.sms.InboundSmsRepository;
 import com.carepilot.repository.sms.OutboundSmsRepository;
+import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.call.TwilioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -31,11 +32,13 @@ public class SmsController {
     private final OutboundSmsRepository outboundSmsRepository;
     private final CareTargetRepository careTargetRepository;
     private final TwilioService twilioService;
+    private final UserUtil userUtil;
 
-    // [테스트용] 수신 SMS/MMS 목록 조회 - Postman 또는 브라우저에서 확인
+    // [테스트용] 수신 SMS/MMS 목록 조회 - 로그인한 업체의 케어대상에 연관된 수신만 반환
     @GetMapping("/test/inbound-sms")
     public ResponseEntity<List<InboundSmsResponseDTO>> getInboundSmsList() {
-        List<InboundSms> list = inboundSmsRepository.findAllByOrderByCreatedAtDesc();
+        Long organizationId = userUtil.getCurrentUserDTO().getOrganizationId();
+        List<InboundSms> list = inboundSmsRepository.findByCareTarget_Organization_OrganizationIdOrderByCreatedAtDesc(organizationId);
         List<InboundSmsResponseDTO> result = list.stream()
                 .map(sms -> {
                     List<String> mediaUrls = Collections.emptyList();
@@ -86,19 +89,28 @@ public class SmsController {
                 .build());
     }
 
-    /** 수신+발신 통합 목록 (나/AI/수신 구분용). 최신순 정렬. 전화번호 → 케어대상 이름/ID 매핑 포함 */
+    /** 수신+발신 통합 목록 (나/AI/수신 구분용). 로그인한 업체 기준으로만 조회. 최신순 정렬. */
     @GetMapping("/test/messages")
     public ResponseEntity<List<SmsMessageDTO>> getMessages() {
-        List<InboundSms> inList = inboundSmsRepository.findAllByOrderByCreatedAtDesc();
-        List<OutboundSms> outList = outboundSmsRepository.findAllByOrderByCreatedAtDesc();
+        Long organizationId = userUtil.getCurrentUserDTO().getOrganizationId();
 
+        List<InboundSms> inList = inboundSmsRepository.findByCareTarget_Organization_OrganizationIdOrderByCreatedAtDesc(organizationId);
+        List<CareTarget> orgCareTargets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(organizationId, null);
+
+        Set<String> orgNormalizedPhones = new HashSet<>();
         Map<String, CareTarget> phoneToCareTarget = new HashMap<>();
-        for (CareTarget ct : careTargetRepository.findAll()) {
+        for (CareTarget ct : orgCareTargets) {
             String key = normalizePhoneForLookup(ct.getTargetPhone());
             if (key != null && !key.isEmpty()) {
+                orgNormalizedPhones.add(key);
                 phoneToCareTarget.putIfAbsent(key, ct);
             }
         }
+
+        List<OutboundSms> allOutbound = outboundSmsRepository.findAllByOrderByCreatedAtDesc();
+        List<OutboundSms> outList = allOutbound.stream()
+                .filter(sms -> orgNormalizedPhones.contains(normalizePhoneForLookup(sms.getToNumber())))
+                .collect(Collectors.toList());
 
         List<SmsMessageDTO> result = new ArrayList<>();
         for (InboundSms sms : inList) {
