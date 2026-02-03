@@ -4,6 +4,7 @@ import com.carepilot.domain.common.SoftDeleteEntity;
 import com.carepilot.domain.config.Doctor;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.caretarget.CareTargetUpdateRequestDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,7 @@ public class CareTarget extends SoftDeleteEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
+    @JsonIgnore
     private Organization organization;
 
     // @Column(name = "name", nullable = false)
@@ -55,6 +57,7 @@ public class CareTarget extends SoftDeleteEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id")
+    @JsonIgnore
     private Doctor doctor;
 
     @Builder
