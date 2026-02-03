@@ -12,15 +12,14 @@ export const useNavigation = () => {
   return {
     // 통화 관련
     navigateToCall: () => navigate('/call'),
+
+    // 케어 대상자 관련
+    navigateToCareTarget: () => navigate('/care-target'),
     
     // 작업 관련
     navigateToTask: () => navigate('/task'),
     
     // 알림 관련
     navigateToNotification: () => navigate('/notification'),
-    
-    // 케어 대상자 관련
-    navigateToCareTarget: () => navigate('/care-target'),
   };
 };
-
