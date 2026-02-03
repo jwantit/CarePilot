@@ -71,7 +71,13 @@ const CallScheduleTab = () => {
     setEditingSchedule(null);
   };
 
-  const formatYMD = (date) => date.toISOString().slice(0, 10);
+  const formatYMD = (date) => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 
@@ -124,6 +130,9 @@ const CallScheduleTab = () => {
     const activeRows = rows.filter((r) => r.status !== "CANCELLED");
     const cancelledRows = rows.filter((r) => r.status === "CANCELLED");
     
+    // nextRunAt 또는 scheduledTime을 가져오는 헬퍼 함수
+    const getDisplayTime = (schedule) => schedule.nextRunAt || schedule.scheduledTime;
+    
     // 활성 항목 정렬
     if (sortCriterion === "PRIORITY") {
       const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
@@ -134,18 +143,22 @@ const CallScheduleTab = () => {
       });
     } else {
       activeRows.sort((a, b) => {
-        if (!a.scheduledTime || !b.scheduledTime) return 0;
-        const aTime = new Date(a.scheduledTime.replace(" ", "T")).getTime();
-        const bTime = new Date(b.scheduledTime.replace(" ", "T")).getTime();
+        const aTimeStr = getDisplayTime(a);
+        const bTimeStr = getDisplayTime(b);
+        if (!aTimeStr || !bTimeStr) return 0;
+        const aTime = new Date(aTimeStr).getTime();
+        const bTime = new Date(bTimeStr).getTime();
         return aTime - bTime;
       });
     }
     
     // 취소된 항목도 시간순으로 정렬
     cancelledRows.sort((a, b) => {
-      if (!a.scheduledTime || !b.scheduledTime) return 0;
-      const aTime = new Date(a.scheduledTime.replace(" ", "T")).getTime();
-      const bTime = new Date(b.scheduledTime.replace(" ", "T")).getTime();
+      const aTimeStr = getDisplayTime(a);
+      const bTimeStr = getDisplayTime(b);
+      if (!aTimeStr || !bTimeStr) return 0;
+      const aTime = new Date(aTimeStr).getTime();
+      const bTime = new Date(bTimeStr).getTime();
       return aTime - bTime;
     });
     
@@ -155,14 +168,19 @@ const CallScheduleTab = () => {
 
   const scheduleByDay = useMemo(() => {
     const map = {};
-    sortedSchedules.forEach((schedule) => {
-      if (!schedule.scheduledTime) return;
-      const key = schedule.scheduledTime.split(" ")[0];
-      if (!map[key]) {
-        map[key] = [];
-      }
-      map[key].push(schedule);
-    });
+    // 캘린더에는 취소되지 않은 일정만 표시
+    sortedSchedules
+      .filter((s) => s.status !== "CANCELLED")
+      .forEach((schedule) => {
+        // nextRunAt 우선 사용, 없으면 scheduledTime 사용
+        const displayTime = schedule.nextRunAt || schedule.scheduledTime;
+        if (!displayTime) return;
+        const key = displayTime.split(" ")[0];
+        if (!map[key]) {
+          map[key] = [];
+        }
+        map[key].push(schedule);
+      });
     return map;
   }, [sortedSchedules]);
 
@@ -245,18 +263,18 @@ const CallScheduleTab = () => {
                 </span>
                 <div className="flex flex-col gap-1 w-full overflow-y-auto">
                   {visibleEvents.map((event) => {
-                    const isCancelled = event.status === "CANCELLED";
                     const targetName = event.careTargetName || event.targetGroupName || "대상";
-                    const eventText = `${targetName} · ${event.scheduledTime.slice(-5)}`;
+                    // nextRunAt 우선 사용, 없으면 scheduledTime 사용
+                    const displayTime = event.nextRunAt || event.scheduledTime;
+                    const timeStr = displayTime ? displayTime.slice(-5) : "";
+                    const eventText = `${targetName} · ${timeStr}`;
                     const fullText = event.memo
                       ? `${eventText} - ${event.memo}`
                       : eventText;
 
                     // 우선순위별 배경색 결정
                     let bgColor = "bg-gray-500";
-                    if (isCancelled) {
-                      bgColor = "bg-gray-400";
-                    } else if (event.priority === "URGENT") {
+                    if (event.priority === "URGENT") {
                       bgColor = "bg-red-500";
                     } else if (event.priority === "HIGH") {
                       bgColor = "bg-orange-500";
@@ -373,7 +391,7 @@ const CallScheduleTab = () => {
                         ? `그룹: ${s.targetGroupName ?? "이름 없음"}`
                         : s.careTargetName}
                     </td>
-                    <td className="p-3 text-gray-600">{s.scheduledTime}</td>
+                    <td className="p-3 text-gray-600">{s.nextRunAt || s.scheduledTime}</td>
                     <td className="p-3">
                       <span className="px-2 py-1 bg-gray-200 text-xs rounded-full">
                         {s.typeLabel || s.type}

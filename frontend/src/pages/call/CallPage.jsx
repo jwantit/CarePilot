@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import CallHistoryTab from "../../components/call/CallHistoryTab";
 import CallScheduleTab from "../../components/call/CallScheduleTab";
-import InboundSmsTab from "../../components/call/InboundSmsTab";
 
 const CallPage = () => {
   const [activeTab, setActiveTab] = useState("history"); // 'history', 'schedule', 'inbound-sms'
@@ -24,19 +23,12 @@ const CallPage = () => {
         >
           통화 스케줄
         </button>
-        <button
-          className={`px-4 py-2 ${activeTab === "inbound-sms" ? "border-b-2 border-[#008080] font-bold" : ""}`}
-          onClick={() => setActiveTab("inbound-sms")}
-        >
-          수신 문자 (테스트)
-        </button>
       </div>
 
       {/* 컨텐츠 영역 */}
       <div className="bg-white rounded shadow p-4">
         {activeTab === "history" && <CallHistoryTab />}
         {activeTab === "schedule" && <CallScheduleTab />}
-        {activeTab === "inbound-sms" && <InboundSmsTab />}
       </div>
     </div>
   );

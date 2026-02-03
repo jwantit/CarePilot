@@ -10,6 +10,7 @@ import com.carepilot.domain.enums.Priority;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Getter
@@ -18,6 +19,7 @@ public class ScheduleResponseDTO {
     private Long scheduleId;
     private Long careTargetId;
     private String scheduledTime;
+    private String nextRunAt;  // 다음 실행 시각 (캘린더 표시용)
     private String careTargetName;
     private String targetType;
     private String targetTypeLabel;
@@ -40,10 +42,17 @@ public class ScheduleResponseDTO {
         ScheduleTargetType targetType = schedule.getTargetType();
         CareTargetGroup group = schedule.getGroup();
 
+        // nextRunAt이 있으면 사용, 없으면 scheduledTime 사용
+        LocalDateTime nextRunAtValue = schedule.getNextRunAt();
+        if (nextRunAtValue == null) {
+            nextRunAtValue = schedule.getScheduledTime();
+        }
+
         return ScheduleResponseDTO.builder()
                 .scheduleId(schedule.getScheduleId())
                 .careTargetId(schedule.getCareTarget() != null ? schedule.getCareTarget().getCareTargetId() : null)
-                .scheduledTime(schedule.getScheduledTime().format(formatter))
+                .scheduledTime(schedule.getScheduledTime() != null ? schedule.getScheduledTime().format(formatter) : null)
+                .nextRunAt(nextRunAtValue != null ? nextRunAtValue.format(formatter) : null)
                 .careTargetName(
                         schedule.getCareTarget() != null ? schedule.getCareTarget().getName() : "그룹대상")
                 .targetType(targetType != null ? targetType.name() : null)
