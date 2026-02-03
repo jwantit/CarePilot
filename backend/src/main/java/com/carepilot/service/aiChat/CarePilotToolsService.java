@@ -149,7 +149,7 @@ public class CarePilotToolsService {
             log.info("🚀 [DTO 빌드 완료] 서비스 레이어 전달 데이터: type={}, priority={}, recurrence={}",
                     scr.getType(), scr.getPriority(), scr.getRecurrence());
 
-            Long scheduleId = callServiceImpl.createSchedule(scr);
+            Long scheduleId = callServiceImpl.createSchedule(organizationId, scr);
 
             // 4. 성공 메시지 반환
             String typeKo = "RECURRING".equals(scr.getType()) ? "반복" : "일회성";

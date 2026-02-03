@@ -17,12 +17,13 @@ const CallScheduleTab = () => {
 
   useEffect(() => {
     fetchSchedules();
-  }, []);
+  }, [organizationId]);
 
   const fetchSchedules = async () => {
+    if (!organizationId) return;
     try {
       setLoading(true);
-      const data = await getUpcomingSchedules();
+      const data = await getUpcomingSchedules(organizationId);
       setSchedules(data);
     } catch (error) {
       console.error("일정 로드 실패:", error);
@@ -41,8 +42,9 @@ const CallScheduleTab = () => {
       return;
     }
 
+    if (!organizationId) return;
     try {
-      await deleteSchedule(scheduleId);
+      await deleteSchedule(organizationId, scheduleId);
       alert("일정이 성공적으로 취소되었습니다.");
       fetchSchedules(); // 목록 새로고침
     } catch (error) {
@@ -56,8 +58,9 @@ const CallScheduleTab = () => {
       return;
     }
 
+    if (!organizationId) return;
     try {
-      await restoreSchedule(scheduleId);
+      await restoreSchedule(organizationId, scheduleId);
       alert("일정이 성공적으로 복구되었습니다.");
       fetchSchedules(); // 목록 새로고침
     } catch (error) {

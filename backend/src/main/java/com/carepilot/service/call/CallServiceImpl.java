@@ -57,21 +57,21 @@ public class CallServiceImpl implements CallService {
     private final RiskConfigService riskConfigService;
 
     @Override
-    public List<CallResponseDTO> getCallHistory() {
-        List<Call> calls = callRepository.findAllByOrderByStartTimeDesc();
+    public List<CallResponseDTO> getCallHistory(Long organizationId) {
+        List<Call> calls;
+        calls = callRepository.findByOrganizationOrganizationIdOrderByStartTimeDesc(organizationId);
 
         if (calls.isEmpty()) {
             return Collections.emptyList();
         }
 
+        //해당 organizationId의 RiskConfig 조회
+        RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
+
         return calls.stream()
                 .map(call -> {
                     RiskScore riskScore = riskScoreRepository.findFirstByCall_CallIdOrderByCalculatedAtDesc(call.getCallId())
                             .orElse(null);
-
-                    // 각 통화의 조직 ID로 RiskConfig 조회
-                    Long organizationId = call.getOrganization().getOrganizationId();
-                    RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
 
                     // riskScore 점수를 기반으로 riskLevel 계산
                     RiskLevel riskLevel = null;
@@ -85,10 +85,11 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public List<ScheduleResponseDTO> getUpcomingSchedules() {
+    public List<ScheduleResponseDTO> getUpcomingSchedules(Long organizationId) {
         // 예약된 상태와 취소된 상태를 함께 조회해서 취소된 것도 보여줌
         return callScheduleRepository
-                .findByStatusInOrderByScheduledTimeAsc(
+                .findByOrganizationOrganizationIdAndStatusInOrderByScheduledTimeAsc(
+                        organizationId,
                         Arrays.asList(ScheduleStatus.SCHEDULED, ScheduleStatus.CANCELLED))
                 .stream()
                 .map(ScheduleResponseDTO::from)
@@ -96,22 +97,27 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public List<ScheduleResponseDTO> getSchedulesByMonth(int year, int month) {
+    public List<ScheduleResponseDTO> getSchedulesByMonth(Long organizationId, int year, int month) {
         // 해당 월의 시작일과 종료일 계산 (사진 3 캘린더용)
         LocalDateTime startOfMonth = LocalDateTime.of(year, month, 1, 0, 0);
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
 
-        return callScheduleRepository.findByScheduledTimeBetween(startOfMonth, endOfMonth).stream()
+        return callScheduleRepository.findByOrganizationOrganizationIdAndScheduledTimeBetween(organizationId, startOfMonth, endOfMonth).stream()
                 .map(ScheduleResponseDTO::from)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public Long createSchedule(ScheduleCreateRequestDTO dto) {
+    public Long createSchedule(Long organizationId, ScheduleCreateRequestDTO dto) {
         // 1. 조직 및 대상자 유효성 검사
-        Organization organization = organizationRepository.findById(dto.getOrganizationId())
+        Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+        
+        // organizationId 일치 확인
+        if (!dto.getOrganizationId().equals(organizationId)) {
+            throw new IllegalArgumentException("Organization ID mismatch");
+        }
 
         CareTarget careTarget = careTargetRepository.findById(dto.getCareTargetId())
                 .orElseThrow(() -> new EntityNotFoundException("CareTarget not found"));
@@ -136,10 +142,15 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public CallDetailResponseDTO getCallDetail(Long callId) {
+    public CallDetailResponseDTO getCallDetail(Long organizationId, Long callId) {
         // 1. 통화 기본 정보 조회 (사진 2 상단 메타데이터용)
         Call call = callRepository.findById(callId)
                 .orElseThrow(() -> new EntityNotFoundException("Call not found"));
+
+        // 조직 검증
+        if (!call.getOrganization().getOrganizationId().equals(organizationId)) {
+            throw new EntityNotFoundException("Call not found for this organization");
+        }
 
         // 2. 녹취/STT 텍스트 조회 (사진 2 STT 미니 뷰용)
         CallRecording recording = callRecordingRepository.findByCall_CallId(callId)
@@ -152,7 +163,6 @@ public class CallServiceImpl implements CallService {
         // 4. 조직의 RiskConfig를 기반으로 riskLevel 계산
         RiskLevel calculatedRiskLevel = null;
         if (riskScore != null && riskScore.getRiskScore() != null) {
-            Long organizationId = call.getOrganization().getOrganizationId();
             RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
             calculatedRiskLevel = riskConfigService.resolveLevel(riskScore.getRiskScore(), riskConfig);
         }
@@ -162,9 +172,14 @@ public class CallServiceImpl implements CallService {
 
     @Override
     @Transactional
-    public void updateSchedule(Long scheduleId, ScheduleUpdateRequestDTO dto) {
+    public void updateSchedule(Long organizationId, Long scheduleId, ScheduleUpdateRequestDTO dto) {
         CallSchedule existing = callScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
+        
+        // 조직 검증
+        if (!existing.getOrganization().getOrganizationId().equals(organizationId)) {
+            throw new EntityNotFoundException("Schedule not found for this organization");
+        }
 
         CareTarget careTarget = existing.getCareTarget();
         if (dto.getCareTargetId() != null) {
@@ -207,9 +222,14 @@ public class CallServiceImpl implements CallService {
 
     @Override
     @Transactional
-    public void deleteSchedule(Long scheduleId) {
+    public void deleteSchedule(Long organizationId, Long scheduleId) {
         CallSchedule schedule = callScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
+        
+        // 조직 검증
+        if (!schedule.getOrganization().getOrganizationId().equals(organizationId)) {
+            throw new EntityNotFoundException("Schedule not found for this organization");
+        }
         
         // Soft delete: 상태를 CANCELLED로 변경
         schedule.cancel();
@@ -218,9 +238,14 @@ public class CallServiceImpl implements CallService {
 
     @Override
     @Transactional
-    public void restoreSchedule(Long scheduleId) {
+    public void restoreSchedule(Long organizationId, Long scheduleId) {
         CallSchedule schedule = callScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
+        
+        // 조직 검증
+        if (!schedule.getOrganization().getOrganizationId().equals(organizationId)) {
+            throw new EntityNotFoundException("Schedule not found for this organization");
+        }
         
         // 상태를 SCHEDULED로 복구
         schedule.restore();

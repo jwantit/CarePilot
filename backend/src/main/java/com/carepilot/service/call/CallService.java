@@ -7,16 +7,16 @@ import java.util.List;
 
 public interface CallService {
     // 탭 1: 통화 이력 관련
-    List<CallResponseDTO> getCallHistory();
-    CallDetailResponseDTO getCallDetail(Long callId);
+    List<CallResponseDTO> getCallHistory(Long organizationId);
+    CallDetailResponseDTO getCallDetail(Long organizationId, Long callId);
 
     // 탭 2: 통화 스케줄 관련
-    List<ScheduleResponseDTO> getSchedulesByMonth(int year, int month);
-    List<ScheduleResponseDTO> getUpcomingSchedules();
-    Long createSchedule(ScheduleCreateRequestDTO dto);
-    void updateSchedule(Long scheduleId, ScheduleUpdateRequestDTO dto);
-    void deleteSchedule(Long scheduleId);
-    void restoreSchedule(Long scheduleId);
+    List<ScheduleResponseDTO> getSchedulesByMonth(Long organizationId, int year, int month);
+    List<ScheduleResponseDTO> getUpcomingSchedules(Long organizationId);
+    Long createSchedule(Long organizationId, ScheduleCreateRequestDTO dto);
+    void updateSchedule(Long organizationId, Long scheduleId, ScheduleUpdateRequestDTO dto);
+    void deleteSchedule(Long organizationId, Long scheduleId);
+    void restoreSchedule(Long organizationId, Long scheduleId);
 
     /** 스케줄 실행 시 "발신" 로직 (테스트 API·폴링 워커 공통). 지금은 로그, 추후 Twilio 등 연동 */
     void executeScheduledCall(String to, LocalDateTime scheduledTime, Long scheduleId);

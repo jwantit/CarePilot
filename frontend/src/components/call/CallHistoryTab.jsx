@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { API_SERVER_HOST } from "../../api/apiClient";
 import { getCallHistory, getCallDetail } from "../../api/callApi";
+import { useAuth } from "../../hooks/useAuth";
 
 const CallHistoryTab = () => {
+  const { user } = useAuth();
+  const organizationId = user?.organizationId;
   const [history, setHistory] = useState([]);
   const [detail, setDetail] = useState(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -17,8 +20,9 @@ const CallHistoryTab = () => {
 
   useEffect(() => {
     const loadHistory = async () => {
+      if (!organizationId) return;
       try {
-        const res = await getCallHistory();
+        const res = await getCallHistory(organizationId);
         setHistory(res);
       } catch (error) {
         console.error("Failed to load call history", error);
@@ -26,7 +30,7 @@ const CallHistoryTab = () => {
     };
 
     loadHistory();
-  }, []);
+  }, [organizationId]);
 
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
@@ -63,7 +67,7 @@ const CallHistoryTab = () => {
     setIsDetailLoading(true);
 
     try {
-      const callDetail = await getCallDetail(callId);
+      const callDetail = await getCallDetail(organizationId, callId);
       setDetail(callDetail);
     } catch (error) {
       setDetailError("상세 데이터를 불러오는 데 실패했습니다.");

@@ -204,10 +204,10 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
       };
 
       if (editingSchedule) {
-        await updateSchedule(editingSchedule.scheduleId, payload);
+        await updateSchedule(orgId, editingSchedule.scheduleId, payload);
         alert("일정이 성공적으로 수정되었습니다.");
       } else {
-        await createSchedule({ ...payload, organizationId: formData.organizationId });
+        await createSchedule(orgId, payload);
         alert("일정이 성공적으로 등록되었습니다.");
       }
       onSaveSuccess();
