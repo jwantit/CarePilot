@@ -30,13 +30,7 @@ const NoticeList = ({ notices, onDetail }) => {
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
       {notices && notices.length > 0 ? (
         <table className="w-full table-fixed">
-          <colgroup>
-            <col className="w-16" /> {/* 번호 */}
-            <col className="w-auto" /> {/* 제목 */}
-            <col className="w-28" /> {/* 작성자 */}
-            <col className="w-32" /> {/* 작성 시간 */}
-            <col className="w-20" /> {/* 조회수 */}
-          </colgroup>
+          <colgroup><col className="w-16" /><col className="w-auto" /><col className="w-28" /><col className="w-32" /><col className="w-20" /></colgroup>
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">종류</th>
