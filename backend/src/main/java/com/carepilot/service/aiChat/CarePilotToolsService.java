@@ -2,18 +2,30 @@ package com.carepilot.service.aiChat;
 
 import com.carepilot.domain.call.ScheduleTargetType;
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.enums.Priority;
+import com.carepilot.domain.organization.Organization;
+import com.carepilot.domain.task.Task;
+import com.carepilot.domain.task.TaskSourceType;
+import com.carepilot.domain.task.TaskStatus;
+import com.carepilot.domain.task.TaskType;
+import com.carepilot.domain.user.User;
 import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.dto.caretarget.CareTargetInsertRequestDTO;
 import com.carepilot.dto.caretarget.caretargetgroup.CareGroupScenarioRequestDTO;
+import com.carepilot.dto.config.AIConfigDTO;
 import com.carepilot.dto.notice.NoticeSaveRequest;
 import com.carepilot.repository.caretarget.CareTargetRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.repository.task.TaskRepository;
+import com.carepilot.repository.user.UserRepository;
 import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.call.CallService;
 import com.carepilot.service.call.CallServiceImpl;
 import com.carepilot.service.caretarget.CareGroupServiceImpl;
 import com.carepilot.service.caretarget.CareService;
 import com.carepilot.service.caretarget.CareServiceImpl;
+import com.carepilot.service.config.ai.AiConfigService;
 import com.carepilot.service.notice.NoticeServiceImpl;
 import com.carepilot.service.upload.UploadFileService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +56,10 @@ public class CarePilotToolsService {
     private final UploadFileService uploadFileService;
     private final UserUtil userUtil;
     private final NoticeServiceImpl noticeServiceImpl;
+    private final AiConfigService aiConfigService;
+    private final TaskRepository taskRepository;
+    private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
 
     //환자 상세조회-----------------------------------------------------------------------
     @Tool(description = "단일 환자의 상세 정보(나이, 질환, 그룹 통화 예약 스케줄과 , 개인 통화 에약스케줄, " +
@@ -79,6 +95,15 @@ public class CarePilotToolsService {
         log.info(">> ID: {}, 성함: {}, 나이: {}, 성별: {}, 연락처: {}", careTargetId, name, age, gender, phone);
         log.info(">> 질환: {}, 보호자명: {}, 보호자연락처: {}, 관계: {}", disease, guardianName, guardianPhone, relationship);
 
+        UserDTO userDTO = userUtil.getCurrentUserDTO();
+        Long organizationId = userDTO.getOrganizationId();
+        Long userId = userDTO.getUserId();
+
+        // AI 설정 확인
+        AIConfigDTO chatbotConfig = aiConfigService.getAIConfig(organizationId, "CHATBOT_AUTOMATION");
+        boolean isChatbotAutomationEnabled = chatbotConfig.getIsEnabled();
+        log.info("[챗봇 자동화] CHATBOT_AUTOMATION 설정: {}", isChatbotAutomationEnabled ? "ON" : "OFF");
+
         Long id = Long.parseLong(careTargetId.replaceAll("[^0-9]", ""));
 
         // 나이 파싱 (null 체크 포함)
@@ -97,11 +122,44 @@ public class CarePilotToolsService {
                 .guardianRelationship(relationship)
                 .build();
 
+        String description = String.format("케어 대상 정보 수정 요청\n\n" +
+                "케어 대상 ID: %s\n" +
+                "수정 항목:\n" +
+                "- 성함: %s\n" +
+                "- 나이: %s\n" +
+                "- 성별: %s\n" +
+                "- 연락처: %s\n" +
+                "- 질환: %s\n" +
+                "- 보호자명: %s\n" +
+                "- 보호자연락처: %s\n" +
+                "- 보호자관계: %s",
+                careTargetId, name, age, gender, phone, disease, guardianName, guardianPhone, relationship);
+
+        if (!isChatbotAutomationEnabled) {
+            // OFF: Task 생성 (USER, WAITING)
+            createChatbotTask(organizationId, userId, TaskType.CARETARGET_UPDATE, 
+                    "AI 케어 대상 정보 수정 요청 확인", description, null);
+            return "케어 대상 정보 수정 요청이 할일 목록에 추가되었습니다. 확인 후 처리해 주세요.";
+        }
+
+        // ON: 자동 실행
         try {
-            return careServiceImpl.updateToolCareTarget(updateDto, id);
+            String result = careServiceImpl.updateToolCareTarget(updateDto, id);
+            
+            // 자동화 성공: Task 생성 (AI, SUCCESS)
+            createChatbotTask(organizationId, userId, TaskType.CARETARGET_UPDATE,
+                    "AI 케어 대상 정보 수정 완료", description, result);
+            
+            return result;
         } catch (Exception e) {
             log.error("수정 중 오류 발생: {}", e.getMessage());
-            return "정보 수정 중 오류가 발생했습니다: " + e.getMessage();
+            String errorMsg = "정보 수정 중 오류가 발생했습니다: " + e.getMessage();
+            
+            // 자동화 실패: Task 생성 (AI, FAILED)
+            createChatbotTask(organizationId, userId, TaskType.CARETARGET_UPDATE,
+                    "AI 케어 대상 정보 수정 실패", description, errorMsg);
+            
+            return errorMsg;
         }
     }
     //------------------------------------------------------------------------------------------------
@@ -119,6 +177,14 @@ public class CarePilotToolsService {
             @ToolParam(description = "(반복을 선택한 경우 필수)반복 주기 (DAILY, WEEKLY, MONTHLY)") String recurrence,
             @ToolParam(description = "(선택)반복 종료일 (yyyy-MM-dd HH:mm)") String recurrenceEndDate
     ) {
+        UserDTO userDTO = userUtil.getCurrentUserDTO();
+        Long userId = userDTO.getUserId();
+
+        // AI 설정 확인
+        AIConfigDTO chatbotConfig = aiConfigService.getAIConfig(organizationId, "CHATBOT_AUTOMATION");
+        boolean isChatbotAutomationEnabled = chatbotConfig.getIsEnabled();
+        log.info("[챗봇 자동화] CHATBOT_AUTOMATION 설정: {}", isChatbotAutomationEnabled ? "ON" : "OFF");
+
         try {
             // 1. 입력 파라미터 전체 로그 (AI 전달값 확인)
             log.info("📅 [예약 툴 호출] 환자: {}, 시간: {}, 유형: {}, 주기: {}, 시나리오: {}",
@@ -150,11 +216,29 @@ public class CarePilotToolsService {
                 return "필수 예약 정보(시간, 메모)가 누락되었습니다. 다시 확인해주세요.";
             }
 
-// 반복인데 주기가 없는 경우 방어
+            // 반복인데 주기가 없는 경우 방어
             if ("RECURRING".equals(type) && recurrence == null) {
                 return "반복 예약 시 반복 주기(DAILY, WEEKLY, MONTHLY)는 필수입니다.";
             }
 
+            String description = String.format("통화 스케줄 등록 요청 (챗봇)\n\n" +
+                    "환자 ID: %d\n" +
+                    "예약 일시: %s\n" +
+                    "예약 유형: %s\n" +
+                    "메모: %s\n" +
+                    "우선도: %s\n" +
+                    "시나리오 ID: %d%s",
+                    careTargetId, scheduledTime, type, memo, priority, scenarioId,
+                    recurrence != null ? "\n반복 주기: " + recurrence : "");
+
+            if (!isChatbotAutomationEnabled) {
+                // OFF: Task 생성 (USER, WAITING)
+                createChatbotTask(organizationId, userId, TaskType.SCHEDULE_CHANGE,
+                        "AI 통화 스케줄 등록 요청 확인", description, null);
+                return "통화 스케줄 등록 요청이 할일 목록에 추가되었습니다. 확인 후 처리해 주세요.";
+            }
+
+            // ON: 자동 실행
             // 3. 서비스 호출 전 DTO 상태 로그 (최종 검증)
             log.info("[DTO 빌드 완료] 서비스 레이어 전달 데이터: type={}, priority={}, recurrence={}",
                     scr.getType(), scr.getPriority(), scr.getRecurrence());
@@ -163,13 +247,31 @@ public class CarePilotToolsService {
 
             // 4. 성공 메시지 반환
             String typeKo = "RECURRING".equals(scr.getType()) ? "반복" : "일회성";
-            return String.format("%s 예약이 등록되었습니다.\n- 일시: %s\n- 메모: %s\n- 우선도: %s%s",
+            String result = String.format("%s 예약이 등록되었습니다.\n- 일시: %s\n- 메모: %s\n- 우선도: %s%s",
                     typeKo, scheduledTime, memo, priority,
                     (scr.getRecurrence() != null ? "\n- 반복 주기: " + scr.getRecurrence() : ""));
 
+            // 자동화 성공: Task 생성 (AI, SUCCESS)
+            createChatbotTask(organizationId, userId, TaskType.SCHEDULE_CHANGE,
+                    "AI 통화 스케줄 등록 완료", description, result);
+
+            return result;
+
         } catch (Exception e) {
             log.error("예약 등록 실패 상세 로그: ", e);
-            return "예약 등록에 실패했습니다. 원인: " + e.getMessage();
+            String errorMsg = "예약 등록에 실패했습니다. 원인: " + e.getMessage();
+
+            // 자동화 실패: Task 생성 (AI, FAILED)
+            String description = String.format("통화 스케줄 등록 요청 (챗봇)\n\n" +
+                    "환자 ID: %d\n" +
+                    "예약 일시: %s\n" +
+                    "예약 유형: %s\n" +
+                    "메모: %s",
+                    careTargetId, scheduledTime, type, memo);
+            createChatbotTask(organizationId, userId, TaskType.SCHEDULE_CHANGE,
+                    "AI 통화 스케줄 등록 실패", description, errorMsg);
+
+            return errorMsg;
         }
     }
     //------------------------------------------------------------------------------------------------
@@ -222,30 +324,120 @@ public class CarePilotToolsService {
         log.info(" [file id] {}", fileId);
 
         UserDTO userDTO = userUtil.getCurrentUserDTO();
+        Long organizationId = userDTO.getOrganizationId();
 
-        List<MultipartFile> files = new ArrayList<>();
+        // AI 설정 확인
+        AIConfigDTO chatbotConfig = aiConfigService.getAIConfig(organizationId, "CHATBOT_AUTOMATION");
+        boolean isChatbotAutomationEnabled = chatbotConfig.getIsEnabled();
+        log.info("[챗봇 자동화] CHATBOT_AUTOMATION 설정: {}", isChatbotAutomationEnabled ? "ON" : "OFF");
 
-        if (fileId != null) {
-            log.info("파일삭제로직" + fileId);
-            MultipartFile file = uploadFileService.temporaryfind(fileId);
-            if (file != null) {
-                files = List.of(file);
+        String description = String.format("공지사항 작성 요청\n\n제목: %s\n본문: %s\n파일 ID: %s",
+                title, content, fileId != null ? fileId.toString() : "없음");
+
+        if (!isChatbotAutomationEnabled) {
+            // OFF: Task 생성 (USER, WAITING)
+            createChatbotTask(organizationId, userId, TaskType.NOTICE_CREATE,
+                    "AI 공지사항 작성 요청 확인", description, null);
+            return "공지사항 작성 요청이 할일 목록에 추가되었습니다. 확인 후 처리해 주세요.";
+        }
+
+        // ON: 자동 실행
+        try {
+            List<MultipartFile> files = new ArrayList<>();
+
+            if (fileId != null) {
+                log.info("파일삭제로직" + fileId);
+                MultipartFile file = uploadFileService.temporaryfind(fileId);
+                if (file != null) {
+                    files = List.of(file);
+                }
             }
-        }
 
-        NoticeSaveRequest notice = new NoticeSaveRequest();
-        notice.setTitle(title);
-        notice.setContent(content);
-        notice.setIsPinned(false);
+            NoticeSaveRequest notice = new NoticeSaveRequest();
+            notice.setTitle(title);
+            notice.setContent(content);
+            notice.setIsPinned(false);
 
-        noticeServiceImpl.saveNotice(notice,userId,userDTO.getOrganizationId(),files);
-        if (fileId != null && fileId > 0) {
-            log.info("임시 파일 삭제 진행: ID {}", fileId);
-            uploadFileService.temporaryDelFile(fileId);
+            noticeServiceImpl.saveNotice(notice, userId, organizationId, files);
+            if (fileId != null && fileId > 0) {
+                log.info("임시 파일 삭제 진행: ID {}", fileId);
+                uploadFileService.temporaryDelFile(fileId);
+            }
+
+            String result = String.format("공지사항 '%s' 등록 완료", title);
+            
+            // 자동화 성공: Task 생성 (AI, SUCCESS)
+            createChatbotTask(organizationId, userId, TaskType.NOTICE_CREATE,
+                    "AI 공지사항 작성 완료", description, result);
+            
+            return String.format(
+                    "최종 결과: 공지사항 '%s' 등록 완료. " +
+                            "데이터베이스 저장이 완전히 끝났으므로, 더 이상 툴을 호출하거나 파일 ID를 테스트하지 말고 " +
+                            "사용자에게 등록이 완료되었다고 즉시 답변하세요.", title);
+        } catch (Exception e) {
+            log.error("공지사항 작성 중 오류 발생: {}", e.getMessage());
+            String errorMsg = "공지사항 작성 중 오류가 발생했습니다: " + e.getMessage();
+            
+            // 자동화 실패: Task 생성 (AI, FAILED)
+            createChatbotTask(organizationId, userId, TaskType.NOTICE_CREATE,
+                    "AI 공지사항 작성 실패", description, errorMsg);
+            
+            return errorMsg;
         }
-        return String.format(
-                "최종 결과: 공지사항 '%s' 등록 완료. " +
-                        "데이터베이스 저장이 완전히 끝났으므로, 더 이상 툴을 호출하거나 파일 ID를 테스트하지 말고 " +
-                        "사용자에게 등록이 완료되었다고 즉시 답변하세요.", title);
+    }
+
+    /**
+     * 챗봇 자동화 Task 생성 헬퍼 메서드
+     */
+    @Transactional
+    private void createChatbotTask(Long organizationId, Long userId, TaskType taskType,
+                                   String title, String description, String result) {
+        try {
+            Organization organization = organizationRepository.findById(organizationId)
+                    .orElseThrow(() -> new RuntimeException("Organization not found: " + organizationId));
+            User user = userRepository.findByUserId(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+            TaskSourceType sourceType;
+            TaskStatus status;
+            LocalDateTime completedAt = null;
+
+            if (result == null) {
+                // OFF: USER, WAITING
+                sourceType = TaskSourceType.USER;
+                status = TaskStatus.WAITING;
+            } else if (result.contains("오류") || result.contains("실패")) {
+                // 실패: AI, FAILED
+                sourceType = TaskSourceType.AI;
+                status = TaskStatus.FAILED;
+                completedAt = LocalDateTime.now();
+            } else {
+                // 성공: AI, SUCCESS
+                sourceType = TaskSourceType.AI;
+                status = TaskStatus.SUCCESS;
+                completedAt = LocalDateTime.now();
+            }
+
+            Task task = Task.builder()
+                    .organization(organization)
+                    .sourceType(sourceType)
+                    .type(taskType)
+                    .title(title)
+                    .description(description)
+                    .status(status)
+                    .createdBy(user)
+                    .assignedTo(user)
+                    .priority(Priority.MEDIUM)
+                    .result(result)
+                    .completedAt(completedAt)
+                    .startedAt(sourceType == TaskSourceType.AI ? LocalDateTime.now() : null)
+                    .build();
+
+            taskRepository.save(task);
+            log.info("[챗봇 자동화] Task 생성 완료: taskId={}, type={}, sourceType={}, status={}",
+                    task.getTaskId(), taskType, sourceType, status);
+        } catch (Exception e) {
+            log.error("[챗봇 자동화] Task 생성 실패: {}", e.getMessage(), e);
+        }
     }
 }

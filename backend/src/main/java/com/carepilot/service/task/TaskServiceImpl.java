@@ -20,13 +20,24 @@ import com.carepilot.repository.user.UserRepository;
 import com.carepilot.service.sms.ScheduleChangeService;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.service.callanalysis.schedule.AutoScheduleService;
+import com.carepilot.service.caretarget.CareServiceImpl;
+import com.carepilot.service.notice.NoticeServiceImpl;
+import com.carepilot.service.call.CallServiceImpl;
+import com.carepilot.service.upload.UploadFileService;
+import com.carepilot.dto.caretarget.CareTargetInsertRequestDTO;
+import com.carepilot.dto.notice.NoticeSaveRequest;
+import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.security.util.UserUtil;
+import org.springframework.web.multipart.MultipartFile;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +55,10 @@ public class TaskServiceImpl implements TaskService {
     private final UserUtil userUtil;
     private final AutoScheduleService autoScheduleService;
     private final CallRecordingRepository callRecordingRepository;
+    private final CareServiceImpl careServiceImpl;
+    private final NoticeServiceImpl noticeServiceImpl;
+    private final CallServiceImpl callServiceImpl;
+    private final UploadFileService uploadFileService;
 
     private static final int RESULT_SUMMARY_MAX_LENGTH = 100;
 
@@ -151,14 +166,19 @@ public class TaskServiceImpl implements TaskService {
             throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "유효하지 않은 상태값입니다.");
         }
 
-        // AI가 감지한 Task인지 확인 (CALL 또는 SMS)
+        // AI가 감지한 Task인지 확인 (CALL, SMS, 또는 챗봇)
         boolean isCallTask = task.getCall() != null && task.getType() == TaskType.SCHEDULE_CHANGE;
         boolean isSmsTask = task.getInboundSms() != null && task.getType() == TaskType.SCHEDULE_CHANGE;
+        boolean isChatbotTask = task.getCall() == null && task.getInboundSms() == null 
+                && (task.getType() == TaskType.NOTICE_CREATE 
+                    || task.getType() == TaskType.CARETARGET_UPDATE 
+                    || (task.getType() == TaskType.SCHEDULE_CHANGE && task.getDescription() != null && task.getDescription().contains("(챗봇)")));
 
         // PROGRESS로 변경할 때 AI가 감지한 Task이면 자동화 함수 실행
-        if (taskStatus == TaskStatus.PROGRESS && (isCallTask || isSmsTask)) {
+        if (taskStatus == TaskStatus.PROGRESS && (isCallTask || isSmsTask || isChatbotTask)) {
+            String taskTypeStr = isCallTask ? "CALL" : (isSmsTask ? "SMS" : "CHATBOT");
             log.info("[작업 상태 변경] AI 감지 Task 자동화 실행 시작: taskId={}, type={}", 
-                    taskId, isCallTask ? "CALL" : "SMS");
+                    taskId, taskTypeStr);
 
             try {
                 if (isCallTask) {
@@ -174,6 +194,9 @@ public class TaskServiceImpl implements TaskService {
                     // ===== SMS 자동화 처리 =====
                     // SMS 자동화는 processScheduleChangeWithExistingTask 내부에서 이미 task.updateSchedule()을 호출하므로 여기서는 호출하지 않음
                     processSmsAutomation(task, taskId);
+                } else if (isChatbotTask) {
+                    // ===== 챗봇 자동화 처리 =====
+                    processChatbotAutomation(task, taskId);
                 }
 
                 // 공통 처리: 자동화 성공 시 sourceType을 AI로 변경하고 SUCCESS 처리
@@ -256,6 +279,192 @@ public class TaskServiceImpl implements TaskService {
         scheduleChangeService.processScheduleChangeWithExistingTask(task.getInboundSms(), task);
         
         log.info("[SMS 자동화] 처리 완료: taskId={}", taskId);
+    }
+
+    /**
+     * 챗봇 자동화 처리
+     */
+    private void processChatbotAutomation(Task task, Long taskId) {
+        log.info("[챗봇 자동화] 처리 시작: taskId={}, type={}", taskId, task.getType());
+
+        User currentUser = userUtil.getCurrentUser();
+        Long organizationId = task.getOrganization().getOrganizationId();
+        Long userId = currentUser.getUserId();
+        String description = task.getDescription();
+
+        try {
+            if (task.getType() == TaskType.NOTICE_CREATE) {
+                // 공지사항 작성
+                processNoticeCreateAutomation(task, description, userId, organizationId);
+            } else if (task.getType() == TaskType.CARETARGET_UPDATE) {
+                // 케어 대상 수정
+                processCareTargetUpdateAutomation(task, description);
+            } else if (task.getType() == TaskType.SCHEDULE_CHANGE && description != null && description.contains("(챗봇)")) {
+                // 통화 스케줄 등록 (챗봇)
+                processScheduleCreateAutomation(task, description, organizationId);
+            } else {
+                throw new ApiException(ErrorCode.BAD_REQUEST, "지원하지 않는 챗봇 자동화 타입입니다.");
+            }
+
+            log.info("[챗봇 자동화] 처리 완료: taskId={}", taskId);
+        } catch (Exception e) {
+            log.error("[챗봇 자동화] 처리 실패: taskId={}, error={}", taskId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * 공지사항 작성 자동화
+     */
+    private void processNoticeCreateAutomation(Task task, String description, Long userId, Long organizationId) {
+        // description 파싱: "공지사항 작성 요청\n\n제목: %s\n본문: %s\n파일 ID: %s"
+        String title = extractValue(description, "제목:");
+        String content = extractValue(description, "본문:");
+        String fileIdStr = extractValue(description, "파일 ID:");
+
+        if (title == null || content == null) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, "공지사항 제목 또는 본문을 찾을 수 없습니다.");
+        }
+
+        Long fileId = null;
+        if (fileIdStr != null && !fileIdStr.equals("없음") && !fileIdStr.trim().isEmpty()) {
+            try {
+                fileId = Long.parseLong(fileIdStr.trim());
+            } catch (NumberFormatException e) {
+                log.warn("파일 ID 파싱 실패: {}", fileIdStr);
+            }
+        }
+
+        List<MultipartFile> files = new ArrayList<>();
+        if (fileId != null && fileId > 0) {
+            MultipartFile file = uploadFileService.temporaryfind(fileId);
+            if (file != null) {
+                files = List.of(file);
+            }
+        }
+
+        NoticeSaveRequest notice = new NoticeSaveRequest();
+        notice.setTitle(title);
+        notice.setContent(content);
+        notice.setIsPinned(false);
+
+        noticeServiceImpl.saveNotice(notice, userId, organizationId, files);
+
+        if (fileId != null && fileId > 0) {
+            uploadFileService.temporaryDelFile(fileId);
+        }
+
+        log.info("[챗봇 자동화] 공지사항 작성 완료: title={}", title);
+    }
+
+    /**
+     * 케어 대상 수정 자동화
+     */
+    private void processCareTargetUpdateAutomation(Task task, String description) {
+        // description 파싱: "케어 대상 정보 수정 요청\n\n케어 대상 ID: %s\n수정 항목:\n- 성함: %s\n..."
+        String careTargetIdStr = extractValue(description, "케어 대상 ID:");
+        if (careTargetIdStr == null) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, "케어 대상 ID를 찾을 수 없습니다.");
+        }
+
+        Long careTargetId = Long.parseLong(careTargetIdStr.replaceAll("[^0-9]", ""));
+
+        String name = extractValue(description, "- 성함:");
+        String ageStr = extractValue(description, "- 나이:");
+        String gender = extractValue(description, "- 성별:");
+        String phone = extractValue(description, "- 연락처:");
+        String disease = extractValue(description, "- 질환:");
+        String guardianName = extractValue(description, "- 보호자명:");
+        String guardianPhone = extractValue(description, "- 보호자연락처:");
+        String relationship = extractValue(description, "- 보호자관계:");
+
+        int parsedAge = 0;
+        if (ageStr != null && !ageStr.trim().isEmpty()) {
+            try {
+                parsedAge = Integer.parseInt(ageStr.replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException e) {
+                log.warn("나이 파싱 실패: {}", ageStr);
+            }
+        }
+
+        CareTargetInsertRequestDTO updateDto = CareTargetInsertRequestDTO.builder()
+                .name(name)
+                .age(parsedAge)
+                .gender(gender)
+                .targetPhone(phone)
+                .disease(disease)
+                .guardianName(guardianName)
+                .guardianPhone(guardianPhone)
+                .guardianRelationship(relationship)
+                .build();
+
+        careServiceImpl.updateToolCareTarget(updateDto, careTargetId);
+        log.info("[챗봇 자동화] 케어 대상 수정 완료: careTargetId={}", careTargetId);
+    }
+
+    /**
+     * 통화 스케줄 등록 자동화 (챗봇)
+     */
+    private void processScheduleCreateAutomation(Task task, String description, Long organizationId) {
+        // description 파싱: "통화 스케줄 등록 요청 (챗봇)\n\n환자 ID: %d\n예약 일시: %s\n..."
+        String careTargetIdStr = extractValue(description, "환자 ID:");
+        String scheduledTimeStr = extractValue(description, "예약 일시:");
+        String type = extractValue(description, "예약 유형:");
+        String memo = extractValue(description, "메모:");
+        String priority = extractValue(description, "우선도:");
+        String scenarioIdStr = extractValue(description, "시나리오 ID:");
+        String recurrence = extractValue(description, "반복 주기:");
+        String recurrenceEndDateStr = extractValue(description, "반복 종료일:");
+
+        if (careTargetIdStr == null || scheduledTimeStr == null || memo == null || scenarioIdStr == null) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, "필수 스케줄 정보가 누락되었습니다.");
+        }
+
+        Long careTargetId = Long.parseLong(careTargetIdStr.replaceAll("[^0-9]", ""));
+        Long scenarioId = Long.parseLong(scenarioIdStr.replaceAll("[^0-9]", ""));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime startDateTime = LocalDateTime.parse(scheduledTimeStr.trim(), formatter);
+
+        LocalDateTime endDateTime = null;
+        if (recurrenceEndDateStr != null && !recurrenceEndDateStr.trim().isEmpty()) {
+            endDateTime = LocalDateTime.parse(recurrenceEndDateStr.trim(), formatter);
+        }
+
+        ScheduleCreateRequestDTO scr = ScheduleCreateRequestDTO.builder()
+                .organizationId(organizationId)
+                .careTargetId(careTargetId)
+                .scheduledTime(startDateTime)
+                .type(type != null ? type.toUpperCase() : "ONE_TIME")
+                .priority(priority != null ? priority.toUpperCase() : "NORMAL")
+                .recurrence(recurrence != null ? recurrence.toUpperCase() : null)
+                .recurrenceEndDate(endDateTime)
+                .memo(memo)
+                .scenarioId(scenarioId)
+                .build();
+
+        callServiceImpl.createSchedule(organizationId, scr);
+        log.info("[챗봇 자동화] 통화 스케줄 등록 완료: careTargetId={}, scheduledTime={}", careTargetId, scheduledTimeStr);
+    }
+
+    /**
+     * Description에서 값 추출 헬퍼 메서드
+     */
+    private String extractValue(String description, String key) {
+        if (description == null || key == null) {
+            return null;
+        }
+        int index = description.indexOf(key);
+        if (index == -1) {
+            return null;
+        }
+        int startIndex = index + key.length();
+        int endIndex = description.indexOf("\n", startIndex);
+        if (endIndex == -1) {
+            endIndex = description.length();
+        }
+        String value = description.substring(startIndex, endIndex).trim();
+        return value.isEmpty() ? null : value;
     }
 
     // 작업 할당 변경 (USER 전용)

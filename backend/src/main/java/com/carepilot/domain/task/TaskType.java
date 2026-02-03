@@ -9,6 +9,8 @@ package com.carepilot.domain.task;
  * - SCHEDULE_CHANGE: 스케줄 변경 (AI)
  * - RISK_ALERT: 위험 알림 생성 (AI)
  * - AUTOMATION: 자동화 업무 (AI)
+ * - NOTICE_CREATE: 공지사항 작성 (챗봇)
+ * - CARETARGET_UPDATE: 케어 대상 수정 (챗봇)
  */
 public enum TaskType {
     RISK_FOLLOWUP,
@@ -17,6 +19,8 @@ public enum TaskType {
     CALL_INIT,
     SCHEDULE_CHANGE,
     RISK_ALERT,
-    AUTOMATION
+    AUTOMATION,
+    NOTICE_CREATE,
+    CARETARGET_UPDATE
 }
 
