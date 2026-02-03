@@ -17,6 +17,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("사용자를 찾을 수 없습니다."),
     EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다."),
     USER_ALREADY_APPROVED("이미 승인된 사용자입니다."),
+    PHONE_REQUIRED("전화번호를 입력해주세요."),
     
     // 조직 관련
     ORGANIZATION_NOT_FOUND("존재하지 않는 업체 번호입니다."),

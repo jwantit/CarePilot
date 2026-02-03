@@ -15,6 +15,7 @@ export const signupOrganization = async (data) => {
     email: data.email,
     password: data.password,
     name: data.name,
+    phone: data.phone,
   });
   return response.data;
 };
@@ -34,6 +35,7 @@ export const signupUser = async (data) => {
     email: data.email,
     password: data.password,
     name: data.name,
+    phone: data.phone,
   });
   return response.data;
 };

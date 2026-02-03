@@ -13,13 +13,24 @@ function SignupForm() {
     email: '',
     password: '',
     name: '',
+    phone: '',
   });
 
+  /** 전화번호를 010-XXXX-XXXX 형식으로 포맷 (숫자만 허용, 최대 11자리) */
+  const formatPhoneDisplay = (value) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  };
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      setFormData({ ...formData, [name]: formatPhoneDisplay(value) });
+      return;
+    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -31,6 +42,7 @@ function SignupForm() {
         email: formData.email,
         password: formData.password,
         name: formData.name,
+        phone: formData.phone,
       });
     } else {
       await signupUser({
@@ -38,6 +50,7 @@ function SignupForm() {
         email: formData.email,
         password: formData.password,
         name: formData.name,
+        phone: formData.phone,
       });
     }
   };
@@ -154,6 +167,23 @@ function SignupForm() {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="이름을 입력하세요"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              전화번호
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              maxLength={13}
+              value={formData.phone}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="010-1234-5678"
             />
           </div>
         </div>

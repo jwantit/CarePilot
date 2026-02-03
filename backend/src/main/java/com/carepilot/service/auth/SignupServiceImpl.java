@@ -44,6 +44,10 @@ public class SignupServiceImpl implements SignupService {
         log.info("업체 회원가입 요청: organizationName={}, email={}, name={}", 
                 request.getOrganizationName(), request.getEmail(), request.getName());
         
+        if (request.getPhone() == null || request.getPhone().isBlank()) {
+            throw new ApiException(ErrorCode.PHONE_REQUIRED);
+        }
+        
         // 이메일 중복 체크
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("이메일 중복 시도: email={}", request.getEmail());
@@ -83,7 +87,7 @@ public class SignupServiceImpl implements SignupService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .phone(null)
+                .phone(formatPhone(request.getPhone()))
                 .role(UserRole.MANAGER)
                 .organization(organization)
                 .status(UserStatus.ACTIVE)
@@ -100,6 +104,10 @@ public class SignupServiceImpl implements SignupService {
     public UserSignupResponseDTO signupUser(UserSignupRequestDTO request) {
         log.info("직원 회원가입 요청: organizationNumber={}, email={}, name={}", 
                 request.getOrganizationNumber(), request.getEmail(), request.getName());
+        
+        if (request.getPhone() == null || request.getPhone().isBlank()) {
+            throw new ApiException(ErrorCode.PHONE_REQUIRED);
+        }
         
         // 이메일 중복 체크
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -122,7 +130,7 @@ public class SignupServiceImpl implements SignupService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .phone(null)
+                .phone(formatPhone(request.getPhone()))
                 .role(UserRole.USER)
                 .organization(organization)
                 .status(UserStatus.WAITING)
@@ -182,6 +190,17 @@ public class SignupServiceImpl implements SignupService {
         return OAuth2LoginResponseDTO.waitingApproval();
     }
     
+    /** 숫자만 추출 후 010-XXXX-XXXX 형식으로 포맷 (null/blank면 null, 11자리 초과 시 앞 11자리만) */
+    private static String formatPhone(String phone) {
+        if (phone == null || phone.isBlank()) return null;
+        String digits = phone.replaceAll("\\D", "");
+        if (digits.isEmpty()) return null;
+        if (digits.length() > 11) digits = digits.substring(0, 11);
+        if (digits.length() <= 3) return digits;
+        if (digits.length() <= 7) return digits.substring(0, 3) + "-" + digits.substring(3);
+        return digits.substring(0, 3) + "-" + digits.substring(3, 7) + "-" + digits.substring(7);
+    }
+
     /**
      * ABC-12345 형식의 organization_number 생성
      * @return 생성된 organization_number

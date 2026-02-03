@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
         return switch (errorCode) {
             case AUTH_REQUIRED, INVALID_TOKEN, INVALID_REFRESH_TOKEN, REFRESH_TOKEN_MISMATCH -> HttpStatus.UNAUTHORIZED;
             case USER_NOT_APPROVED -> HttpStatus.FORBIDDEN;
-            case EMAIL_ALREADY_EXISTS, USER_ALREADY_APPROVED, ORGANIZATION_NOT_FOUND -> HttpStatus.BAD_REQUEST;
+            case EMAIL_ALREADY_EXISTS, USER_ALREADY_APPROVED, ORGANIZATION_NOT_FOUND, PHONE_REQUIRED -> HttpStatus.BAD_REQUEST;
             case USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
