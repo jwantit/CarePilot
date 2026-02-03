@@ -38,6 +38,7 @@ import com.carepilot.repository.notification.NotificationRepository;
 import java.util.ArrayList;
 import com.carepilot.service.sms.ScheduleChangeService;
 import com.carepilot.service.prescription.PrescriptionService;
+import com.carepilot.service.config.ai.AiConfigService;
 import com.carepilot.service.sms.SmsTypeService;
 import com.carepilot.service.upload.UploadFileService;
 import com.twilio.twiml.VoiceResponse;
@@ -100,6 +101,7 @@ public class TwilioController {
     private final SmsTypeService smsTypeService;
     private final ScheduleChangeService scheduleChangeService;
     private final PrescriptionService prescriptionService;
+    private final AiConfigService aiConfigService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${app.ngrok.base-url}")
@@ -696,10 +698,18 @@ public class TwilioController {
             SmsType smsType = smsTypeService.classify(inboundSms);
             inboundSms.updateClassification(careTarget, smsType, LocalDateTime.now());
 
-            // SCHEDULE_CHANGE: 예약 변경 처리 (개인만, 그룹/파싱실패는 TODO 보류)
+            // SCHEDULE_CHANGE: 문자 자동화 ON이면 AI 처리, OFF이면 할일 목록에 수동 처리용 추가
             if (smsType == SmsType.SCHEDULE_CHANGE) {
                 try {
-                    scheduleChangeService.processScheduleChange(inboundSms);
+                    Long orgId = careTarget != null ? careTarget.getOrganization().getOrganizationId() : organizationId;
+                    boolean smsAutomationEnabled = orgId != null
+                            && Boolean.TRUE.equals(aiConfigService.getAIConfig(orgId, "SMS_AUTOMATION").getIsEnabled());
+                    if (smsAutomationEnabled) {
+                        scheduleChangeService.processScheduleChange(inboundSms);
+                    } else if (careTarget != null) {
+                        scheduleChangeService.createManualScheduleChangeTask(inboundSms);
+                        log.info("[SMS] 문자 자동화 OFF - 할일 목록에 수동 처리용 Task 추가 inboundSmsId={}", inboundSms.getInboundSmsId());
+                    }
                 } catch (Exception e) {
                     log.warn("예약 변경 처리 실패 inboundSmsId={}: {}", inboundSms.getInboundSmsId(), e.getMessage());
                 }

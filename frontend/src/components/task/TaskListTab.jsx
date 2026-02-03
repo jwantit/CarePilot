@@ -22,6 +22,7 @@ const TaskListTab = () => {
     handleCreateTask,
     handleUpdateTask,
     handleUpdateStatus,
+    handleStart,
     handleUpdateAssign,
     handleDeleteTask,
   } = useTaskList();
@@ -118,7 +119,7 @@ const TaskListTab = () => {
       <TaskTable
         taskList={taskList}
         staffList={staffList}
-        onStart={(taskId) => handleUpdateStatus(taskId, 'PROGRESS')}
+        onStart={(task) => handleStart(task)}
         onComplete={(taskId) => handleUpdateStatus(taskId, 'DONE')}
         onEdit={handleOpenEdit}
         onDetail={handleOpenDetail}

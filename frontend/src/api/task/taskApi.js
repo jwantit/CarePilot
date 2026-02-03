@@ -43,3 +43,9 @@ export const deleteTask = async (taskId) => {
   const res = await apiClient.delete(`${host}/${taskId}`);
   return res.data;
 };
+
+// SCHEDULE_CHANGE + inboundSms 연결 작업: '시작' 시 AI 예약 변경 자동 처리 트리거
+export const triggerScheduleChange = async (taskId) => {
+  const res = await apiClient.post(`${host}/${taskId}/trigger-schedule-change`);
+  return res.data;
+};

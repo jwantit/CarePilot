@@ -40,4 +40,5 @@ public class TaskResponseDTO {
     private Long groupId;
     private String result;
     private LocalDateTime startedAt;
+    private Long inboundSmsId;      // 수동 SCHEDULE_CHANGE용 (시작→AI 트리거 가능 여부)
 }

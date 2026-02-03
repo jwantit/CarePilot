@@ -47,7 +47,7 @@ const TaskTable = ({
                 제목
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
-                환자
+                케어 대상
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
                 유형
@@ -125,7 +125,7 @@ const TaskTable = ({
                     {task.status === 'WAITING' && (
                       <button
                         type="button"
-                        onClick={() => onStart && onStart(task.taskId)}
+                        onClick={() => onStart && onStart(task)}
                         className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
                       >
                         시작

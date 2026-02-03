@@ -30,4 +30,5 @@ public class TaskListResponseDTO {
     private String resultSummary;   // AI용
     private LocalDateTime startedAt; // AI용
     private LocalDateTime createdAt;
+    private Long inboundSmsId;      // 수동 SCHEDULE_CHANGE용 (시작→AI 트리거 가능 여부)
 }

@@ -29,4 +29,9 @@ public interface TaskService {
 
     //삭제
     void deleteTask(Long taskId);
+
+    /**
+     * SCHEDULE_CHANGE + inboundSms 연결된 할일에서 '시작' 시 AI 자동 처리 트리거
+     */
+    void triggerScheduleChange(Long taskId);
 }

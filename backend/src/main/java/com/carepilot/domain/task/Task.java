@@ -8,6 +8,7 @@ import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.organization.Organization;
+import com.carepilot.domain.sms.InboundSms;
 import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -88,6 +89,10 @@ public class Task extends BaseEntity {
     @JoinColumn(name = "group_id")
     private CareTargetGroup group;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inbound_sms_id")
+    private InboundSms inboundSms;
+
     @Column(name = "result", columnDefinition = "TEXT")
     private String result;
 
@@ -99,7 +104,7 @@ public class Task extends BaseEntity {
                String description, TaskType type, Priority priority, TaskStatus status,
                User createdBy, User assignedTo, LocalDateTime dueDate, LocalDateTime completedAt,
                Call call, CallSchedule schedule, Notification notification, CareTargetGroup group,
-               String result, LocalDateTime startedAt) {
+               InboundSms inboundSms, String result, LocalDateTime startedAt) {
         this.organization = organization;
         this.sourceType = sourceType;
         this.careTarget = careTarget;
@@ -116,6 +121,7 @@ public class Task extends BaseEntity {
         this.schedule = schedule;
         this.notification = notification;
         this.group = group;
+        this.inboundSms = inboundSms;
         this.result = result;
         this.startedAt = startedAt;
     }
@@ -138,6 +144,11 @@ public class Task extends BaseEntity {
     /** AI 작업 스케줄 업데이트 */
     public void updateSchedule(CallSchedule schedule) {
         this.schedule = schedule;
+    }
+
+    /** USER → AI 처리 내역으로 전환 (할일에서 AI 트리거 완료 시) */
+    public void convertToAIResult() {
+        this.sourceType = TaskSourceType.AI;
     }
 
     /** 할당자 변경 */

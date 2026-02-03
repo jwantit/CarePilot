@@ -6,6 +6,7 @@ import {
   updateTaskStatus,
   updateTaskAssign,
   deleteTask,
+  triggerScheduleChange,
 } from '../../api/task/taskApi';
 import { getStaffList } from '../../api/user/userApi';
 import { toast } from 'react-hot-toast';
@@ -104,6 +105,24 @@ export const useTaskList = () => {
     }
   };
 
+  /** 시작: SCHEDULE_CHANGE+inboundSmsId면 AI 트리거, 아니면 PROGRESS로 변경 */
+  const handleStart = async (task) => {
+    const isScheduleChangeWithSms = task?.type === 'SCHEDULE_CHANGE' && task?.inboundSmsId;
+    try {
+      if (isScheduleChangeWithSms) {
+        await triggerScheduleChange(task.taskId);
+        toast.success('AI가 예약 변경을 처리하고 있습니다.');
+      } else {
+        await updateTaskStatus(task.taskId, 'PROGRESS');
+        toast.success('상태가 변경되었습니다.');
+      }
+      fetchTasks();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || (isScheduleChangeWithSms ? 'AI 처리 시작에 실패했습니다.' : '상태 변경에 실패했습니다.');
+      toast.error(msg);
+    }
+  };
+
   const handleUpdateAssign = async (taskId, assignedToUserId) => {
     try {
       await updateTaskAssign(taskId, assignedToUserId);
@@ -141,6 +160,7 @@ export const useTaskList = () => {
     handleCreateTask,
     handleUpdateTask,
     handleUpdateStatus,
+    handleStart,
     handleUpdateAssign,
     handleDeleteTask,
   };

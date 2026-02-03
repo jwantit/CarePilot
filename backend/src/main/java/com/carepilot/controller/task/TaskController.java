@@ -85,4 +85,12 @@ public class TaskController {
         taskService.deleteTask(taskId);
         return ResponseEntity.ok(Map.of("message", "삭제되었습니다."));
     }
+
+    //할일에서 '시작' 클릭 시 SCHEDULE_CHANGE+inboundSms 연결 작업은 AI 자동 처리 트리거
+    @PostMapping("/{taskId}/trigger-schedule-change")
+    public ResponseEntity<Map<String, String>> triggerScheduleChange(@PathVariable Long taskId) {
+        log.info("POST /api/tasks/{}/trigger-schedule-change 요청", taskId);
+        taskService.triggerScheduleChange(taskId);
+        return ResponseEntity.ok(Map.of("message", "AI 예약 변경 처리가 시작되었습니다."));
+    }
 }

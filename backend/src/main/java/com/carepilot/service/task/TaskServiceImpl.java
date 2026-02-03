@@ -15,6 +15,7 @@ import com.carepilot.dto.task.TaskResponseDTO;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.repository.user.UserRepository;
+import com.carepilot.service.sms.ScheduleChangeService;
 import com.carepilot.security.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -34,6 +35,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final CareTargetRepository careTargetRepository;
+    private final ScheduleChangeService scheduleChangeService;
     private final UserUtil userUtil;
 
     private static final int RESULT_SUMMARY_MAX_LENGTH = 100;
@@ -170,6 +172,19 @@ public class TaskServiceImpl implements TaskService {
         log.info("작업 삭제: taskId={}", taskId);
     }
 
+    @Override
+    public void triggerScheduleChange(Long taskId) {
+        Task task = getTaskInOrg(taskId);
+        if (task.getSourceType() != TaskSourceType.USER) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 트리거할 수 없습니다.");
+        }
+        if (task.getType() != TaskType.SCHEDULE_CHANGE || task.getInboundSms() == null) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "예약 변경 문자와 연결된 작업만 AI 처리를 트리거할 수 있습니다.");
+        }
+        scheduleChangeService.processScheduleChangeWithExistingTask(task.getInboundSms(), task);
+        log.info("예약 변경 AI 트리거 완료: taskId={}", taskId);
+    }
+
     //작업 조회 시 조직 검증
     private Task getTaskInOrg(Long taskId) {
         Task task = taskRepository.findByTaskId(taskId)
@@ -264,6 +279,7 @@ public class TaskServiceImpl implements TaskService {
                 .resultSummary(resultSummary(t.getResult()))
                 .startedAt(t.getStartedAt())
                 .createdAt(t.getCreatedAt())
+                .inboundSmsId(t.getInboundSms() != null ? t.getInboundSms().getInboundSmsId() : null)
                 .build();
     }
 
@@ -298,6 +314,7 @@ public class TaskServiceImpl implements TaskService {
                 .groupId(t.getGroup() != null ? t.getGroup().getGroupId() : null)
                 .result(t.getResult())
                 .startedAt(t.getStartedAt())
+                .inboundSmsId(t.getInboundSms() != null ? t.getInboundSms().getInboundSmsId() : null)
                 .build();
     }
 }
