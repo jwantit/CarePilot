@@ -3,14 +3,17 @@ package com.carepilot.service.callanalysis.schedule;
 import com.carepilot.domain.call.*;
 import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
+import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.task.Task;
 import com.carepilot.domain.task.TaskSourceType;
 import com.carepilot.domain.task.TaskStatus;
 import com.carepilot.domain.task.TaskType;
 import com.carepilot.dto.callanalysis.ScheduleExtractionResultDTO;
+import com.carepilot.dto.config.AIConfigDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.task.TaskRepository;
+import com.carepilot.service.config.ai.AiConfigService;
 import com.carepilot.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -38,6 +41,7 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
     private final NotificationService notificationService;
     private final ScheduleExtractionService scheduleExtractionService;
     private final TaskRepository taskRepository;
+    private final AiConfigService aiConfigService;
     private final ChatClient chatClient;
 
     public AutoScheduleServiceImpl(
@@ -46,12 +50,14 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
             NotificationService notificationService,
             ScheduleExtractionService scheduleExtractionService,
             TaskRepository taskRepository,
+            AiConfigService aiConfigService,
             @Autowired(required = false) @Qualifier("openaiChatClient") ChatClient chatClient) {
         this.callRepository = callRepository;
         this.callScheduleRepository = callScheduleRepository;
         this.notificationService = notificationService;
         this.scheduleExtractionService = scheduleExtractionService;
         this.taskRepository = taskRepository;
+        this.aiConfigService = aiConfigService;
         this.chatClient = chatClient;
     }
 
@@ -189,6 +195,44 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
 
     @Override
     @Transactional
+    public void processAutoScheduleUpdateOnly(Long callId, String requestText) {
+        log.info("[스케줄 자동화] processAutoScheduleUpdateOnly 호출: callId={}, requestText={}", 
+                callId, requestText);
+        
+        try {
+            // 1. 요청사항 분석 (스케줄 추출)
+            ScheduleExtractionResultDTO extractionResult = scheduleExtractionService.extractScheduleRequest(requestText);
+            
+            log.info("[스케줄 자동화] 추출 결과: isScheduleChangeRequest={}, dayOfWeek={}, targetTime={}", 
+                    extractionResult.getIsScheduleChangeRequest(),
+                    extractionResult.getDayOfWeek(), 
+                    extractionResult.getTargetTime());
+
+            if (!extractionResult.getIsScheduleChangeRequest()) {
+                log.warn("[스케줄 자동화] 스케줄 변경 요청이 아님: callId={}", callId);
+                return;
+            }
+
+            // 2. Call 조회 및 ai_memo 업데이트
+            Call call = callRepository.findById(callId)
+                    .orElseThrow(() -> new RuntimeException("Call not found: " + callId));
+            
+            String requirementMemo = generateRequirementMemo(requestText, extractionResult);
+            call.updateAiMemo(requirementMemo);
+            callRepository.saveAndFlush(call);
+            log.info("[스케줄 자동화] ai_memo 업데이트 완료: callId={}, memo={}", callId, requirementMemo);
+
+            // 3. 실제 스케줄 업데이트 실행
+            processAutoScheduleUpdate(callId, extractionResult);
+            
+        } catch (Exception e) {
+            log.error("[스케줄 자동화] processAutoScheduleUpdateOnly 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("자동화 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public void processAutoScheduleTask(Long callId, String transcript) {
         if (transcript == null || !transcript.contains("요청사항: ")) {
             return;
@@ -219,41 +263,78 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
                 callRepository.save(call);
                 log.info("[스케줄 자동화] ai_memo 업데이트 완료: callId={}, memo={}", callId, requirementMemo);
 
-                if (extractionResult.getIsScheduleChangeRequest()) {
-                    // 스케줄 변경 전에 Task 생성 (sourceType=AI)
-                    aiTask = Task.builder()
-                            .organization(call.getOrganization())
-                            .sourceType(TaskSourceType.AI)
-                            .type(TaskType.SCHEDULE_CHANGE)
-                            .call(call)
-                            .careTarget(call.getCareTarget())
-                            .status(TaskStatus.WAITING)
-                            .startedAt(LocalDateTime.now())
-                            .result("스케줄 변경 자동화 작업 시작: " + requestText)
-                            .build();
-                    aiTask = taskRepository.save(aiTask);
-                    log.info("[스케줄 자동화] Task(AI) 생성: taskId={}", aiTask.getTaskId());
+                // AI 설정값 확인
+                AIConfigDTO callAutomationConfig = aiConfigService.getAIConfig(
+                    call.getOrganization().getOrganizationId(), 
+                    "CALL_AUTOMATION"
+                );
+                boolean isCallAutomationEnabled = callAutomationConfig.getIsEnabled();
+                log.info("[스케줄 자동화] CALL_AUTOMATION 설정: {}", isCallAutomationEnabled ? "ON" : "OFF");
 
-                    log.info("[스케줄 자동화] 스케줄 업데이트 시작: callId={}", callId);
-                    processAutoScheduleUpdate(callId, extractionResult);
-                    
-                    // 스케줄 업데이트 성공 후 Task 상태 업데이트 (최신 Call 조회)
-                    if (aiTask != null) {
-                        Call updatedCall = callRepository.findById(callId).orElse(null);
-                        aiTask = taskRepository.findById(aiTask.getTaskId()).orElse(null);
-                        if (aiTask != null && updatedCall != null) {
-                            aiTask.updateSchedule(updatedCall.getCallSchedule());
-                            aiTask.updateResultAndStatus(TaskStatus.SUCCESS, 
-                                    "스케줄 변경 자동화 작업 완료: " + extractionResult.getOriginalText(),
-                                    LocalDateTime.now());
-                            taskRepository.save(aiTask);
-                            log.info("[스케줄 자동화] Task(AI) 완료 처리: taskId={}, scheduleId={}", 
-                                    aiTask.getTaskId(), 
-                                    updatedCall.getCallSchedule() != null ? updatedCall.getCallSchedule().getScheduleId() : "null");
+                if (extractionResult.getIsScheduleChangeRequest()) {
+                    if (isCallAutomationEnabled) {
+                        // ON일 때: Task를 SUCCESS로 생성하고 자동화 함수 실행
+                        aiTask = Task.builder()
+                                .organization(call.getOrganization())
+                                .sourceType(TaskSourceType.AI)
+                                .type(TaskType.SCHEDULE_CHANGE)
+                                .call(call)
+                                .careTarget(call.getCareTarget())
+                                .status(TaskStatus.SUCCESS)  // SUCCESS로 생성
+                                .title("AI 스케줄 변경 요청")
+                                .description("AI가 통화에서 스케줄 변경 요청을 감지하고 자동으로 처리했습니다.\n\n" +
+                                        "요청사항: " + requestText + "\n" +
+                                        "추출된 요일: " + (extractionResult.getDayOfWeek() != null ? extractionResult.getDayOfWeek() : "미지정") + "\n" +
+                                        "추출된 시간: " + (extractionResult.getTargetTime() != null ? extractionResult.getTargetTime() : "미지정") + "\n" +
+                                        "원문: " + extractionResult.getOriginalText())
+                                .result("스케줄 변경 자동화 작업 완료: " + extractionResult.getOriginalText())
+                                .startedAt(LocalDateTime.now())
+                                .build();
+                        aiTask = taskRepository.save(aiTask);
+                        log.info("[스케줄 자동화] Task(AI, SUCCESS) 생성 (자동화 ON): taskId={}", aiTask.getTaskId());
+
+                        // 자동화 함수 실행
+                        log.info("[스케줄 자동화] 스케줄 업데이트 시작: callId={}", callId);
+                        processAutoScheduleUpdate(callId, extractionResult);
+                        
+                        // 스케줄 업데이트 성공 후 Task에 스케줄 정보 업데이트
+                        if (aiTask != null) {
+                            Call updatedCall = callRepository.findById(callId).orElse(null);
+                            aiTask = taskRepository.findById(aiTask.getTaskId()).orElse(null);
+                            if (aiTask != null && updatedCall != null && updatedCall.getCallSchedule() != null) {
+                                aiTask.updateSchedule(updatedCall.getCallSchedule());
+                                aiTask.updateResultAndStatus(TaskStatus.SUCCESS,
+                                        "스케줄 변경 자동화 작업 완료: " + extractionResult.getOriginalText(),
+                                        LocalDateTime.now());
+                                taskRepository.save(aiTask);
+                                log.info("[스케줄 자동화] Task(AI, SUCCESS) 스케줄 정보 업데이트 완료: taskId={}, scheduleId={}",
+                                        aiTask.getTaskId(),
+                                        updatedCall.getCallSchedule().getScheduleId());
+                            }
                         }
+                        
+                        log.info("[스케줄 자동화] 스케줄 업데이트 완료 (자동화 ON): callId={}", callId);
+                    } else {
+                        // OFF일 때: Task를 WAITING으로 생성하고 자동화 함수 실행하지 않음
+                        aiTask = Task.builder()
+                                .organization(call.getOrganization())
+                                .sourceType(TaskSourceType.USER)  // USER로 변경
+                                .type(TaskType.SCHEDULE_CHANGE)
+                                .call(call)
+                                .careTarget(call.getCareTarget())
+                                .status(TaskStatus.WAITING)  // WAITING으로 생성
+                                .title("AI 스케줄 변경 요청 확인")
+                                .description("AI가 통화에서 스케줄 변경 요청을 감지했습니다. 확인 후 처리해 주세요.\n\n" +
+                                        "요청사항: " + requestText + "\n" +
+                                        "추출된 요일: " + (extractionResult.getDayOfWeek() != null ? extractionResult.getDayOfWeek() : "미지정") + "\n" +
+                                        "추출된 시간: " + (extractionResult.getTargetTime() != null ? extractionResult.getTargetTime() : "미지정") + "\n" +
+                                        "원문: " + extractionResult.getOriginalText())
+                                .priority(Priority.HIGH)
+                                .dueDate(LocalDateTime.now().plusDays(1))  // 다음 날까지 처리하도록 기한 설정
+                                .build();
+                        aiTask = taskRepository.save(aiTask);
+                        log.info("[스케줄 자동화] Task(USER, WAITING) 생성 (자동화 OFF, 실행 안 함): taskId={}", aiTask.getTaskId());
                     }
-                    
-                    log.info("[스케줄 자동화] 스케줄 업데이트 완료: callId={}", callId);
                 } else {
                     log.info("[스케줄 자동화] 스케줄 변경 요청이 아님: callId={}", callId);
                 }

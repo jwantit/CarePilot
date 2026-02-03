@@ -126,9 +126,25 @@ public class Task extends BaseEntity {
         this.startedAt = startedAt;
     }
 
+    /** AI 자동화 실행 시 출처 변경 */
+    public void changeSourceType(TaskSourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
     /** 상태 변경 (대기/진행중/완료) - USER용 */
     public void changeStatus(TaskStatus status) {
         this.status = status;
+        if (status == TaskStatus.DONE) {
+            this.completedAt = LocalDateTime.now();
+        }
+    }
+
+    /** 상태 변경 및 시작 시간 설정 */
+    public void changeStatusWithStart(TaskStatus status) {
+        this.status = status;
+        if (this.startedAt == null) {
+            this.startedAt = LocalDateTime.now();
+        }
         if (status == TaskStatus.DONE) {
             this.completedAt = LocalDateTime.now();
         }

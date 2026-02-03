@@ -16,6 +16,13 @@ public interface AutoScheduleService {
      * @param transcript 통화 전문
      */
     void processAutoScheduleTask(Long callId, String transcript);
+
+    /**
+     * 할일 생성 없이 스케줄만 업데이트합니다. (기존 할일 컨펌용)
+     * @param callId 현재 통화 ID
+     * @param requestText 추출된 요청사항 텍스트
+     */
+    void processAutoScheduleUpdateOnly(Long callId, String requestText);
 }
 
 

@@ -2,6 +2,7 @@ package com.carepilot.service.task;
 
 import com.carepilot.common.exception.ApiException;
 import com.carepilot.common.exception.ErrorCode;
+import com.carepilot.domain.call.Call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.task.Task;
@@ -9,6 +10,7 @@ import com.carepilot.domain.task.TaskSourceType;
 import com.carepilot.domain.task.TaskStatus;
 import com.carepilot.domain.task.TaskType;
 import com.carepilot.domain.user.User;
+import com.carepilot.domain.call.CallRecording;
 import com.carepilot.dto.task.TaskListResponseDTO;
 import com.carepilot.dto.task.TaskRequestDTO;
 import com.carepilot.dto.task.TaskResponseDTO;
@@ -16,12 +18,15 @@ import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.service.sms.ScheduleChangeService;
+import com.carepilot.repository.call.CallRecordingRepository;
+import com.carepilot.service.callanalysis.schedule.AutoScheduleService;
 import com.carepilot.security.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +42,8 @@ public class TaskServiceImpl implements TaskService {
     private final CareTargetRepository careTargetRepository;
     private final ScheduleChangeService scheduleChangeService;
     private final UserUtil userUtil;
+    private final AutoScheduleService autoScheduleService;
+    private final CallRecordingRepository callRecordingRepository;
 
     private static final int RESULT_SUMMARY_MAX_LENGTH = 100;
 
@@ -143,9 +150,112 @@ public class TaskServiceImpl implements TaskService {
         if (taskStatus == null) {
             throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "유효하지 않은 상태값입니다.");
         }
-        task.changeStatus(taskStatus);
-        taskRepository.save(task);
-        log.info("작업 상태 변경: taskId={}, status={}", taskId, status);
+
+        // AI가 감지한 Task인지 확인 (CALL 또는 SMS)
+        boolean isCallTask = task.getCall() != null && task.getType() == TaskType.SCHEDULE_CHANGE;
+        boolean isSmsTask = task.getInboundSms() != null && task.getType() == TaskType.SCHEDULE_CHANGE;
+
+        // PROGRESS로 변경할 때 AI가 감지한 Task이면 자동화 함수 실행
+        if (taskStatus == TaskStatus.PROGRESS && (isCallTask || isSmsTask)) {
+            log.info("[작업 상태 변경] AI 감지 Task 자동화 실행 시작: taskId={}, type={}", 
+                    taskId, isCallTask ? "CALL" : "SMS");
+
+            try {
+                if (isCallTask) {
+                    // ===== CALL 자동화 처리 =====
+                    processCallAutomation(task, taskId);
+                    
+                    // CALL 자동화: 최신 스케줄 정보 연결
+                    Call updatedCall = task.getCall();
+                    if (updatedCall != null && updatedCall.getCallSchedule() != null) {
+                        task.updateSchedule(updatedCall.getCallSchedule());
+                    }
+                } else if (isSmsTask) {
+                    // ===== SMS 자동화 처리 =====
+                    // SMS 자동화는 processScheduleChangeWithExistingTask 내부에서 이미 task.updateSchedule()을 호출하므로 여기서는 호출하지 않음
+                    processSmsAutomation(task, taskId);
+                }
+
+                // 공통 처리: 자동화 성공 시 sourceType을 AI로 변경하고 SUCCESS 처리
+                task.changeSourceType(TaskSourceType.AI);
+                task.updateResultAndStatus(
+                    TaskStatus.SUCCESS,
+                    "사용자 승인에 따른 AI 자동화 처리 완료",
+                    LocalDateTime.now()
+                );
+
+                taskRepository.save(task);
+                log.info("[작업 상태 변경] AI 감지 Task 자동화 실행 및 SUCCESS 처리 완료: taskId={}", taskId);
+
+            } catch (Exception e) {
+                log.error("[작업 상태 변경] AI 감지 Task 자동화 실패: taskId={}, error={}", taskId, e.getMessage(), e);
+                // 자동화 실패해도 상태는 FAILED만 변경하고 USER 유지하여 수동 처리가 가능하게 함
+                task.changeStatusWithStart(TaskStatus.FAILED);
+                taskRepository.save(task);
+                throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "자동화 실행 중 오류가 발생했습니다: " + e.getMessage());
+            }
+        } else {
+            // 일반적인 상태 변경
+            task.changeStatusWithStart(taskStatus);
+            taskRepository.save(task);
+        }
+
+        log.info("작업 상태 변경 완료: taskId={}, status={}", taskId, status);
+    }
+
+    /**
+     * CALL 자동화 처리
+     */
+    private void processCallAutomation(Task task, Long taskId) {
+        log.info("[CALL 자동화] 처리 시작: taskId={}, callId={}", 
+                taskId, task.getCall().getCallId());
+
+        // Task description에서 요청사항 추출
+        String requestPrefix = "요청사항: ";
+        int startIndex = task.getDescription().indexOf(requestPrefix);
+        String requestText = "";
+
+        if (startIndex != -1) {
+            requestText = task.getDescription().substring(startIndex + requestPrefix.length()).trim();
+            int endIndex = requestText.indexOf("\n추출된 요일:");
+            if (endIndex != -1) {
+                requestText = requestText.substring(0, endIndex).trim();
+            }
+        }
+
+        // description에서 못 찾으면 transcript에서 확인
+        if (requestText.isEmpty()) {
+            CallRecording recording = callRecordingRepository.findByCall_CallId(task.getCall().getCallId())
+                    .orElseThrow(() -> new ApiException(ErrorCode.CALL_RECORDING_NOT_FOUND));
+            String transcript = recording.getTranscript();
+            if (transcript != null && transcript.contains(requestPrefix)) {
+                int index = transcript.lastIndexOf(requestPrefix);
+                requestText = transcript.substring(index + requestPrefix.length()).trim();
+            }
+        }
+
+        if (requestText.isEmpty()) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, "요청사항을 찾을 수 없어 자동화를 실행할 수 없습니다.");
+        }
+
+        // 신규 할일을 생성하는 메서드가 아닌, 스케줄 업데이트만 수행하는 메서드 호출
+        autoScheduleService.processAutoScheduleUpdateOnly(task.getCall().getCallId(), requestText);
+        
+        log.info("[CALL 자동화] 처리 완료: taskId={}", taskId);
+    }
+
+    /**
+     * SMS 자동화 처리
+     */
+    private void processSmsAutomation(Task task, Long taskId) {
+        log.info("[SMS 자동화] 처리 시작: taskId={}, inboundSmsId={}", 
+                taskId, task.getInboundSms().getInboundSmsId());
+
+        // SMS 자동화 서비스 호출
+        // 주의: processScheduleChangeWithExistingTask 내부에서 이미 task.updateSchedule()을 호출함
+        scheduleChangeService.processScheduleChangeWithExistingTask(task.getInboundSms(), task);
+        
+        log.info("[SMS 자동화] 처리 완료: taskId={}", taskId);
     }
 
     // 작업 할당 변경 (USER 전용)
@@ -279,7 +389,6 @@ public class TaskServiceImpl implements TaskService {
                 .resultSummary(resultSummary(t.getResult()))
                 .startedAt(t.getStartedAt())
                 .createdAt(t.getCreatedAt())
-                .inboundSmsId(t.getInboundSms() != null ? t.getInboundSms().getInboundSmsId() : null)
                 .build();
     }
 

@@ -27,6 +27,8 @@ public enum ErrorCode {
     CARE_TARGET_NOT_FOUND("케어 대상을 찾을 수 없습니다."),
 
     // 기타
+    BAD_REQUEST("잘못된 요청입니다."),
+    CALL_RECORDING_NOT_FOUND("통화 녹취를 찾을 수 없습니다."),
     INTERNAL_SERVER_ERROR("서버 오류가 발생했습니다.");
 
     private final String message;
