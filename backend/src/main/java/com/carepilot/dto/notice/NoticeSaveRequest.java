@@ -13,5 +13,6 @@ public class NoticeSaveRequest {
     private String title;
     private String content;
     private Boolean isPinned;
+    private String noticeType; // "NORMAL", "NOTICE", "MANUAL"
     private List<Long> deletedFileIds; // 삭제할 파일 ID 목록
 }

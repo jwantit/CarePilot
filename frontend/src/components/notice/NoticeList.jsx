@@ -1,5 +1,4 @@
 import React from "react";
-import { getFileUrl } from "../../hooks/fileHelper";
 
 const NoticeList = ({ notices, onDetail }) => {
   const formatDate = (dateString) => {
@@ -27,36 +26,6 @@ const NoticeList = ({ notices, onDetail }) => {
     }
   };
 
-  const getThumbnailImage = (notice) => {
-    if (!notice.files || notice.files.length === 0) return null;
-    
-    // 이미지 파일들 필터링 (가장 먼저 올라간 이미지 = 배열의 첫 번째 이미지)
-    const imageFiles = notice.files.filter(file => 
-      file.contentType && file.contentType.startsWith("image/")
-    );
-    
-    if (imageFiles.length === 0) return null;
-    
-    // 첫 번째 이미지 파일 선택
-    const firstImageFile = imageFiles[0];
-    
-    // 썸네일 URL이 있으면 사용, 없으면 원본 이미지 storagePath 사용
-    if (firstImageFile.thumbnailUrl) {
-      // thumbnailUrl이 상대 경로인 경우 전체 URL로 변환
-      if (firstImageFile.thumbnailUrl.startsWith('http')) {
-        return firstImageFile.thumbnailUrl;
-      } else {
-        // 상대 경로인 경우 (예: /api/notices/files/1/thumbnail)
-        return `http://localhost:8080${firstImageFile.thumbnailUrl}`;
-      }
-    } else if (firstImageFile.storagePath) {
-      // 썸네일이 없으면 원본 이미지를 작은 크기로 표시
-      return getFileUrl(firstImageFile.storagePath);
-    }
-    
-    return null;
-  };
-
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
       {notices && notices.length > 0 ? (
@@ -70,8 +39,8 @@ const NoticeList = ({ notices, onDetail }) => {
           </colgroup>
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">번호</th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">제목</th>
+              <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">종류</th>
+              <th className="pl-1 pr-2 py-3 text-center text-sm font-semibold text-gray-700">제목</th>
               <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">작성자</th>
               <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">작성 시간</th>
               <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">조회수</th>
@@ -79,8 +48,6 @@ const NoticeList = ({ notices, onDetail }) => {
           </thead>
           <tbody>
             {notices.map((notice) => {
-              const thumbnailUrl = getThumbnailImage(notice);
-              
               return (
                 <tr
                   key={notice.noticeId}
@@ -88,30 +55,41 @@ const NoticeList = ({ notices, onDetail }) => {
                   onClick={() => onDetail(notice)}
                 >
                   <td className="px-3 py-3 text-center text-sm text-gray-600">
-                    {notice.isPinned ? (
-                      <span className="inline-block bg-pink-100 text-pink-600 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
-                        공지
-                      </span>
-                    ) : (
-                      <span className="inline-block">{notice.noticeId}</span>
-                    )}
+                    {(() => {
+                      const type = notice.noticeType || "NORMAL";
+                      if (type === "NOTICE") {
+                        return (
+                          <span className="inline-block bg-red-500 text-white border border-red-600 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                            공지
+                          </span>
+                        );
+                      } else if (type === "MANUAL") {
+                        return (
+                          <span className="inline-block bg-green-500 text-white border border-green-600 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                            매뉴얼
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <span className="inline-block bg-white border border-gray-300 text-gray-700 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                            일반
+                          </span>
+                        );
+                      }
+                    })()}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-800">
-                    <div className="flex items-center gap-3">
-                      {thumbnailUrl ? (
-                        <>
-                          <img
-                            src={thumbnailUrl}
-                            alt="썸네일"
-                            className="w-12 h-12 object-cover rounded border border-gray-200 flex-shrink-0"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                          <span className="hover:text-blue-600 truncate flex-1">{notice.title}</span>
-                        </>
-                      ) : (
-                        <span className="hover:text-blue-600 truncate ml-2">{notice.title}</span>
+                  <td className="pl-1 pr-2 py-3 text-sm text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <span className="hover:text-blue-600 truncate">{notice.title}</span>
+                      {/* 파일 첨부 아이콘 */}
+                      {notice.files && notice.files.length > 0 && (
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                      )}
+                      {/* 댓글 개수 */}
+                      {notice.commentCount > 0 && (
+                        <span className="text-red-500 text-xs font-medium flex-shrink-0">[{notice.commentCount}]</span>
                       )}
                     </div>
                   </td>
@@ -119,7 +97,9 @@ const NoticeList = ({ notices, onDetail }) => {
                     {notice.writerName || "익명"}
                   </td>
                   <td className="px-3 py-3 text-center text-sm text-gray-500 whitespace-nowrap">
-                    {formatDate(notice.createdAt)}
+                    {notice.updatedAt && notice.updatedAt !== notice.createdAt 
+                      ? formatDate(notice.updatedAt) 
+                      : formatDate(notice.createdAt)}
                   </td>
                   <td className="px-3 py-3 text-center text-sm text-gray-600">
                     {notice.viewCount || 0}

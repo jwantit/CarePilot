@@ -19,8 +19,12 @@ public class NoticeResponseDTO {
     private String writerName;
     private Integer viewCount;
     private Boolean isPinned;
+    private String noticeType; // "NORMAL", "NOTICE", "MANUAL"
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt; // 수정 시간
+    private LocalDateTime contentModifiedAt; // 게시물 내용이 실제로 수정된 시간
     private List<UploadFileResponseDTO> files;
+    private Integer commentCount; // 댓글 개수
 
     public static NoticeResponseDTO from(Notice notice) {
         return NoticeResponseDTO.builder()
@@ -31,7 +35,10 @@ public class NoticeResponseDTO {
                 .writerName(notice.getUser() != null ? notice.getUser().getName() : "익명")
                 .viewCount(notice.getViewCount())
                 .isPinned(notice.getIsPinned())
+                .noticeType(notice.getNoticeType() != null ? notice.getNoticeType().name() : "NORMAL")
                 .createdAt(notice.getCreatedAt())
+                .updatedAt(notice.getUpdatedAt())
+                .contentModifiedAt(notice.getContentModifiedAt())
                 .files(notice.getUploadFiles() != null ? notice.getUploadFiles().stream()
                         .map(file -> UploadFileResponseDTO.builder()
                                 .fileId(file.getFileId())
@@ -43,6 +50,7 @@ public class NoticeResponseDTO {
                                 .fileSize(file.getFileSize())
                                 .build())
                         .collect(Collectors.toList()) : List.of())
+                .commentCount(null) // Service에서 설정
                 .build();
     }
 }

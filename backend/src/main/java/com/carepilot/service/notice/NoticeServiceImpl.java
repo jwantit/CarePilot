@@ -8,6 +8,7 @@ import com.carepilot.dto.notice.NoticeResponseDTO;
 import com.carepilot.dto.notice.NoticeSaveRequest;
 import com.carepilot.dto.upload.TargetFileDTO;
 import com.carepilot.dto.upload.UploadFileResponseDTO;
+import com.carepilot.repository.notice.NoticeCommentRepository;
 import com.carepilot.repository.notice.NoticeRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
@@ -33,20 +34,67 @@ public class NoticeServiceImpl implements NoticeService {
     private final OrganizationRepository organizationRepository;
     private final UploadFileService uploadFileService;
     private final UploadFileRepository uploadFileRepository;
+    private final NoticeCommentRepository noticeCommentRepository;
 
     // 모든 공지사항 조회
     @Override
     public Page<NoticeResponseDTO> getAllNotices(Pageable pageable) {
-        return noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(pageable)
-                .map(NoticeResponseDTO::from);
+        Page<Notice> notices = noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(pageable);
+        
+        // User를 명시적으로 초기화하여 Lazy Loading 문제 해결
+        notices.getContent().forEach(notice -> {
+            if (notice.getUser() != null) {
+                notice.getUser().getName(); // Lazy 초기화
+            }
+        });
+        
+        // 각 Notice의 댓글 개수 계산
+        return notices.map(notice -> {
+            NoticeResponseDTO dto = NoticeResponseDTO.from(notice);
+            Long commentCount = noticeCommentRepository.countByNoticeId(notice.getNoticeId());
+            return NoticeResponseDTO.builder()
+                    .noticeId(dto.getNoticeId())
+                    .title(dto.getTitle())
+                    .content(dto.getContent())
+                    .writerId(dto.getWriterId())
+                    .writerName(dto.getWriterName())
+                    .viewCount(dto.getViewCount())
+                    .isPinned(dto.getIsPinned())
+                    .noticeType(dto.getNoticeType())
+                    .createdAt(dto.getCreatedAt())
+                    .updatedAt(dto.getUpdatedAt())
+                    .contentModifiedAt(dto.getContentModifiedAt())
+                    .files(dto.getFiles())
+                    .commentCount(commentCount != null ? commentCount.intValue() : 0)
+                    .build();
+        });
     }
 
     // 공지사항 상세 조회
     @Override
     public NoticeResponseDTO getNoticeById(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId)
+        // JOIN FETCH를 사용하여 User와 UploadFiles 정보를 함께 로드
+        Notice notice = noticeRepository.findByIdWithUser(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다. noticeId=" + noticeId));
-        return NoticeResponseDTO.from(notice);
+        
+        NoticeResponseDTO dto = NoticeResponseDTO.from(notice);
+        Long commentCount = noticeCommentRepository.countByNoticeId(noticeId);
+        
+        return NoticeResponseDTO.builder()
+                .noticeId(dto.getNoticeId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .writerId(dto.getWriterId())
+                .writerName(dto.getWriterName())
+                .viewCount(dto.getViewCount())
+                .isPinned(dto.getIsPinned())
+                .noticeType(dto.getNoticeType())
+                .createdAt(dto.getCreatedAt())
+                .updatedAt(dto.getUpdatedAt())
+                .contentModifiedAt(dto.getContentModifiedAt())
+                .files(dto.getFiles())
+                .commentCount(commentCount != null ? commentCount.intValue() : 0)
+                .build();
     }
 
     // 새 글 생성 및 저장
@@ -59,10 +107,28 @@ public class NoticeServiceImpl implements NoticeService {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new IllegalArgumentException("조직 정보를 찾을 수 없습니다."));
 
+        // noticeType 파싱
+        com.carepilot.domain.notice.NoticeType noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+        if (request.getNoticeType() != null) {
+            try {
+                noticeType = com.carepilot.domain.notice.NoticeType.valueOf(request.getNoticeType());
+            } catch (IllegalArgumentException e) {
+                noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+            }
+        }
+        
+        // noticeType이 NOTICE나 MANUAL이면 isPinned를 true로 설정
+        Boolean isPinned = request.getIsPinned() != null ? request.getIsPinned() : false;
+        if (noticeType == com.carepilot.domain.notice.NoticeType.NOTICE || 
+            noticeType == com.carepilot.domain.notice.NoticeType.MANUAL) {
+            isPinned = true;
+        }
+
         Notice notice = Notice.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isPinned(request.getIsPinned())
+                .isPinned(isPinned)
+                .noticeType(noticeType)
                 .user(user)
                 .organization(organization)
                 .viewCount(0)
@@ -93,7 +159,25 @@ public class NoticeServiceImpl implements NoticeService {
 
         // 작성자와 요청자가 같은지 확인
         notice.validateWriter(userId);
-        notice.update(request.getTitle(), request.getContent(), request.getIsPinned());
+        
+        // noticeType 파싱
+        com.carepilot.domain.notice.NoticeType noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+        if (request.getNoticeType() != null) {
+            try {
+                noticeType = com.carepilot.domain.notice.NoticeType.valueOf(request.getNoticeType());
+            } catch (IllegalArgumentException e) {
+                noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+            }
+        }
+        
+        // noticeType이 NOTICE나 MANUAL이면 isPinned를 true로 설정
+        Boolean isPinned = request.getIsPinned() != null ? request.getIsPinned() : false;
+        if (noticeType == com.carepilot.domain.notice.NoticeType.NOTICE || 
+            noticeType == com.carepilot.domain.notice.NoticeType.MANUAL) {
+            isPinned = true;
+        }
+        
+        notice.update(request.getTitle(), request.getContent(), isPinned, noticeType);
 
         // 삭제할 파일들 처리
         if (request.getDeletedFileIds() != null && !request.getDeletedFileIds().isEmpty()) {

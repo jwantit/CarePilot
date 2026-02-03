@@ -7,6 +7,8 @@ const NoticeForm = ({
   setContent,
   isPinned,
   setIsPinned,
+  noticeType,
+  setNoticeType,
   handleSubmit,
   editingId,
   setShowForm,
@@ -22,6 +24,7 @@ const NoticeForm = ({
     setTitle("");
     setContent("");
     setIsPinned(false);
+    setNoticeType("NORMAL");
     // setSelectedFiles([]); // 더 이상 내부에서 관리하지 않음
   };
 
@@ -40,20 +43,46 @@ const NoticeForm = ({
         {editingId ? "공지사항 수정하기" : "새 공지사항 쓰기"}
       </h2>
 
-      <div className="flex items-center gap-2 mb-4 px-1">
-        <input
-          type="checkbox"
-          id="isPinned"
-          checked={isPinned}
-          onChange={(e) => setIsPinned(e.target.checked)}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
-        <label
-          htmlFor="isPinned"
-          className="text-sm font-medium text-gray-700 cursor-pointer"
-        >
-          이 게시글을 상단에 고정합니다 (중요 공지)
-        </label>
+      <div className="flex items-center gap-4 mb-4 px-1">
+        {/* 게시글 종류 선택 */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700">게시글 종류:</label>
+          <select
+            value={noticeType}
+            onChange={(e) => {
+              setNoticeType(e.target.value);
+              // 공지나 매뉴얼 선택 시 자동으로 고정 체크
+              if (e.target.value === "NOTICE" || e.target.value === "MANUAL") {
+                setIsPinned(true);
+              } else {
+                setIsPinned(false);
+              }
+            }}
+            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+          >
+            <option value="NORMAL">일반</option>
+            <option value="NOTICE">공지</option>
+            <option value="MANUAL">매뉴얼</option>
+          </select>
+        </div>
+
+        {/* 고정 체크박스 (오른쪽으로 이동) */}
+        <div className="flex items-center gap-2 ml-auto">
+          <input
+            type="checkbox"
+            id="isPinned"
+            checked={isPinned}
+            onChange={(e) => setIsPinned(e.target.checked)}
+            disabled={noticeType === "NOTICE" || noticeType === "MANUAL"} // 공지나 매뉴얼일 때는 비활성화
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
+          />
+          <label
+            htmlFor="isPinned"
+            className="text-sm font-medium text-gray-700 cursor-pointer"
+          >
+            고정
+          </label>
+        </div>
       </div>
 
       <input
@@ -122,7 +151,7 @@ const NoticeForm = ({
       <div className="flex justify-center gap-4">
         <button
           type="submit"
-          className="bg-blue-500 text-white px-10 py-2 rounded-md font-bold hover:bg-blue-600 transition"
+          className="bg-teal-600 text-white px-10 py-2 rounded-md font-bold hover:bg-teal-700 transition"
         >
           {editingId ? "수정 완료" : "등록하기"}
         </button>

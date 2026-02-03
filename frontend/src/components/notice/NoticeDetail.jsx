@@ -23,7 +23,7 @@ const NoticeDetail = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-2xl rounded-2xl p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+      <div className="bg-white w-full max-w-5xl rounded-2xl p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
         {/* 닫기 버튼 */}
         <button
           onClick={() => setIsDetailOpen(false)}
@@ -32,7 +32,7 @@ const NoticeDetail = ({
           &times;
         </button>
 
-        <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-4">
+        <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-4 text-left">
           {selectedNotice.title}
         </h2>
         <div className="flex gap-4 text-sm text-gray-400 mb-6 items-center justify-between">
@@ -40,7 +40,16 @@ const NoticeDetail = ({
             <span>작성자: {selectedNotice.writerName}</span>
             <span>조회수: {selectedNotice.viewCount}</span>
             <span>
-              작성일: {new Date(selectedNotice.createdAt).toLocaleString()}
+              {(() => {
+                // contentModifiedAt이 있으면 게시물 내용이 실제로 수정된 것으로 간주
+                // (댓글 생성/수정은 contentModifiedAt을 변경하지 않으므로 작성일 표시)
+                if (selectedNotice.contentModifiedAt) {
+                  return `수정일: ${new Date(selectedNotice.contentModifiedAt).toLocaleString()}`;
+                } else {
+                  // contentModifiedAt이 없으면 새로 작성된 게시물이므로 작성일 표시
+                  return `작성일: ${new Date(selectedNotice.createdAt).toLocaleString()}`;
+                }
+              })()}
             </span>
           </div>
           {/* 작성자 본인만 수정/삭제 버튼 표시 */}
@@ -70,7 +79,7 @@ const NoticeDetail = ({
           )}
         </div>
 
-        <div className="text-gray-700 leading-relaxed mb-10 whitespace-pre-wrap min-h-[200px]">
+        <div className="text-gray-700 leading-relaxed mb-10 whitespace-pre-wrap min-h-[200px] text-left">
           {selectedNotice.content}
           {/* 파일 내용 본문에 포함 (이미지/오디오) */}
           {selectedNotice.files &&
@@ -81,7 +90,7 @@ const NoticeDetail = ({
 
               if (isImage) {
                 return (
-                  <div key={`img-${file.fileId}`} className="mt-6">
+                  <div key={`img-${file.fileId}`} className="mt-6 flex justify-center">
                     <img
                       src={displayUrl}
                       alt={file.originalName}
@@ -151,7 +160,7 @@ const NoticeDetail = ({
             {replyTo && (
               <div className="text-xs text-blue-500 mb-1 flex justify-between items-center bg-blue-50 p-2 rounded">
                 <span>
-                  <strong>{replyTo.writerName}</strong> 님께 답글 작성 중...
+                  <strong>{replyTo.userName || replyTo.writerName}</strong> 님께 답글 작성 중...
                 </span>
                 <button
                   type="button"
@@ -174,12 +183,12 @@ const NoticeDetail = ({
                     : "댓글을 입력하세요..."
               }
               disabled={!currentUserId}
-              className="w-full p-3 pr-20 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none resize-none h-24"
+              className="w-full p-3 pr-24 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none resize-none h-24"
             />
             <button
               type="submit"
               disabled={!currentUserId || !commentContent.trim()}
-              className="absolute right-2 bottom-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition disabled:bg-gray-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition disabled:bg-gray-300"
             >
               등록
             </button>

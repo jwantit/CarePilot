@@ -6,6 +6,7 @@ import com.carepilot.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import com.carepilot.domain.file.UploadFile;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
@@ -53,12 +54,19 @@ public class Notice extends BaseEntity {
     @Column(name = "is_pinned")
     private Boolean isPinned = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notice_type")
+    private NoticeType noticeType = NoticeType.NORMAL;
+
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
+    @Column(name = "content_modified_at")
+    private LocalDateTime contentModifiedAt; // 게시물 내용이 실제로 수정된 시간 (댓글과 무관)
+
     @Builder
     public Notice(Long noticeId, Organization organization, User user, String title,
-                  String content, Integer viewCount, Boolean isPinned, Boolean isDeleted) {
+                  String content, Integer viewCount, Boolean isPinned, NoticeType noticeType, Boolean isDeleted) {
         this.noticeId = noticeId;
         this.organization = organization;
         this.user = user;
@@ -66,6 +74,7 @@ public class Notice extends BaseEntity {
         this.content = content;
         this.viewCount = viewCount != null ? viewCount : 0;
         this.isPinned = isPinned != null ? isPinned : false;
+        this.noticeType = noticeType != null ? noticeType : NoticeType.NORMAL;
         this.isDeleted = isDeleted != null ? isDeleted : false;
     }
     // 작성자 설정
@@ -76,10 +85,13 @@ public class Notice extends BaseEntity {
         this.organization = organization;
     }
     // 공지사항 수정 로직
-    public void update(String title, String content, Boolean isPinned) {
+    public void update(String title, String content, Boolean isPinned, NoticeType noticeType) {
         this.title = title;
         this.content = content;
         this.isPinned = isPinned;
+        this.noticeType = noticeType != null ? noticeType : NoticeType.NORMAL;
+        // 게시물 내용이 실제로 수정되었을 때만 contentModifiedAt 업데이트
+        this.contentModifiedAt = LocalDateTime.now();
     }
     // 조회수 증가 로직
     public void setViewCount(Integer viewCount) {

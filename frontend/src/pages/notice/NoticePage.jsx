@@ -19,6 +19,7 @@ function NoticePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
+  const [noticeType, setNoticeType] = useState("NORMAL"); // "NORMAL", "NOTICE", "MANUAL"
 
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState("");
@@ -61,6 +62,28 @@ function NoticePage() {
     loadNotices();
   }, []);
 
+  // 답글 작성 시 자동으로 "@유저이름 " 추가
+  useEffect(() => {
+    if (replyTo) {
+      const parentUserName = replyTo.userName || replyTo.writerName || "익명";
+      const mentionText = `@${parentUserName}`;
+      // 이미 @유저이름이 포함되어 있지 않으면 추가 (공백 포함/미포함 모두 체크)
+      const hasMention = commentContent.trim().startsWith(mentionText + " ") || 
+                         commentContent.trim().startsWith(mentionText);
+      if (!hasMention) {
+        setCommentContent(`${mentionText} `);
+      }
+    } else {
+      // 답글이 취소되면 @유저이름 제거
+      if (commentContent && commentContent.trim().startsWith("@")) {
+        const lines = commentContent.split("\n");
+        if (lines[0].trim().startsWith("@")) {
+          setCommentContent(commentContent.replace(/^@[^\s]+\s*/, "").trim());
+        }
+      }
+    }
+  }, [replyTo]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentUserId) return alert("로그인이 필요합니다.");
@@ -69,6 +92,7 @@ function NoticePage() {
       title,
       content,
       isPinned,
+      noticeType,
       organizationId: currentOrgId,
       deletedFileIds: editingId ? deletedFileIds : undefined, // 수정 시에만 삭제할 파일 ID 전송
     };
@@ -87,12 +111,13 @@ function NoticePage() {
         await noticeApi.createNotice(noticeData, currentUserId, selectedFiles);
       } // 상태 초기화 및 목록 새로고침
 
-      setShowForm(false);
-      setEditingId(null);
-      setTitle("");
-      setContent("");
-      setIsPinned(false);
-      clearFiles(); // 파일 초기화
+          setShowForm(false);
+          setEditingId(null);
+          setTitle("");
+          setContent("");
+          setIsPinned(false);
+          setNoticeType("NORMAL");
+          clearFiles(); // 파일 초기화
       loadNotices(currentPage);
       
       // 수정한 게시물이 상세 화면에 열려있다면 업데이트
@@ -189,9 +214,9 @@ function NoticePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-12 px-4">
+    <div className="max-w-7xl mx-auto py-6 px-4">
            {" "}
-      <header className="flex justify-between items-center mb-10">
+      <header className="flex justify-between items-center mb-6">
                {" "}
         <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
                     공지사항        {" "}
@@ -204,30 +229,32 @@ function NoticePage() {
             setTitle("");
             setContent("");
           }}
-          className="bg-black text-white px-6 py-2.5 rounded-full font-bold hover:bg-gray-800 transition shadow-lg"
+          className="bg-teal-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-teal-700 transition shadow-lg text-center flex items-center justify-center"
         >
-                    {showForm ? "닫기" : "글쓰기"}       {" "}
+          {showForm ? "닫기" : "글쓰기"}
         </button>
              {" "}
       </header>
            {" "}
       {showForm && (
-        <NoticeForm
-          title={title}
-          setTitle={setTitle}
-          content={content}
-          setContent={setContent}
-          isPinned={isPinned}
-          setIsPinned={setIsPinned}
-          handleSubmit={handleSubmit}
-          editingId={editingId}
-          setShowForm={setShowForm}
-          setEditingId={setEditingId}
-          selectedFiles={selectedFiles}
-          handleFileChange={handleFileChange}
-          existingFiles={existingFiles}
-          onDeleteExistingFile={handleDeleteExistingFile}
-        />
+            <NoticeForm
+              title={title}
+              setTitle={setTitle}
+              content={content}
+              setContent={setContent}
+              isPinned={isPinned}
+              setIsPinned={setIsPinned}
+              noticeType={noticeType}
+              setNoticeType={setNoticeType}
+              handleSubmit={handleSubmit}
+              editingId={editingId}
+              setShowForm={setShowForm}
+              setEditingId={setEditingId}
+              selectedFiles={selectedFiles}
+              handleFileChange={handleFileChange}
+              existingFiles={existingFiles}
+              onDeleteExistingFile={handleDeleteExistingFile}
+            />
       )}
            {" "}
       <NoticeList

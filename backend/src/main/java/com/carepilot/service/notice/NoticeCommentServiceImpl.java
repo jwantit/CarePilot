@@ -53,7 +53,8 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
 
     @Override
     public List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId) {
-        List<NoticeComment> comments = commentRepository.findAllByNotice_NoticeIdOrderByCreatedAtAsc(noticeId);
+        // JOIN FETCH를 사용하여 User 정보를 함께 로드
+        List<NoticeComment> comments = commentRepository.findAllByNoticeIdWithUser(noticeId);
 
         List<CommentResponseDTO> rootComments = new ArrayList<>();
         Map<Long, CommentResponseDTO> map = new HashMap<>();
