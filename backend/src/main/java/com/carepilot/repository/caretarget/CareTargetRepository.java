@@ -42,7 +42,21 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
 
     @Query("SELECT ct.careTargetId FROM CareTarget ct WHERE ct.organization.organizationId = :organizationId")
     List<Long> findIdsByOrganizationId(@Param("organizationId") Long organizationId);
-
+    
+    // 통계용: 위험 환자 수 (최신 위험 점수가 특정 레벨 이상인 환자)
+    @Query("SELECT COUNT(DISTINCT rs.careTarget.careTargetId) FROM RiskScore rs " +
+           "WHERE rs.organization.organizationId = :organizationId " +
+           "AND rs.riskLevel IN ('HIGH', 'CRITICAL') " +
+           "AND rs.calculatedAt >= :startDate AND rs.calculatedAt < :endDate")
+    Long countRiskPatients(@Param("organizationId") Long organizationId,
+                          @Param("startDate") java.time.LocalDateTime startDate,
+                          @Param("endDate") java.time.LocalDateTime endDate);
+    
+    // 통계용: 질환 목록 조회
+    @Query("SELECT DISTINCT c.disease FROM CareTarget c " +
+           "WHERE c.organization.organizationId = :organizationId " +
+           "AND c.disease IS NOT NULL AND c.disease != ''")
+    List<String> findDistinctDiseases(@Param("organizationId") Long organizationId);
 
     @Query("SELECT c.name FROM CareTarget c WHERE c.careTargetId = :careTargetId AND c.deletedAt IS NULL")
     String findNameByCareTargetId(@Param("careTargetId") Long careTargetId);

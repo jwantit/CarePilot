@@ -62,5 +62,29 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         @Param("userId") Long userId,
         @Param("status") NotificationStatus status
     );
+    
+    // 통계용: 조직별 활성 알림 개수
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.organization.organizationId = :organizationId " +
+           "AND n.status = :status AND n.occurredAt >= :startDate AND n.occurredAt < :endDate")
+    Long countByOrganizationIdAndStatusAndDateRange(
+        @Param("organizationId") Long organizationId,
+        @Param("status") NotificationStatus status,
+        @Param("startDate") java.time.LocalDateTime startDate,
+        @Param("endDate") java.time.LocalDateTime endDate
+    );
+    
+    // 필터 적용: 활성 알림 개수
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.organization.organizationId = :organizationId " +
+           "AND n.status = :status AND n.occurredAt >= :startDate AND n.occurredAt < :endDate " +
+           "AND (:careTargetIds IS NULL OR n.careTarget.careTargetId IN :careTargetIds) " +
+           "AND (:disease IS NULL OR :disease = '' OR n.careTarget.disease = :disease)")
+    Long countByOrganizationIdAndStatusAndDateRangeWithFilters(
+        @Param("organizationId") Long organizationId,
+        @Param("status") NotificationStatus status,
+        @Param("startDate") java.time.LocalDateTime startDate,
+        @Param("endDate") java.time.LocalDateTime endDate,
+        @Param("careTargetIds") java.util.List<Long> careTargetIds,
+        @Param("disease") String disease
+    );
 }
 
