@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class RiskTrendDTO {
     private int score;
     private String date;
+    private String targetName;
+    private Long careTargetId;
 }

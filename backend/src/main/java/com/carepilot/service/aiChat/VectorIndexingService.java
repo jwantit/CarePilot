@@ -11,6 +11,8 @@ import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.caretarget.CareTargetGroupRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.caretarget.CareService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -40,6 +43,8 @@ public class VectorIndexingService {
     private CareTargetGroupRepository careTargetGroupRepository;
     @Autowired
     private CallScheduleRepository callScheduleRepository;
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
     private final VectorStore vectorStore;
 
@@ -48,142 +53,101 @@ public class VectorIndexingService {
     }
 
 
-   //백터 인댁싱
-//    @EventListener
-//    public void saveOrUpdate(CareTargetSyncEvent event) {
-//        log.info("🚀 벡터 DB 인덱싱 시작 - 조직: {}", event.organizationId());
-//
-//        Long organizationId = event.organizationId();
-//        List<Long> careTargetIds = careTargetRepository.findIdsByOrganizationId(organizationId);
-//
-//        if (!careTargetIds.isEmpty()) {
-//            List<String> docIdsToDelete = careTargetIds.stream()
-//                    .map(id -> "careTargetId_" + id).toList();
-//            try {
-//                vectorStore.delete(docIdsToDelete);
-//            } catch (Exception e) {
-//                log.warn("삭제 실패(무시): {}", e.getMessage());
-//            }
-//        }
-//
-//        for (Long ctId : careTargetIds) {
-//            CareTargetDetailResponseDTO ctr = careService.getCareTargetDetail(organizationId, ctId);
-//            List<CareTargetGroup> ctgs = careTargetGroupMapRepository.findGroupsByCareTargetId(ctId);
-//
-//            String groupInfo = ctgs.stream()
-//                    .map(g -> String.format("[그룹이름:%s|(groupId:%d)|그룹설명:%s]", g.getGroupName(), g.getGroupId(), g.getGroupDescription()))
-//                    .collect(Collectors.joining(", "));
-//
-//            StringBuilder scheduleSummary = new StringBuilder();
-//            callScheduleRepository.findByCareTargetId(organizationId, ctId, LocalDateTime.now()).forEach(s ->
-//                    scheduleSummary.append(String.format("[개인예약|scheduleId:%s|일시:%s|메모:%s] ", s.getScheduleId(), s.getScheduledTime(), s.getMemo())));
-//
-//            for (CareTargetGroup ctg : ctgs) {
-//                callScheduleRepository.findAllUpcomingByGroupIdAndOrgId(ctg.getGroupId(), organizationId, LocalDateTime.now()).forEach(s ->
-//                        scheduleSummary.append(String.format("[그룹예약:%s|scheduleId:%s|일시:%s|메모:%s] ", ctg.getGroupName(), s.getScheduleId(), s.getScheduledTime(), s.getMemo())));
-//            }
-//
-//            // 4. 최종 리포트 생성 (포맷 문구와 변수 개수 12개 일치 확인)
-//            String finalContent = String.format(
-//                    "케어 대상자(환자) careTargetId:%s | %s님은 %s이며 현재 %s세입니다. " +
-//                            "주요 질환은 %s이며 보호자는 %s(%s)입니다. " +
-//                            "상세한 과거 통화 이력 및 위험도 추이는 상세 조회 툴을 이용하세요. " +
-//                            "현재 소속된 케어그룹 정보: %s. " +
-//                            "향후 예정된 통화 스케줄: %s. " +
-//                            "검색 키워드: %s, %s, %s | " +
-//                            "속해있는 조직ID organizationId: %s", // 총 12개의 %s
-//
-//                    ctId,                   // 1
-//                    ctr.getName(),          // 2
-//                    ctr.getGender(),        // 3
-//                    ctr.getAge(),           // 4
-//                    ctr.getDisease() != null ? ctr.getDisease() : "없음", // 5
-//                    ctr.getGuardianName(),  // 6
-//                    ctr.getGuardianRelationship(), // 7
-//                    groupInfo.isEmpty() ? "없음" : groupInfo, // 8
-//                    scheduleSummary.isEmpty() ? "예정된 스케줄 없음" : scheduleSummary.toString(), // 9
-//                    ctr.getName(),          // 10
-//                    ctr.getGuardianName(),  // 11
-//                    ctr.getDisease(),       // 12
-//                    organizationId          // 13 (아, 위 문구에 %s 하나 더 추가했습니다)
-//            );
-//
-//            Map<String, Object> metadata = new HashMap<>();
-//            metadata.put("organizationId", organizationId);
-//            metadata.put("careTargetId", ctId);
-//            metadata.put("careTargetName", ctr.getName());
-//            metadata.put("groupIds", ctgs.stream().map(g -> String.valueOf(g.getGroupId())).toList());
-//
-//            Document doc = new Document("careTargetId_" + ctId, finalContent, metadata);
-//            vectorStore.add(List.of(doc));
-//            log.info("인덱싱 완료: {}", ctr.getName());
-//        }
-//    }
-   @Async // 비동기로 처리하여 사용자 응답 속도 저하 방지
-   @EventListener
-   public void saveOrUpdate(CareTargetSyncEvent event) {
-       Long organizationId = event.organizationId();
-       log.info("🚀 [Batch 인덱싱 시작] 조직 ID: {}", organizationId);
+    //주기적 RAG 동기화 백터 DB------------------------------------
+   @Async // 비동기로 처리하여 메인 스레드 부하 방지
+//   @Scheduled(cron = "0 0/30 * * * *") // 30분에 한 번 실행
+//   @Scheduled(cron = "0 * * * * *") //1분
+   @Scheduled(cron = "0 0 */2 * * *") // 2시간마다 (0분 0초에 실행)
+   public void runBatchIndexing() {
+       log.info("[정기 Batch 인덱싱 시작] 시간: {}", LocalDateTime.now());
 
-       // 1. 해당 조직의 모든 대상자 ID 조회
-       List<Long> careTargetIds = careTargetRepository.findIdsByOrganizationId(organizationId);
-       if (careTargetIds.isEmpty()) return;
+       // 1. 모든 조직 ID 가져오기
+       List<Long> allOrganizationIds = organizationRepository.findAllIds();
 
-       // 2. 기존 벡터 데이터 전체 삭제 (조직 단위)
-       List<String> docIdsToDelete = careTargetIds.stream()
-               .map(id -> "careTargetId_" + id).toList();
-       try {
-           vectorStore.delete(docIdsToDelete);
-       } catch (Exception e) {
-           log.warn("기존 데이터 삭제 실패(무시): {}", e.getMessage());
+       if (allOrganizationIds == null || allOrganizationIds.isEmpty()) {
+           log.warn("인덱싱할 조직이 존재하지 않습니다.");
+           return;
        }
 
-       List<Document> documentsToUpload = new ArrayList<>();
-
-       for (Long ctId : careTargetIds) {
+       // 2. 모든 조직을 순회하며 기존 로직 수행
+       for (Long organizationId : allOrganizationIds) {
            try {
-               CareTargetDetailResponseDTO ctr = careService.getCareTargetDetail(organizationId, ctId);
-
-               String groupNames = careTargetGroupMapRepository.findGroupsByCareTargetId(ctId).stream()
-                       .map(CareTargetGroup::getGroupName)
-                       .collect(Collectors.joining(", "));
-
-               String slimContent = String.format(
-                       "케어 대상자(환자) careTargetId:%d | 성함:%s | %s(%d세) | " +
-                               "본인연락처:%s | 보호자:%s(%s, %s) | 주요질환:%s | " +
-                               "소속그룹:%s | 검색키워드:%s, %s | organizationId:%d",
-                       ctId,                                           // ID
-                       ctr.getName(),                                  // 이름
-                       ctr.getGender(), ctr.getAge(),                  // 성별, 나이
-                       ctr.getTargetPhone() != null ? ctr.getTargetPhone() : "없음",   // 본인 번호
-                       ctr.getGuardianName(), ctr.getGuardianRelationship(),
-                       ctr.getGuardianPhone() != null ? ctr.getGuardianPhone() : "없음", // 보호자 정보
-                       ctr.getDisease() != null ? ctr.getDisease() : "없음",           // 질환
-                       groupNames.isEmpty() ? "없음" : groupNames,                      // 그룹명
-                       ctr.getName(), ctr.getDisease(),                               // 키워드
-                       organizationId                                                 // 조직ID
-               );
-
-               // 메타데이터 설정 (필터링용)
-               Map<String, Object> metadata = new HashMap<>();
-               metadata.put("organizationId", organizationId);
-               metadata.put("careTargetId", ctId);
-               metadata.put("careTargetName", ctr.getName());
-
-               documentsToUpload.add(new Document("careTargetId_" + ctId, slimContent, metadata));
-
+               processOrganizationIndexing(organizationId);
            } catch (Exception e) {
-               log.error("대상자(ID:{}) 변환 중 오류 발생: {}", ctId, e.getMessage());
+               log.error("[조직 ID: {}] 인덱싱 중 치명적 오류 발생: {}", organizationId, e.getMessage());
            }
        }
 
-       if (!documentsToUpload.isEmpty()) {
-           vectorStore.add(documentsToUpload);
-           log.info("[Batch 인덱싱 완료] 총 {}건의 환자 정보 동기화", documentsToUpload.size());
-       }
+       log.info("[정기 Batch 인덱싱 전체 완료]");
    }
 
-    //환자 상세 조회시 ------------------------------------------------------------------
+    //-----------------
+    private void processOrganizationIndexing(Long organizationId) {
+        log.info("[Batch 인덱싱 진행 중] 조직 ID: {}", organizationId);
+
+        // 1. 해당 조직의 모든 대상자 ID 조회
+        List<Long> careTargetIds = careTargetRepository.findIdsByOrganizationId(organizationId);
+        if (careTargetIds.isEmpty()) {
+            log.info("[조직 ID: {}] 대상자가 없어 건너뜁니다.", organizationId);
+            return;
+        }
+
+        List<String> docIdsToDelete = careTargetIds.stream()
+                .map(id -> "careTargetId_" + id).toList();
+        try {
+            vectorStore.delete(docIdsToDelete);
+        } catch (Exception e) {
+            log.warn("[조직 ID: {}] 기존 데이터 삭제 실패(무시): {}", organizationId, e.getMessage());
+        }
+
+        List<Document> documentsToUpload = new ArrayList<>();
+
+        for (Long ctId : careTargetIds) {
+            try {
+                // 기존 변환 로직 그대로 유지
+                CareTargetDetailResponseDTO ctr = careService.getCareTargetDetail(organizationId, ctId);
+
+                String groupNames = careTargetGroupMapRepository.findGroupsByCareTargetId(ctId).stream()
+                        .map(CareTargetGroup::getGroupName)
+                        .collect(Collectors.joining(", "));
+
+                String slimContent = String.format(
+                        "케어 대상자(환자) careTargetId:%d | 성함:%s | %s(%d세) | " +
+                                "본인연락처:%s | 보호자:%s(%s, %s) | 주요질환:%s | " +
+                                "소속그룹:%s | 검색키워드:%s, %s | organizationId:%d",
+                        ctId,
+                        ctr.getName(),
+                        ctr.getGender(), ctr.getAge(),
+                        ctr.getTargetPhone() != null ? ctr.getTargetPhone() : "없음",
+                        ctr.getGuardianName(), ctr.getGuardianRelationship(),
+                        ctr.getGuardianPhone() != null ? ctr.getGuardianPhone() : "없음",
+                        ctr.getDisease() != null ? ctr.getDisease() : "없음",
+                        groupNames.isEmpty() ? "없음" : groupNames,
+                        ctr.getName(), ctr.getDisease(),
+                        organizationId
+                );
+
+                // 메타데이터 설정 (필터링용)
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("organizationId", organizationId);
+                metadata.put("careTargetId", ctId);
+                metadata.put("careTargetName", ctr.getName());
+
+                documentsToUpload.add(new Document("careTargetId_" + ctId, slimContent, metadata));
+
+            } catch (Exception e) {
+                log.error("[조직 ID: {}] 대상자(ID:{}) 변환 중 오류 발생: {}", organizationId, ctId, e.getMessage());
+            }
+        }
+
+        if (!documentsToUpload.isEmpty()) {
+            vectorStore.add(documentsToUpload);
+            log.info("[조직 ID: {}] 총 {}건의 환자 정보 동기화 완료", organizationId, documentsToUpload.size());
+        }
+    }
+     //-----------------
+
+    //환자 상세 조회시 로직 ------------------------------------------------------------------
     public String generateCareTargetFinalContent(Long organizationId, Long ctId) {
         // 1. 기초 데이터 로드 (기존 리스너 로직과 동일)
         CareTargetDetailResponseDTO ctr = careService.getCareTargetDetail(organizationId, ctId);

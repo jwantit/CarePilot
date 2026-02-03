@@ -3,8 +3,8 @@ package com.carepilot.service.caretarget;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.caretarget.CareTarget;
-import com.carepilot.domain.caretarget.CareTargetGroupMap;
 import com.carepilot.domain.config.Doctor;
+import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
@@ -18,10 +18,9 @@ import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
-import com.carepilot.service.aiChat.CareTargetSyncEvent;
+import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.service.config.risk.RiskConfigService;
 import com.carepilot.service.upload.UploadFileService;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional; // 1. 임포트 확인!
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ public class CareServiceImpl implements CareService {
     private final RiskScoreRepository riskScoreRepository;
     private final CareTargetGroupMapRepository careTargetGroupMapRepository;
     private final RiskConfigService riskConfigService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final UploadFileRepository uploadFileRepository;
 
     //대량 환자등록 ---------------------------------------------------------------------------
     @Override
@@ -248,6 +247,7 @@ public class CareServiceImpl implements CareService {
             LocalDate d = rs.getCalculatedAt().toLocalDate();
             latestPerDay.merge(d, rs, (a, b) -> a.getCalculatedAt().isAfter(b.getCalculatedAt()) ? a : b);
         }
+
         List<RiskTrendDTO> trendList = latestPerDay.entrySet().stream()
                 .sorted(Map.Entry.<LocalDate, RiskScore>comparingByKey().reversed())
                 .limit(14)
@@ -255,7 +255,10 @@ public class CareServiceImpl implements CareService {
                 .sorted(Comparator.comparing(RiskScore::getCalculatedAt))
                 .map(rs -> new RiskTrendDTO(
                         rs.getRiskScore() != null ? rs.getRiskScore() : 0,
-                        rs.getCalculatedAt().toLocalDate().format(formatter)))
+                        rs.getCalculatedAt().toLocalDate().format(formatter),
+                        null,
+                        null
+                ))
                 .toList();
 
         // 6. 의사 정보 및 최종 빌드
@@ -288,7 +291,6 @@ public class CareServiceImpl implements CareService {
 
 
     //--------------------------------------
-
     @Override
     @Transactional
     public CareTargetDetailResponseDTO updateCareTargetDetail(
@@ -328,19 +330,23 @@ public class CareServiceImpl implements CareService {
         return getCareTargetDetail(organizationId, careTargetId);
     }
 
-
-
-
-    //삭제 처리
-
+    //삭제 처리-----------------------------------------------------------------------------------------
     @Override
     @Transactional
     public void deleteCareTarget(List<Long> careTargetIds, Long organizationId) {
         if (careTargetIds == null || careTargetIds.isEmpty()) return;
+
+        // 1. 각 케어대상자 ID를 순회하며 관련 파일들을 먼저 삭제
+        for (Long careTargetId : careTargetIds) {
+            // 해당 대상자의 파일 리스트 조회 (기존에 만든 findBy... 메서드 활용)
+            UploadTargetType uploadTargetType = UploadTargetType.CARE_TARGET;
+            List<UploadFile> uploadFiles = uploadFileRepository.findByCareTargetAndType(careTargetId, organizationId, uploadTargetType);
+            if (!uploadFiles.isEmpty()) {
+                uploadFileService.deleteFiles(uploadFiles);
+            }
+        }
         careTargetGroupMapRepository.deleteByCareTargetIds(careTargetIds, organizationId);
         careTargetRepository.deleteAllById(careTargetIds);
-        eventPublisher.publishEvent(new CareTargetSyncEvent(organizationId ,"UPDATE",""));
-
     }
 //Tool------------------------------------------------------------------------------------
     @Transactional
@@ -376,7 +382,7 @@ public class CareServiceImpl implements CareService {
                 updateDto.getGuardianRelationship()
         );
 
-        log.info("✅ [DB 업데이트 완료] ID: {}, 변경 내용: {}", careTargetId, String.join(", ", changeDetails));
+        log.info("[DB 업데이트 완료] ID: {}, 변경 내용: {}", careTargetId, String.join(", ", changeDetails));
 
         return String.format(
                 "[수정 성공] 대상자 ID: %d | 변경 항목: %s. " +
@@ -387,8 +393,81 @@ public class CareServiceImpl implements CareService {
     }
 
     //위험 데이타 툴---------------------------------------------------------------------------
-//    @Override
-//    public CareTargetDetailResponseDTO getCareTargetDetail(Long organizationId, Long careTargetId) {
-//
-//    }
+    public Map<String, Object> getRiskFindAll(Long organizationId, int range) {
+        log.info("[위험도 분석 시작] 조직ID: {}, 조회범위: {}일", organizationId, range);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<Long> careTargetIds = careTargetRepository.findIdsByOrganizationId(organizationId);
+
+        List<RiskTrendDTO> allTrends = new ArrayList<>();
+
+        for (Long careTargetId : careTargetIds) {
+            String targetName = careTargetRepository.findNameByCareTargetId(careTargetId);
+            final String finalTargetName = (targetName != null) ? targetName : "이름 없음";
+
+            List<RiskScore> dbScores = riskScoreRepository.findTrendData(careTargetId, LocalDateTime.now().minusDays(range));
+
+            Map<LocalDate, RiskScore> latestPerDay = new LinkedHashMap<>();
+
+            for (RiskScore rs : dbScores) {
+                if (rs.getCalculatedAt() == null) continue;
+                LocalDate d = rs.getCalculatedAt().toLocalDate();
+                latestPerDay.merge(d, rs, (a, b) -> a.getCalculatedAt().isAfter(b.getCalculatedAt()) ? a : b);
+            }
+
+            List<RiskTrendDTO> patientTrend = latestPerDay.entrySet().stream()
+                    .sorted(Map.Entry.<LocalDate, RiskScore>comparingByKey().reversed())
+                    .limit(range)
+                    .map(Map.Entry::getValue)
+                    .sorted(Comparator.comparing(RiskScore::getCalculatedAt))
+                    .map(rs -> new RiskTrendDTO(
+                            rs.getRiskScore() != null ? rs.getRiskScore() : 0,
+                            rs.getCalculatedAt().toLocalDate().format(formatter),
+                            finalTargetName,
+                            careTargetId
+                    ))
+                    .toList();
+            allTrends.addAll(patientTrend);
+        }
+
+        Map<Long, List<RiskTrendDTO>> grouped = allTrends.stream()
+                .collect(Collectors.groupingBy(RiskTrendDTO::getCareTargetId));
+
+        List<Map<String, Object>> stats = grouped.values().stream()
+                .map(list -> {
+                    log.info("   - 통계 계산 중: 환자명({}) 데이터 개수({})", list.getFirst().getTargetName(), list.size());
+                    String name = list.getFirst().getTargetName();
+                    int latest = list.isEmpty() ? 0 : list.getLast().getScore();
+                    double avg = list.stream().mapToInt(RiskTrendDTO::getScore).average().orElse(0.0);
+
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("name", name);
+                    m.put("latest", latest);
+                    m.put("avg", avg);
+                    return m;
+                }).toList();
+
+
+        List<String> top3ByLatest = stats.stream()
+                .sorted((a, b) -> Integer.compare((int)b.get("latest"), (int)a.get("latest")))
+                .limit(3)
+                .map(m -> String.format("이름:%s (점수:%d점)", m.get("name"), (int)m.get("latest")))
+                .toList();
+        log.info("   - 최근 점수 상위 3명 추출 완료");
+
+        List<String> top3ByAverage = stats.stream()
+                .sorted((a, b) -> Double.compare((double)b.get("avg"), (double)a.get("avg")))
+                .limit(3)
+                .map(m -> String.format("이름:%s (평균:%d점)", m.get("name"), (int)Math.round((double)m.get("avg"))))
+                .toList();
+        log.info("   - 평균 점수 상위 3명 추출 완료");
+
+        // 최종 결과 조립
+        Map<String, Object> result = new HashMap<>();
+        result.put("최근_위험_점수_상위3명", top3ByLatest);
+        result.put("평균_위험_점수_상위3명", top3ByAverage);
+
+        log.info("[분석 종료] 최종 결과 리턴 직전: {}", result);
+        return result;
+    }
 }

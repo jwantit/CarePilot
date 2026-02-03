@@ -44,6 +44,9 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
     List<Long> findIdsByOrganizationId(@Param("organizationId") Long organizationId);
 
 
+    @Query("SELECT c.name FROM CareTarget c WHERE c.careTargetId = :careTargetId AND c.deletedAt IS NULL")
+    String findNameByCareTargetId(@Param("careTargetId") Long careTargetId);
+
 }
 
 

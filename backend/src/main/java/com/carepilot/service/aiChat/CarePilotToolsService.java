@@ -2,15 +2,20 @@ package com.carepilot.service.aiChat;
 
 import com.carepilot.domain.call.ScheduleTargetType;
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.dto.caretarget.CareTargetInsertRequestDTO;
 import com.carepilot.dto.caretarget.caretargetgroup.CareGroupScenarioRequestDTO;
+import com.carepilot.dto.notice.NoticeSaveRequest;
 import com.carepilot.repository.caretarget.CareTargetRepository;
+import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.call.CallService;
 import com.carepilot.service.call.CallServiceImpl;
 import com.carepilot.service.caretarget.CareGroupServiceImpl;
 import com.carepilot.service.caretarget.CareService;
 import com.carepilot.service.caretarget.CareServiceImpl;
+import com.carepilot.service.notice.NoticeServiceImpl;
+import com.carepilot.service.upload.UploadFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -19,6 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,13 +41,17 @@ public class CarePilotToolsService {
     private final VectorIndexingService vectorIndexingService;
     private final CareGroupServiceImpl careGroupServiceImpl;
     private final CallServiceImpl callServiceImpl;
+    private final UploadFileService uploadFileService;
+    private final UserUtil userUtil;
+    private final NoticeServiceImpl noticeServiceImpl;
 
     //환자 상세조회-----------------------------------------------------------------------
-    @Tool(description = "특정 환자의 상세 정보(나이, 질환, 그룹 통화 예약 스케줄과 , 개인 통화 에약스케줄, 특정 환자(케어대상자의)위험 추이 등 전반적인 환자의 상세정보)를 조회합니다.")
+    @Tool(description = "단일 환자의 상세 정보(나이, 질환, 그룹 통화 예약 스케줄과 , 개인 통화 에약스케줄, " +
+            "단일 환자(케어대상자의)위험 추이, 최근 위험도 등 전반적인 환자의 상세정보)를 조회합니다.")
     public String getCareTargetDetail(
             @ToolParam(description = "대상자id") Long careTargetId,
             @ToolParam(description = "속한 조직id") Long organizationId) {
-        log.info("🚀 [조회 툴 진입 상세조회] ID: {}", organizationId);
+        log.info("[조회 툴 진입 상세조회] ID: {}", organizationId);
 
         String careTargetDetail = vectorIndexingService.generateCareTargetFinalContent(organizationId,careTargetId);
 
@@ -64,8 +74,8 @@ public class CarePilotToolsService {
             @ToolParam(description = "수정할 보호자 연락처. 명시적 요청이 없으면 null.") String guardianPhone,
             @ToolParam(description = "수정할 보호자 관계. 명시적 요청이 없으면 null.") String relationship
     ) {
-        log.info("🚀 [수정 툴 진입] ID: {}", careTargetId);
-        log.info("🔍 [AI 수정 요청 파라미터 확인]");
+        log.info("[수정 툴 진입] ID: {}", careTargetId);
+        log.info("[AI 수정 요청 파라미터 확인]");
         log.info(">> ID: {}, 성함: {}, 나이: {}, 성별: {}, 연락처: {}", careTargetId, name, age, gender, phone);
         log.info(">> 질환: {}, 보호자명: {}, 보호자연락처: {}, 관계: {}", disease, guardianName, guardianPhone, relationship);
 
@@ -146,14 +156,14 @@ public class CarePilotToolsService {
             }
 
             // 3. 서비스 호출 전 DTO 상태 로그 (최종 검증)
-            log.info("🚀 [DTO 빌드 완료] 서비스 레이어 전달 데이터: type={}, priority={}, recurrence={}",
+            log.info("[DTO 빌드 완료] 서비스 레이어 전달 데이터: type={}, priority={}, recurrence={}",
                     scr.getType(), scr.getPriority(), scr.getRecurrence());
 
             Long scheduleId = callServiceImpl.createSchedule(organizationId, scr);
 
             // 4. 성공 메시지 반환
             String typeKo = "RECURRING".equals(scr.getType()) ? "반복" : "일회성";
-            return String.format("✅ %s 예약이 등록되었습니다.\n- 일시: %s\n- 메모: %s\n- 우선도: %s%s",
+            return String.format("%s 예약이 등록되었습니다.\n- 일시: %s\n- 메모: %s\n- 우선도: %s%s",
                     typeKo, scheduledTime, memo, priority,
                     (scr.getRecurrence() != null ? "\n- 반복 주기: " + scr.getRecurrence() : ""));
 
@@ -186,13 +196,56 @@ public class CarePilotToolsService {
     }
 
     //환자 위험도 추이----------------------------------------------------------------
-    @Tool(description = "현재 가장 위험한 환자는 누구인가 (특정환자를 지목하지 않은 경우)")
+    @Tool(description = "모든 환자의 위험도 긴급 등 확인해야할때 예:) 환자 이름이 없이 '누가 제일 위급해?', '위험도 순위 알려줘', '가장 긴급한 환자는?'")
     public String getCareTargetRisk(
-            @ToolParam(description = "조직ID organizationId: ") Long organizationId
+            @ToolParam(description = "현재 세션의 조직 ID -> organizationId ") Long organizationId,
+            @ToolParam(description = "조회 범위") int range
     ) {
-        log.info("🚀 [예약 수정 툴 진입] ScheduleID: {}", organizationId);
-        return "";
+        log.info("[조회 범위] {}", range);
+        log.info("[조직 Id] {}", organizationId);
+        Map<String, Object> getRisk = careServiceImpl.getRiskFindAll(organizationId, range);
+
+        log.info("[위험도 추이 성공] {}", getRisk.toString());
+        return "조회 결과입니다: " + getRisk.toString();
     }
+    //공지사항----------------------------------------------------------------------------------------
+    @Tool(description = "공지사항 등록 하는 툴 사용자 기준")
+    public String createBoard(
+            @ToolParam(description = "등록하는 사용자ID userId ") Long userId,
+            @ToolParam(description = "공지사항 제목") String title,
+            @ToolParam(description = "공지사항 본문") String content,
+            @ToolParam(description = "파일첨부 fileId") Long fileId
+            ) {
+        log.info(" [등록한 글 제목]  {}", title);
+        log.info(" [등록한 글내용]  {}", content);
+        log.info(" [사용자 id] {}", userId);
+        log.info(" [file id] {}", fileId);
 
+        UserDTO userDTO = userUtil.getCurrentUserDTO();
 
+        List<MultipartFile> files = new ArrayList<>();
+
+        if (fileId != null) {
+            log.info("파일삭제로직" + fileId);
+            MultipartFile file = uploadFileService.temporaryfind(fileId);
+            if (file != null) {
+                files = List.of(file);
+            }
+        }
+
+        NoticeSaveRequest notice = new NoticeSaveRequest();
+        notice.setTitle(title);
+        notice.setContent(content);
+        notice.setIsPinned(false);
+
+        noticeServiceImpl.saveNotice(notice,userId,userDTO.getOrganizationId(),files);
+        if (fileId != null && fileId > 0) {
+            log.info("임시 파일 삭제 진행: ID {}", fileId);
+            uploadFileService.temporaryDelFile(fileId);
+        }
+        return String.format(
+                "최종 결과: 공지사항 '%s' 등록 완료. " +
+                        "데이터베이스 저장이 완전히 끝났으므로, 더 이상 툴을 호출하거나 파일 ID를 테스트하지 말고 " +
+                        "사용자에게 등록이 완료되었다고 즉시 답변하세요.", title);
+    }
 }

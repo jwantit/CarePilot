@@ -1,12 +1,16 @@
 package com.carepilot.controller;
 
 import com.carepilot.dto.aiChat.AiChatRequest;
+import com.carepilot.dto.aiChat.ChatLogResponseDTO;
 import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.aiChat.CarePilotPromptProviderService;
 import com.carepilot.service.aiChat.CarePilotToolsService;
+import com.carepilot.service.aiChat.ChatLogService;
 import com.carepilot.service.aiChat.VectorService;
+import com.carepilot.service.upload.UploadFileService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
@@ -16,9 +20,15 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,6 +44,8 @@ public class AiChatBotController {
     private final CarePilotToolsService carePilotToolsService; // 실제 행동을 수행할 도구
     private final CarePilotPromptProviderService carePilotPromptProviderService;
     private final VectorService vectorService;
+    private final UploadFileService uploadFileService;
+    private final ChatLogService chatLogService;
 
     public AiChatBotController(
             UserUtil userUtil,
@@ -42,7 +54,9 @@ public class AiChatBotController {
             @Qualifier("ChatBotVectorStore") VectorStore chatBotVectorStore,
             CarePilotToolsService carePilotToolsService,
             CarePilotPromptProviderService carePilotPromptProviderService, // 주입
-            VectorService vectorService
+            VectorService vectorService,
+            UploadFileService uploadFileService,
+            ChatLogService chatLogService
     ) {
         this.userUtil = userUtil;
         this.chatgpt = chatgpt;
@@ -51,18 +65,50 @@ public class AiChatBotController {
         this.carePilotToolsService = carePilotToolsService;
         this.carePilotPromptProviderService = carePilotPromptProviderService;
         this.vectorService = vectorService;
+        this.uploadFileService = uploadFileService;
+        this.chatLogService = chatLogService;
     }
 
-    @PostMapping("/chat")
-    public String chat(@RequestBody AiChatRequest request) {
+    @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Long boardFile(
+            @RequestPart("file") MultipartFile file
+    ) {
+        UserDTO userDTO = userUtil.getCurrentUserDTO();
+        Long userId = userDTO.getUserId();
+        Long organizationId = userDTO.getOrganizationId();
+
+        Long fileId = uploadFileService.temporaryFile(file,userId,organizationId);
+        log.info("파일ID : " + fileId);
+        return fileId;
+    }
+
+    @DeleteMapping("/file/del")
+    public ResponseEntity<Void> boardFile(@RequestParam("fileId") Long fileId) {
+        uploadFileService.temporaryDelFile(fileId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/chat/log")
+    public ResponseEntity<List<ChatLogResponseDTO>> chatLogAll(@RequestParam("userId") Long userId) {
+
+        List<ChatLogResponseDTO> result = chatLogService.loadAllChatLog(userId);
+        return ResponseEntity.ok(result);
+    }
+
+
+        @PostMapping("/chat")
+    public ResponseEntity<ChatLogResponseDTO> chat(@RequestBody AiChatRequest request) {
         UserDTO userDTO = userUtil.getCurrentUserDTO();
         String userMessage = request.getMessage();
         String userIdMemory = userDTO.getUserId().toString();
         Long userId = userDTO.getUserId();
         String userName = userDTO.getName();
+        Long fileId = request.getFileId();
 
-
+        log.info("fileId아이디 컨트롤러 진입({})",fileId);
         log.info("유저({}) 질문: {}", userIdMemory, userMessage);
+
+        Long chatLogId = chatLogService.insertUserMessage(userId, userMessage);
 
         List<Message> lastMessages = chatMemory.get(userIdMemory, 10);
 
@@ -89,13 +135,13 @@ public class AiChatBotController {
             }
         }
 
-        String dynamicPrompt = carePilotPromptProviderService.getDynamicPrompt(historyText, userDTO.getOrganizationId(), userName);
+        String dynamicPrompt = carePilotPromptProviderService.getDynamicPrompt(historyText, userDTO.getOrganizationId(), userName, userMessage, userId, fileId);
 
         log.info("=== [최종 주입될 프롬프트 확인] ===\n{}", dynamicPrompt);
         String finalSystemPrompt = dynamicPrompt.replace("{question_answer_context}", contextBuilder);
 
         // 4. ChatClient 실행 (QuestionAnswerAdvisor 제거)
-        return chatgpt.prompt()
+        String aiResponse = chatgpt.prompt()
                 .advisors(
                         // [기능 1] 단기 기억 유지
                         new MessageChatMemoryAdvisor(chatMemory, userIdMemory, 10)
@@ -105,5 +151,7 @@ public class AiChatBotController {
                 .user(userMessage)
                 .call()
                 .content();
+        ChatLogResponseDTO result = chatLogService.insertAnswer(chatLogId, aiResponse);
+        return ResponseEntity.ok(result);
     }
 }

@@ -188,7 +188,7 @@ public class NoticeServiceImpl implements NoticeService {
                     .collect(Collectors.toList());
             
             if (!filesToDelete.isEmpty()) {
-                uploadFileService.deleteFiles(notice.getOrganization().getOrganizationId(), noticeId, filesToDelete);
+                uploadFileService.deleteFiles(filesToDelete);
             }
         }
 
@@ -218,7 +218,7 @@ public class NoticeServiceImpl implements NoticeService {
         // 연결된 파일들도 삭제
         List<com.carepilot.domain.file.UploadFile> uploadFiles = notice.getUploadFiles();
         if (!uploadFiles.isEmpty()) {
-            uploadFileService.deleteFiles(notice.getOrganization().getOrganizationId(), noticeId, uploadFiles);
+            uploadFileService.deleteFiles(uploadFiles);
         }
 
         notice.changeDeletedStatus(true);

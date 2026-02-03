@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AiChatRequest {
     private String message;
+    private Long fileId;
 }

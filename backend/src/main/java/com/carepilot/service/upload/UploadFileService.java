@@ -19,6 +19,7 @@ import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -508,7 +509,25 @@ public class UploadFileService {
     public void deletecareTargetFiles(Long organizationId, Long careTargetId){
         UploadTargetType uploadTargetType = UploadTargetType.CARE_TARGET;
         List<UploadFile> uploadFiles = uploadFileRepository.findByCareTargetAndType(careTargetId, organizationId, uploadTargetType);
-        deleteFiles(organizationId,careTargetId,uploadFiles);
+        // 2. 결과 확인 로그 추가
+        log.info("======= [파일 삭제 조회 결과] =======");
+        log.info("조회 조건 - orgId: {}, targetId: {}, type: {}", organizationId, careTargetId, uploadTargetType);
+
+        if (uploadFiles == null) {
+            log.error("결과: 리스트 자체가 null입니다. (리포지토리 오류 가능성)");
+        } else if (uploadFiles.isEmpty()) {
+            log.warn("결과: 조회된 파일이 0건입니다. DB에 조건에 맞는 데이터가 있는지 확인하세요.");
+        } else {
+            log.info("결과: 총 {}건의 파일이 조회되었습니다.", uploadFiles.size());
+            // 상세 데이터 확인 (첫 번째 파일 경로만 샘플로 출력)
+            uploadFiles.forEach(file ->
+                    log.info("조회된 파일 상세 - ID: {}, 경로: {}", file.getFileId(), file.getStoragePath())
+            );
+        }
+        log.info("==================================");
+
+
+        deleteFiles(uploadFiles);
     }
 
 
@@ -517,14 +536,16 @@ public class UploadFileService {
 
     //삭제 로직
     //------------------------------------------------------------------
-    public void deleteFiles(Long organizationId, Long targetId, List<UploadFile> uploadFiles) {
+    public void deleteFiles(List<UploadFile> uploadFiles) {
         if (uploadFiles != null && !uploadFiles.isEmpty()) {
             for (UploadFile uploadFile : uploadFiles) {
 
-                String storagePath = BASE_DIR + File.separator + uploadFile.getStoragePath();
+                String storagePath = BASE_DIR + "/" + uploadFile.getStoragePath();
                 String thStoragePath = (uploadFile.getThumbnailStoragePath() != null)
-                        ? BASE_DIR + File.separator + uploadFile.getThumbnailStoragePath()
+                        ? BASE_DIR + "/" + uploadFile.getThumbnailStoragePath()
                         : null;
+
+                log.info("삭제경로 확인" + storagePath);
 
                 try {
                     File file = new File(storagePath);
@@ -547,4 +568,79 @@ public class UploadFileService {
     }
     //------------------------------------------------------------------
 
-}
+    //챗봇 선 임시 파일 등록-------------------------------------------------------------------
+    public Long temporaryFile(MultipartFile file, Long userId,Long organizationId){
+
+        User user = userRepository.findById(userId).orElseThrow();
+        Organization organization = organizationRepository.findById(organizationId).orElseThrow();
+
+        //원본파일명 null일 경우 unknown
+        String originalName = Optional.ofNullable(file.getOriginalFilename())
+                .filter(s -> !s.isBlank())
+                .orElse("unknown");
+
+        //타입 null일시 기본 타입
+        String contentType = Optional.ofNullable(file.getContentType())
+                .filter(s -> !s.isBlank())
+                .orElse("application/octet-stream");
+
+        String uuid = UUID.randomUUID().toString();
+        String storedFileName = "temporary/" + uuid + "_" + originalName;
+
+        saveToLocal(storedFileName, file);
+
+        UploadFile fileSave = uploadFileRepository.save(
+                UploadFile.builder()
+                        .organization(organization) //업체엔티티
+                        .originalName(originalName)
+                        .storagePath(storedFileName)
+                        .contentType(contentType)
+                        .uploadedBy(user)
+                        .build()
+        );
+        return fileSave.getFileId();
+    }
+    //챗봇 선 임시 파일 삭제-------------------------------------------------------------------
+    public void temporaryDelFile(Long fileId){
+        // Optional을 List로 변환하는 깔끔한 방법
+        log.info("임시파일 삭제 진행");
+        List<UploadFile> files = uploadFileRepository.findById(fileId)
+                .map(List::of)
+                .orElse(List.of());
+
+        if (!files.isEmpty()) {
+            // deleteFiles 메서드 내부에서 물리 파일 삭제 + DB deleteAll을 수행하므로 이것만 호출하면 끝!
+            deleteFiles(files);
+            log.info("[TEMP_DELETE] 파일 ID {} 삭제 완료", fileId);
+        }
+    }
+
+    //임시파일꺼내오기-------------------------------------------------------------------
+    public MultipartFile temporaryfind(Long fileId) {
+        // 1. DB에서 파일 정보 조회
+        UploadFile getFile = uploadFileRepository.findById(fileId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파일입니다. ID: " + fileId));
+
+        // 2. 실제 파일 경로 생성
+        Path path = Paths.get(BASE_DIR, getFile.getStoragePath());
+
+        try {
+            // 3. 파일의 메타데이터 및 바이트 읽기
+            String originalFileName = getFile.getOriginalName(); // DB에 저장된 원본 파일명
+            String contentType = Files.probeContentType(path);   // 파일 타입 (image/png 등) 자동 감지
+            byte[] content = Files.readAllBytes(path);           // 실제 파일 데이터 읽기
+
+            // 4. MockMultipartFile에 담아서 반환
+            return new MockMultipartFile(
+                    "file",              // 필드명
+                    originalFileName,    // 원본 파일명
+                    contentType,         // 컨텐츠 타입
+                    content              // 파일 바이트 데이터
+            );
+
+        } catch (IOException e) {
+            log.error("파일 로드 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("서버에서 파일을 읽을 수 없습니다.", e);
+        }
+    }
+    }
