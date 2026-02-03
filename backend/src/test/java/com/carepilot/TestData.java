@@ -73,6 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -189,6 +190,30 @@ public class TestData {
     /** 케어 그룹 이름 (업체당 2개) */
     private static final String[] CARETARGET_GROUP_NAMES = { "일상 케어 그룹", "고위험 관리 그룹" };
 
+    /** 업체 1 대량 추가용 실명 100명 (동명이인 없음) */
+    private static final String[] BULK_CARETARGET_NAMES = {
+            "김도윤", "이서준", "박시우", "최하준", "정지호", "강민재", "조준서", "윤현우", "장지훈", "한우진",
+            "오승현", "신재민", "홍성민", "권태윤", "송예성", "김준혁", "이도현", "박시현", "최민성", "정준영",
+            "강현서", "조성준", "윤재윤", "장민준", "한시윤", "오지원", "신건우", "홍현준", "권우빈", "송민석",
+            "김태현", "이준호", "박재현", "최성훈", "정시원", "강민호", "조현서", "윤지환", "장승민", "한동현",
+            "오재윤", "신민규", "홍지원", "권준혁", "송도훈", "김시현", "이민재", "박현우", "최지훈", "정우진",
+            "강재민", "조도윤", "윤시우", "장하준", "한지호", "오민재", "신준서", "홍서우", "권지훈", "송우진",
+            "김재민", "이승현", "박예성", "최도현", "정시현", "강민성", "조준영", "윤현서", "장성준", "한재윤",
+            "오민준", "신시윤", "홍지은", "권건우", "송현준", "김우빈", "이민석", "박태현", "최준호", "정재현",
+            "강성훈", "조시원", "윤민호", "장현서", "한지환", "오승민", "신동현", "홍재윤", "권민규", "송지아",
+            "김도훈", "이도훈", "박민재", "최민재", "정현서", "강지훈", "조우진", "윤재민", "장도윤", "한시우",
+            "오하준", "신지호", "홍민재", "권준서", "송현우", "김지훈", "이우진", "박재민", "최승현", "정예성",
+            "강도현", "조시연", "윤민성", "장준영", "한현서", "오성준", "신재윤", "홍민준", "권시윤", "송지유",
+            "김건우", "이현준", "박우빈", "최민석", "정태현", "강준호", "조재현", "윤성훈", "장시원", "한민호",
+            "오현서", "신지환", "홍승민", "권동현", "송재윤", "김민규", "이지원", "박도훈", "최시현", "정민재",
+            "강현우", "조지훈", "윤우진", "장재민", "한승현", "오예성", "신도현", "홍시현", "권민성", "송준영",
+            "김현서", "이성준", "박재윤", "최민준", "정시윤", "강지원", "조건우", "윤현준", "장우빈", "한민석",
+            "오태현", "신준호", "홍재현", "권성훈", "송시원", "김민호", "이서윤", "박지환", "최승민", "정동현",
+            "강재윤", "조민규", "윤지원", "장도훈", "한시현", "오서연", "신현우", "홍지훈", "권우진", "송재민",
+            "김승현", "이예성", "박도현", "최유나", "정민성", "강준영", "조하은", "윤성준", "장재윤", "한민준",
+            "오시윤", "신지원", "홍건우", "권현준", "송우빈", "김민석", "이태현", "박준호", "최재현", "정성훈"
+    };
+
     @Test
     @DisplayName("더미 데이터 일괄 삽입: Organization → Doctor → User → Scenario → ScenarioQuestion, 있으면 건너뜀")
     void insertAllDummyData() {
@@ -209,6 +234,301 @@ public class TestData {
         insertInboundAndOutboundSms(orgs);
         insertPrescriptions(orgs);
         log.info("=== 더미 데이터 생성 완료: Organization {}개, Doctor 20명, User 20명, Scenario {}개, CareTarget, CallSchedule, Call, Notification, Task, Notice, Comment, InboundSms, OutboundSms, Prescription ===", orgs.size(), scenarios.size());
+    }
+
+    /**
+     * 업체별 케어대상자 +100명, 인당 RiskScore 추이 약 10건, 케어대상 그룹에 비슷하게 배치.
+     * insertAllDummyData()와 별도로 실행하는 테스트 전용 메서드.
+     */
+    @Test
+    @DisplayName("업체별 케어대상자 100명 + RiskScore 추이 + 그룹 매핑 (테스트 전용)")
+    void insertBulkCareTargetsPerOrg() {
+        log.info("=== 업체별 케어대상자 100명 + RiskScore + 그룹 매핑 시작 (업체 1만, ID2 미적용) ===");
+        List<Organization> orgs = new ArrayList<>();
+        organizationRepository.findByOrganizationNumber(TEST_ORG_NUMBERS[0]).ifPresent(orgs::add);
+        if (orgs.isEmpty()) {
+            log.warn("Organization 없음. insertAllDummyData()를 먼저 실행하세요.");
+            return;
+        }
+        int totalTargetsCreated = 0;
+        int totalRiskScoresCreated = 0;
+        int totalMapsCreated = 0;
+        for (int o = 0; o < orgs.size(); o++) {
+            Organization org = orgs.get(o);
+            List<CareTarget> existingInOrg = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(org.getOrganizationId(), null);
+            List<Doctor> doctors = doctorRepository.findByOrganization(org);
+            Doctor doctor = doctors.isEmpty() ? null : doctors.get(0);
+            int orgPrefix = 9001 + o;
+            List<CareTarget> newTargets = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                String targetPhone = "010-" + orgPrefix + "-" + String.format("%04d", 2000 + i);
+                if (existingInOrg.stream().anyMatch(c -> targetPhone.equals(c.getTargetPhone()))) {
+                    log.debug("기존 CareTarget 건너뜀: {} {}", org.getName(), targetPhone);
+                    continue;
+                }
+                String name = BULK_CARETARGET_NAMES[i % BULK_CARETARGET_NAMES.length];
+                int idx = i % CARETARGET_DISEASES.length;
+                String disease = CARETARGET_DISEASES[idx];
+                String guardianName = GUARDIAN_NAMES[idx];
+                String guardianPhone = "010-" + orgPrefix + "-" + String.format("%04d", 3000 + i);
+                String relationship = GUARDIAN_RELATIONSHIPS[i % GUARDIAN_RELATIONSHIPS.length];
+                CareTarget target = CareTarget.builder()
+                        .organization(org)
+                        .name(name)
+                        .age(65 + (i % 25))
+                        .gender(i % 2 == 0 ? "남성" : "여성")
+                        .disease(disease)
+                        .targetPhone(targetPhone)
+                        .guardianName(guardianName)
+                        .guardianPhone(guardianPhone)
+                        .guardianRelationship(relationship)
+                        .doctor(doctor)
+                        .build();
+                target = careTargetRepository.save(target);
+                newTargets.add(target);
+                existingInOrg.add(target);
+                totalTargetsCreated++;
+                log.debug("CareTarget 신규: {} - {} ({})", org.getName(), name, disease);
+            }
+            log.info("CareTarget 신규: {} - {}명", org.getName(), newTargets.size());
+
+            // RiskScore 추이: 신규 대상자당 약 10건 (3일마다 패턴 10포인트), idempotent
+            LocalDateTime rangeStart = LocalDateTime.now().minusDays(35);
+            List<RiskScore> allInRange = riskScoreRepository.findAll().stream()
+                    .filter(rs -> rs.getCalculatedAt() != null && !rs.getCalculatedAt().isBefore(rangeStart))
+                    .toList();
+            int[] dayOffsets = { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27 };
+            int riskScoresThisOrg = 0;
+            for (CareTarget target : newTargets) {
+                long existingCount = allInRange.stream()
+                        .filter(rs -> rs.getCareTarget().getCareTargetId().equals(target.getCareTargetId()))
+                        .count();
+                if (existingCount >= 8) continue;
+                for (int dayOffset : dayOffsets) {
+                    LocalDateTime calculatedAt = LocalDateTime.now().minusDays(dayOffset).withHour(10).withMinute(0).withSecond(0).withNano(0);
+                    int band = ThreadLocalRandom.current().nextInt(3);
+                    int riskScoreValue = band == 0 ? 20 + ThreadLocalRandom.current().nextInt(21)
+                            : band == 1 ? 40 + ThreadLocalRandom.current().nextInt(31)
+                            : 70 + ThreadLocalRandom.current().nextInt(31);
+                    RiskLevel riskLevel = riskScoreValue >= 70 ? RiskLevel.HIGH : riskScoreValue >= 40 ? RiskLevel.MEDIUM : RiskLevel.LOW;
+                    riskScoreRepository.save(RiskScore.builder()
+                            .organization(org)
+                            .careTarget(target)
+                            .call(null)
+                            .riskScore(riskScoreValue)
+                            .riskLevel(riskLevel)
+                            .calculatedAt(calculatedAt)
+                            .build());
+                    riskScoresThisOrg++;
+                    totalRiskScoresCreated++;
+                }
+            }
+            log.info("RiskScore 추이: {} - 신규 {}건 (대상자당 약 10건)", org.getName(), riskScoresThisOrg);
+
+            // 케어대상 그룹에 비슷하게 배치 (한 대상자당 한 그룹만)
+            List<CareTargetGroup> groups = careTargetGroupRepository.findAllByOrgId(org.getOrganizationId());
+            if (groups.size() < 2) {
+                log.warn("그룹이 2개 미만: {} - 그룹 매핑 스킵", org.getName());
+                continue;
+            }
+            List<CareTargetGroupMap> existingMaps = careTargetGroupMapRepository.findAllGroupList(org.getOrganizationId());
+            java.util.Set<Long> mappedCareTargetIds = existingMaps.stream()
+                    .map(m -> m.getCareTarget().getCareTargetId())
+                    .collect(java.util.stream.Collectors.toSet());
+            CareTargetGroup group0 = groups.get(0);
+            CareTargetGroup group1 = groups.get(1);
+            int toGroup0 = 0;
+            int toGroup1 = 0;
+            for (CareTarget target : newTargets) {
+                if (mappedCareTargetIds.contains(target.getCareTargetId())) continue;
+                boolean assignToFirst = ThreadLocalRandom.current().nextBoolean();
+                CareTargetGroup group = assignToFirst ? group0 : group1;
+                careTargetGroupMapRepository.save(CareTargetGroupMap.builder()
+                        .group(group)
+                        .careTarget(target)
+                        .build());
+                if (assignToFirst) toGroup0++; else toGroup1++;
+                totalMapsCreated++;
+            }
+            log.info("CareTargetGroupMap: {} - 일상그룹 {}명, 고위험그룹 {}명 (총 {}명)", org.getName(), toGroup0, toGroup1, toGroup0 + toGroup1);
+        }
+        if (!orgs.isEmpty()) {
+            insertBulkCallHistoryOrg1(orgs.get(0));
+        }
+        log.info("=== 업체별 케어대상자 100명 처리 완료: CareTarget {}명, RiskScore {}건, CareTargetGroupMap {}건 ===", totalTargetsCreated, totalRiskScoresCreated, totalMapsCreated);
+    }
+
+    /**
+     * 업체 1 전용: 2025-12-01 ~ 2026-02-03 콜 이력 월별 약 1,000건(12·1월 서로 다르게, 2월은 3일 비율), 성공률 70%, SUCCESS건 RiskScore·녹음 연결.
+     */
+    private void insertBulkCallHistoryOrg1(Organization org) {
+        List<CareTarget> careTargets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(org.getOrganizationId(), null);
+        if (careTargets.isEmpty()) {
+            log.warn("업체 1 케어대상 없음. insertBulkCareTargetsPerOrg 먼저 실행하세요.");
+            return;
+        }
+        LocalDateTime rangeStart = LocalDateTime.of(2025, 12, 1, 0, 0, 0);
+        LocalDateTime rangeEnd = LocalDateTime.of(2026, 2, 4, 0, 0, 0);
+        long existingInRange = callRepository.findByOrganizationOrganizationIdOrderByStartTimeDesc(org.getOrganizationId()).stream()
+                .filter(c -> c.getStartTime() != null && !c.getStartTime().isBefore(rangeStart) && c.getStartTime().isBefore(rangeEnd))
+                .count();
+        if (existingInRange >= 2_000) {
+            log.info("업체 1 해당 기간 콜 이미 충분 ({}건). 대량 콜 이력 스킵.", existingInRange);
+            return;
+        }
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        int countDec = 970 + rnd.nextInt(61);
+        int countJan = 970 + rnd.nextInt(61);
+        while (countJan == countDec) {
+            countJan = 970 + rnd.nextInt(61);
+        }
+        int countFeb = (int) Math.round(3.0 / 28 * 1000);
+        countFeb = Math.max(90, Math.min(120, countFeb + rnd.nextInt(21) - 10));
+        int totalCalls = countDec + countJan + countFeb;
+        // 월별 성공률: 12월 ~72%, 1월 ~74%, 2월 ~70% (소수점 나오도록 비율 조정)
+        int successCountDec = (int) (countDec * 0.72) + rnd.nextInt(9) - 4;
+        successCountDec = Math.max(0, Math.min(countDec, successCountDec));
+        int successCountJan = (int) (countJan * 0.74) + rnd.nextInt(9) - 4;
+        successCountJan = Math.max(0, Math.min(countJan, successCountJan));
+        int successCountFeb = (int) (countFeb * 0.70) + rnd.nextInt(5) - 2;
+        successCountFeb = Math.max(0, Math.min(countFeb, successCountFeb));
+        List<Boolean> decSuccess = new ArrayList<>(countDec);
+        for (int k = 0; k < successCountDec; k++) decSuccess.add(true);
+        for (int k = successCountDec; k < countDec; k++) decSuccess.add(false);
+        Collections.shuffle(decSuccess);
+        List<Boolean> janSuccess = new ArrayList<>(countJan);
+        for (int k = 0; k < successCountJan; k++) janSuccess.add(true);
+        for (int k = successCountJan; k < countJan; k++) janSuccess.add(false);
+        Collections.shuffle(janSuccess);
+        List<Boolean> febSuccess = new ArrayList<>(countFeb);
+        for (int k = 0; k < successCountFeb; k++) febSuccess.add(true);
+        for (int k = successCountFeb; k < countFeb; k++) febSuccess.add(false);
+        Collections.shuffle(febSuccess);
+        String[] successSummaries = {
+                "정기 건강 확인 통화. 약 복용 정상, 특이 증상 없음.",
+                "수면 패턴 문의. 새벽 각성 있음. 추후 상담 예정.",
+                "혈압 확인. 130/80 유지. 생활 습관 유지 권고."
+        };
+        String[] failSummaries = { "통화 연결 실패.", "무응답.", "통화 취소됨." };
+        String[] transcripts = {
+                """
+                AI: 오늘 컨디션이 어떠신가요?
+                케어대상: 좋아요!
+                AI: 좋으시다니 정말 다행이네요. 통증이나 불편함이 있으신가요?
+                케어대상: 아니요.
+                요청사항: 다음 주 목요일 오후 3시에 예약 변경해 주세요.
+                """,
+                """
+                AI: 요즘 잠은 잘 주무시나요?
+                케어대상: 가끔 새벽에 깨요.
+                AI: 그렇군요. 통증이나 불편함은 없으신가요?
+                케어대상: 괜찮아요.
+                요청사항: 다음 주 금요일 오후 3시에 예약 변경해 주세요.
+                """,
+                """
+                AI: 최근 혈압 수치 확인해 주셨나요?
+                케어대상: 130에 80이에요.
+                AI: 괜찮은 편이에요. 유지해 주세요.
+                케어대상: 감사해요.
+                요청사항: 담당 의료진을 변경해주세요.
+                """
+        };
+        CallStatus[] failStatuses = { CallStatus.FAILED, CallStatus.NO_ANSWER, CallStatus.CANCELLED };
+        int created = 0;
+        int successCount = 0;
+        long seq = System.nanoTime();
+        for (int i = 0; i < totalCalls; i++) {
+            CareTarget target = careTargets.get(rnd.nextInt(careTargets.size()));
+            LocalDateTime startTime;
+            if (i < countDec) {
+                int day = rnd.nextInt(31);
+                int hour = 8 + rnd.nextInt(11);
+                int min = rnd.nextInt(60);
+                startTime = LocalDateTime.of(2025, 12, 1, 0, 0, 0).plusDays(day).withHour(hour).withMinute(min).withSecond(0).withNano(0);
+            } else if (i < countDec + countJan) {
+                int day = rnd.nextInt(31);
+                int hour = 8 + rnd.nextInt(11);
+                int min = rnd.nextInt(60);
+                startTime = LocalDateTime.of(2026, 1, 1, 0, 0, 0).plusDays(day).withHour(hour).withMinute(min).withSecond(0).withNano(0);
+            } else {
+                int day = rnd.nextInt(3);
+                int hour = 8 + rnd.nextInt(11);
+                int min = rnd.nextInt(60);
+                startTime = LocalDateTime.of(2026, 2, 1, 0, 0, 0).plusDays(day).withHour(hour).withMinute(min).withSecond(0).withNano(0);
+            }
+            boolean success = i < countDec ? decSuccess.get(i)
+                    : i < countDec + countJan ? janSuccess.get(i - countDec)
+                    : febSuccess.get(i - countDec - countJan);
+            CallStatus status = success ? CallStatus.SUCCESS : failStatuses[rnd.nextInt(failStatuses.length)];
+            Integer duration = success ? rnd.nextInt(60, 421) : 0;
+            LocalDateTime endTime = success ? startTime.plusSeconds(duration) : null;
+            String callSid = "bulk_1_" + seq + "_" + i;
+            Call call = Call.builder()
+                    .organization(org)
+                    .careTarget(target)
+                    .callSchedule(null)
+                    .operatorId(null)
+                    .direction(CallDirection.OUTBOUND)
+                    .callType(CallType.REGULAR_MONITORING)
+                    .status(status)
+                    .duration(duration)
+                    .startTime(startTime)
+                    .endTime(endTime)
+                    .summary(success ? successSummaries[rnd.nextInt(successSummaries.length)] : failSummaries[status.ordinal() - 1])
+                    .aiMemo(success ? "통화 내용 요약 반영됨." : null)
+                    .signals(null)
+                    .callerId(null)
+                    .callSid(callSid)
+                    .build();
+            call = callRepository.save(call);
+            if (success) {
+                successCount++;
+                UploadFile file = uploadFileRepository.save(UploadFile.builder()
+                        .organization(org)
+                        .targetType(UploadTargetType.CALL_LOG)
+                        .fileType(UploadFileType.AUDIO)
+                        .notice(null)
+                        .careTarget(target)
+                        .call(call)
+                        .originalName("record_" + call.getCallId() + ".mp3")
+                        .storagePath("CALL_LOG/" + UUID.randomUUID() + ".mp3")
+                        .contentType("audio/mpeg")
+                        .fileSize(256000L)
+                        .uploadedBy(null)
+                        .build());
+                callRecordingRepository.save(CallRecording.builder()
+                        .call(call)
+                        .file(file)
+                        .transcript(transcripts[rnd.nextInt(transcripts.length)])
+                        .build());
+                int band = rnd.nextInt(3);
+                int riskScoreValue = band == 0 ? 20 + rnd.nextInt(21)
+                        : band == 1 ? 40 + rnd.nextInt(31)
+                        : 70 + rnd.nextInt(31);
+                RiskLevel riskLevel = riskScoreValue >= 70 ? RiskLevel.HIGH : riskScoreValue >= 40 ? RiskLevel.MEDIUM : RiskLevel.LOW;
+                riskScoreRepository.save(RiskScore.builder()
+                        .organization(org)
+                        .careTarget(target)
+                        .call(call)
+                        .riskScore(riskScoreValue)
+                        .riskLevel(riskLevel)
+                        .calculatedAt(endTime)
+                        .build());
+            }
+            created++;
+            if (created % 500 == 0) {
+                log.info("대량 콜 이력 진행: {} / {}", created, totalCalls);
+            }
+        }
+        double rateDec = countDec > 0 ? (100.0 * successCountDec / countDec) : 0;
+        double rateJan = countJan > 0 ? (100.0 * successCountJan / countJan) : 0;
+        double rateFeb = countFeb > 0 ? (100.0 * successCountFeb / countFeb) : 0;
+        double successRate = totalCalls > 0 ? (100.0 * successCount / totalCalls) : 0;
+        log.info("업체 1 대량 콜 이력 완료: 12월 {}건(성공 {}건, {}%), 1월 {}건(성공 {}건, {}%), 2월 {}건(성공 {}건, {}%), 총 {}건, 전체 성공률 {}%)",
+                countDec, successCountDec, String.format("%.2f", rateDec),
+                countJan, successCountJan, String.format("%.2f", rateJan),
+                countFeb, successCountFeb, String.format("%.2f", rateFeb),
+                created, successCount, String.format("%.2f", successRate));
     }
 
     /** Organization 2개 (있으면 재사용, 없으면 생성) */
