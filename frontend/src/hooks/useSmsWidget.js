@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getSmsMessages, sendSmsTest } from '../api/callApi';
+import { getSmsMessages, sendSms } from '../api/smsApi';
 import { getCareTargetAllList } from '../api/caretarget/careTargetApi';
 import { useAuth } from './useAuth';
 
@@ -278,7 +278,7 @@ export function useSmsWidget() {
 
     setSending(true);
     try {
-      await sendSmsTest({ to: trimmedTo, message: trimmedMsg });
+      await sendSms({ to: trimmedTo, message: trimmedMsg });
       setMessage('');
       await loadList();
     } catch (error) {
