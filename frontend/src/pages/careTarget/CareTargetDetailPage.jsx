@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { getCareTargetDetail, doctorList, updateCareTargetDetail } from '../../api/caretarget/careTargetApi';
 import ProfileSection from '../../components/caretarget/caretargetdetail/ProfileSection';
 import { AiAnalysisBox, RiskTrendChart } from '../../components/caretarget/caretargetdetail/RiskTrendChart';
 import CallHistoryTable from '../../components/caretarget/caretargetdetail/CallHistoryTable';
 import PrescriptionHistoryTable from '../../components/caretarget/caretargetdetail/PrescriptionHistoryTable';
+import Breadcrumb from '../../components/common/Breadcrumb';
 import { useAuth } from '../../hooks/useAuth';
 
 function CareTargetDetailPage() {
@@ -105,50 +106,74 @@ function CareTargetDetailPage() {
     finally { setLoading(false); }
   };
 
-  if (loading) return <div className="p-20 text-center font-bold text-[#008080]">데이터를 불러오는 중입니다...</div>;
-  if (!data) return <div className="p-20 text-center font-bold text-slate-400">대상자 정보를 찾을 수 없습니다.</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 gap-4">
+        <Loader2 className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full" size={48} />
+        <p className="text-slate-400 text-sm font-mono">// Loading patient data...</p>
+      </div>
+    );
+  }
+  
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 bg-slate-800 border border-slate-700">
+        <div className="w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded flex items-center justify-center mb-5">
+          <span className="text-3xl text-slate-600">[ ]</span>
+        </div>
+        <p className="text-slate-300 font-mono font-semibold text-base mb-2">// No patient data found</p>
+        <p className="text-slate-500 text-sm font-mono">// 대상자 정보를 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8 bg-[#F8FAFB] min-h-screen font-sans text-slate-900">
-      <div className="flex justify-between items-center mb-10">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/care-target')} className="flex items-center text-slate-400 hover:text-[#008080] font-bold text-sm transition-colors">
-            <ChevronLeft size={20} /> 목록으로
-          </button>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">대상자 상세 정보</h1>
-        </div>
-        
-        {/* 권한 제어: ADMIN 또는 MANAGER만 수정 버튼 및 저장/취소 버튼을 볼 수 있음 */}
-        {(role === 'ADMIN' || role === 'MANAGER') && (
-          <div className="flex gap-2">
-            {isEditing ? (
-              <>
-                <button 
-                  onClick={() => { setIsEditing(false); fetchData(); setPreviewUrl(null); setNewFile(null); }} 
-                  className="px-5 py-2 border border-slate-200 rounded-xl bg-white text-sm font-bold text-slate-500"
-                >
-                  취소
-                </button>
-                <button 
-                  onClick={handleSave} 
-                  className="px-5 py-2 bg-[#008080] rounded-xl text-sm font-bold text-white shadow-lg"
-                >
-                  저장하기
-                </button>
-              </>
-            ) : (
-              <button 
-                onClick={() => setIsEditing(true)} 
-                className="px-6 py-2 border border-[#008080] rounded-xl bg-white text-sm font-bold text-[#008080] hover:bg-[#008080] hover:text-white transition-all shadow-sm"
-              >
-                정보 수정
-              </button>
-            )}
-          </div>
-        )}
+    <>      
+      <div className="mb-8">
       </div>
 
-      <div className="grid grid-cols-12 gap-8 items-stretch mb-8">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/care-target')} 
+            className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+          >
+            <ChevronLeft size={18} />
+            목록으로
+          </button>
+          
+          {/* 권한 제어: ADMIN 또는 MANAGER만 수정 버튼 및 저장/취소 버튼을 볼 수 있음 */}
+          {(role === 'ADMIN' || role === 'MANAGER') && (
+            <>
+              {isEditing ? (
+                <>
+                  <button 
+                    onClick={() => { setIsEditing(false); fetchData(); setPreviewUrl(null); setNewFile(null); }} 
+                    className="px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 border border-slate-600 text-slate-300 rounded-sm text-sm font-semibold hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    취소
+                  </button>
+                  <button 
+                    onClick={handleSave} 
+                    className="px-5 py-2.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 border border-teal-500 text-white rounded-sm text-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    저장하기
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => setIsEditing(true)} 
+                  className="px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-orange-400 border border-orange-500/50 hover:border-orange-500 rounded-sm text-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  정보 수정
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-6 items-stretch mb-8">
         <div className="col-span-12 lg:col-span-4 flex">
           <ProfileSection 
             data={data} 
@@ -172,14 +197,14 @@ function CareTargetDetailPage() {
             setImgError={setImgError}
           />
         </div>
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-8">
+        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
           <RiskTrendChart trendList={data.riskTrendDTOS || []} />
           <AiAnalysisBox aiMemo={data.aiMemo} />
         </div>
       </div>
       <CallHistoryTable history={data.callHistoryDTOS || []} />
       <PrescriptionHistoryTable list={data.prescriptionHistoryDTOS || []} />
-    </div>
+    </>
   );
 }
 

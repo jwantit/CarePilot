@@ -43,9 +43,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
 
           //------- 환자 목록은 리덕스 Thunk 호출 (필터/검색어 없이 전체 요청) -------
           dispatch(fetchCareTargets({ 
-            organizationId: organizationId || 1, 
-            filterStatus: 'all', 
-            keyword: '' 
+            organizationId: organizationId || 1
           }));
           //------------------------------------------------------------------
         } catch (error) {
@@ -120,136 +118,150 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
   const isDataLoading = loading || reduxLoading;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
       
-      <div className="relative bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 w-full max-w-2xl rounded-sm shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
         
-        <div className="p-6 border-b border-slate-50 flex justify-between items-center shrink-0">
-          <div>
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight">새 그룹 구성</h2>
-            <p className="text-slate-500 text-xs font-medium">모든 항목을 입력하고 대상자를 선택해주세요.</p>
+        <div className="relative px-6 py-4 text-slate-800 bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700">
+          <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"><X size={20} /></button>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
+              <UserPlus size={20} />
+            </div>
+            <div className="text-left">
+              <h2 className="text-xl font-bold text-slate-100 tracking-tight leading-tight">새 그룹 구성</h2>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">모든 항목을 입력하고 대상자를 선택해주세요.</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400"><X size={24} /></button>
         </div>
 
-        <div className="p-6 overflow-y-auto custom-scrollbar space-y-6 flex-1">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 modal-scrollbar">
           
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 ml-1 uppercase tracking-wider">
-                <Tag size={12} style={{ color: '#008080' }} /> 그룹 이름
-              </label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-200 ml-1">그룹 이름 *</label>
               <input 
                 type="text" value={formData.groupName} 
                 onChange={(e) => setFormData({...formData, groupName: e.target.value})}
-                placeholder="필수 입력"
-                className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-semibold focus:ring-2 outline-none transition-all"
-                style={{ '--tw-ring-color': '#008080' }}
+                placeholder="그룹 이름을 입력하세요"
+                className="w-full px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 ml-1 uppercase tracking-wider">
-                <AlignLeft size={12} style={{ color: '#008080' }} /> 그룹 설명
-              </label>
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-200 ml-1">그룹 설명 *</label>
               <input 
                 type="text" value={formData.groupDescription}
                 onChange={(e) => setFormData({...formData, groupDescription: e.target.value})}
-                placeholder="필수 입력"
-                className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-semibold focus:ring-2 outline-none transition-all"
-                style={{ '--tw-ring-color': '#008080' }}
+                placeholder="그룹 설명을 입력하세요"
+                className="w-full px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                <BookOpen size={12} style={{ color: '#008080' }} /> 시나리오 선택 (필수)
-            </label>
-            <div className="max-h-32 overflow-y-auto pr-1 space-y-2 custom-scrollbar border rounded-2xl p-2 border-slate-50">
-              {scenarios.map((sc) => (
-                <div
-                  key={sc.scenarioId}
-                  onClick={() => setFormData({...formData, scenarioId: sc.scenarioId})}
-                  className={`p-3 px-4 rounded-xl cursor-pointer transition-all border-2 flex justify-between items-center ${
-                    formData.scenarioId === sc.scenarioId ? 'border-teal-500 bg-teal-50/30' : 'bg-white border-slate-50 hover:border-slate-200'
-                  }`}
-                >
-                  <div className="space-y-0.5">
-                    <p className={`text-sm font-bold ${formData.scenarioId === sc.scenarioId ? 'text-teal-700' : 'text-slate-700'}`}>{sc.scenarioName}</p>
-                    <p className="text-[11px] text-slate-400 font-medium">{sc.scenarioDescription}</p>
+            <label className="block text-sm font-semibold text-slate-200 ml-1">시나리오 선택 *</label>
+            <div className="max-h-32 overflow-y-auto pr-1 space-y-2 modal-scrollbar border border-slate-700 rounded-sm p-2 bg-gradient-to-br from-slate-900 to-slate-950">
+              {scenarios && scenarios.length > 0 ? (
+                scenarios.map((sc) => (
+                  <div
+                    key={sc.scenarioId}
+                    onClick={() => setFormData({...formData, scenarioId: sc.scenarioId})}
+                    className={`p-3 px-4 rounded-sm cursor-pointer transition-all border flex justify-between items-center shadow-sm ${
+                      formData.scenarioId === sc.scenarioId 
+                        ? 'border-teal-500 bg-gradient-to-br from-teal-500/20 to-teal-600/20 hover:from-teal-500/30 hover:to-teal-600/30' 
+                        : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-600 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="space-y-0.5">
+                      <p className={`text-sm font-bold ${formData.scenarioId === sc.scenarioId ? 'text-teal-400' : 'text-slate-200'}`}>{sc.scenarioName}</p>
+                      <p className="text-xs text-slate-400 font-medium">{sc.scenarioDescription}</p>
+                    </div>
+                    {formData.scenarioId === sc.scenarioId && <CheckCircle2 size={16} className="text-teal-400" />}
                   </div>
-                  {formData.scenarioId === sc.scenarioId && <CheckCircle2 size={16} className="text-teal-500" />}
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-xs text-slate-400 text-center py-2">사용 가능한 시나리오가 없습니다.</p>
+              )}
             </div>
           </div>
 
           <div className="space-y-3 pt-2">
-            <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 ml-1 uppercase tracking-wider">
-              <UserPlus size={12} style={{ color: '#008080' }} /> 대상자 선택 (필수)
-            </label>
+            <label className="block text-sm font-semibold text-slate-200 ml-1">대상자 선택 * ({selectedPatients.length}명 선택됨)</label>
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
               <input 
                 type="text" 
                 placeholder="이름, 나이, 위험도, 질환명 검색..."
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-medium focus:ring-2 outline-none transition-all"
-                style={{ '--tw-ring-color': '#008080' }}
+                className="w-full pl-11 pr-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-sm font-medium text-slate-200 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all shadow-sm"
               />
             </div>
 
-            <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border-t border-slate-50">
+            <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border-t border-slate-700 modal-scrollbar">
               {isDataLoading ? (
-                <div className="py-10 flex flex-col items-center text-slate-300 gap-2"><Loader2 size={24} className="animate-spin text-teal-500" /></div>
+                <div className="py-10 flex flex-col items-center text-slate-400 gap-2">
+                  <Loader2 size={24} className="animate-spin text-teal-400" />
+                  <p className="text-xs font-semibold">데이터를 불러오는 중...</p>
+                </div>
               ) : filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => {
                   const isSelected = selectedPatients.some(p => p.careTargetId === patient.careTargetId);
                   
-                  // ★ 수정된 부분: riskLevel이 null이면 NORMAL로 간주하여 teal 색상 적용
-                  const isHighRisk = patient.riskLevel === 'HIGH' || patient.riskLevel === 'CRITICAL';
-                  const isMediumRisk = patient.riskLevel === 'MEDIUM';
+                  const isCritical = patient.riskLevel === 'CRITICAL';
+                  const isHigh = patient.riskLevel === 'HIGH';
+                  const isMedium = patient.riskLevel === 'MEDIUM';
+                  const isLow = patient.riskLevel === 'LOW' || patient.riskLevel === 'NORMAL';
                   
-                  const riskColor = isHighRisk ? 'bg-red-500' : isMediumRisk ? 'bg-orange-400' : 'bg-teal-400';
+                  const riskBadgeClasses = 
+                    isCritical ? 'bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50 shadow-sm' :
+                    isHigh ? 'bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50 shadow-sm' :
+                    isMedium ? 'bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50 shadow-sm' :
+                    'bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50 shadow-sm';
                   
                   return (
                     <div 
                       key={patient.careTargetId} 
                       onClick={() => togglePatient(patient)}
-                      className={`flex items-center p-3 px-5 rounded-xl cursor-pointer transition-all border ${
-                        isSelected ? 'border-teal-200 bg-[#f0f9f9] shadow-sm' : 'bg-white border-transparent hover:bg-slate-50'
+                      className={`flex items-center p-3 px-5 rounded-sm cursor-pointer transition-all border shadow-sm ${
+                        isSelected 
+                          ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 border-teal-500/50 hover:from-teal-500/30 hover:to-teal-600/30' 
+                          : 'bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-slate-700 hover:from-slate-700/50 hover:to-slate-800/50'
                       }`}
                     >
-                      <div className="flex-1 grid grid-cols-4 items-center">
-                        <p className={`text-sm font-bold ${isSelected ? 'text-teal-700' : 'text-slate-700'}`}>{patient.name}</p>
-                        <p className="text-[11px] text-slate-400 font-semibold">{patient.gender === 'M' || patient.gender === '남성' ? '남성' : '여성'} / {patient.age}세</p>
-                        <p className="text-[11px] text-slate-500 font-bold truncate pr-2">{patient.disease || '-'}</p>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-1.5 h-1.5 rounded-full ${riskColor}`} />
-                          <p className={`text-[10px] font-black uppercase ${isHighRisk ? 'text-red-500' : isMediumRisk ? 'text-orange-400' : 'text-teal-500'}`}>
+                      <div className="flex-1 grid grid-cols-4 items-center gap-4">
+                        <p className={`text-sm font-bold ${isSelected ? 'text-teal-400' : 'text-slate-200'}`}>{patient.name}</p>
+                        <p className="text-[11px] text-slate-400 font-medium">{patient.gender === 'M' || patient.gender === '남성' ? '남성' : '여성'} · {patient.age}세</p>
+                        <p className="text-[11px] text-slate-400 font-medium truncate pr-2">{patient.disease || '-'}</p>
+                        <div className="flex items-center">
+                          <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${riskBadgeClasses}`}>
                             {patient.riskLevel || 'NORMAL'} 
-                          </p>
+                          </span>
                         </div>
                       </div>
-                      {isSelected && <CheckCircle2 size={18} className="text-teal-600 shrink-0" />}
+                      <div className={`w-6 h-6 rounded-sm flex items-center justify-center transition-all shadow-sm ${
+                        isSelected 
+                          ? 'bg-gradient-to-br from-teal-500 to-teal-600 border border-teal-500' 
+                          : 'bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-600'
+                      }`}>
+                        {isSelected && <CheckCircle2 size={16} className="text-white" />}
+                      </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="text-center py-10 text-slate-300 text-xs font-medium">검색 결과가 없습니다.</div>
+                <div className="text-center py-10 text-slate-400 text-sm font-medium">검색 결과가 없습니다.</div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="p-6 bg-white border-t border-slate-50 shrink-0">
+        <div className="p-6 bg-gradient-to-r from-slate-800 to-slate-900 border-t border-slate-700 shrink-0">
           <div className="min-h-[32px] flex flex-wrap gap-1.5 mb-4">
             {selectedPatients.map(p => (
-              <span key={p.careTargetId} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black border bg-[#f0f9f9] text-[#008080] border-[#cceded]">
+              <span key={p.careTargetId} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-black border bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 shadow-md">
                 {p.name}
-                <X size={12} className="cursor-pointer" onClick={() => togglePatient(p)} />
+                <X size={12} className="cursor-pointer text-slate-400 hover:text-white" onClick={() => togglePatient(p)} />
               </span>
             ))}
           </div>
@@ -260,17 +272,22 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                     * 모든 항목을 입력하고 대상자를 최소 1명 선택해주세요.
                 </p>
             )}
-            <div className="flex gap-2">
-              <button onClick={onClose} disabled={isSubmitting} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-all">취소</button>
+            <div className="flex gap-3">
+              <button 
+                onClick={onClose} 
+                disabled={isSubmitting} 
+                className="flex-1 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                취소
+              </button>
               <button 
                 disabled={!isFormValid || isDataLoading || isSubmitting}
                 onClick={handleSubmit}
-                className={`flex-[2] py-3 font-bold rounded-xl text-sm transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2`}
-                style={{ 
-                  backgroundColor: !isFormValid || isDataLoading || isSubmitting ? '#f1f5f9' : '#008080',
-                  color: !isFormValid || isDataLoading || isSubmitting ? '#cbd5e1' : 'white',
-                  cursor: isFormValid && !isSubmitting ? 'pointer' : 'not-allowed'
-                }}
+                className={`flex-[2] py-2.5 rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 ${
+                  !isFormValid || isDataLoading || isSubmitting 
+                    ? 'bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 text-slate-400 cursor-not-allowed' 
+                    : 'bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white hover:from-teal-500 hover:to-teal-600'
+                }`}
               >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : null}
                 그룹 생성 ({selectedPatients.length}명)

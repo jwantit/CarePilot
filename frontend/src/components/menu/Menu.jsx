@@ -81,8 +81,8 @@ function Menu() {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
-      <div className="container mx-auto px-6">
+    <nav className="bg-slate-800 border-b border-slate-700 shadow-lg">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* 로고 영역 */}
           <Link to="/" className="flex items-center space-x-3">
@@ -95,8 +95,9 @@ function Menu() {
                 e.target.style.display = "none";
               }}
             />
-            <span className="text-xl font-semibold" style={{ color: "#333" }}>
-              Care<span className="text-teal-500">Pilot</span>
+
+            <span className="text-xl font-semibold text-slate-200">
+              Care<span className="text-teal-400">Pilot</span>
             </span>
           </Link>
 
@@ -106,10 +107,12 @@ function Menu() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`px-4 py-2 text-base font-semibold transition-colors relative ${
-                  isActive(item.path) ? "text-teal-600" : "hover:text-teal-600"
+
+                className={`px-4 py-2 text-sm font-semibold transition-colors relative ${
+                  isActive(item.path)
+                    ? 'text-teal-400 border-b-2 border-teal-400'
+                    : 'text-slate-300 hover:text-teal-400'
                 }`}
-                style={{ color: isActive(item.path) ? undefined : "#333" }}
               >
                 {item.isIcon ? (
                   <div className="relative">
@@ -147,8 +150,8 @@ function Menu() {
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 px-4 py-2 text-base font-semibold hover:text-teal-600 transition-colors"
-                style={{ color: "#333" }}
+
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-slate-200 hover:text-teal-400 transition-colors"
               >
                 <span>{user?.name || user?.email || "유저"}</span>
                 <svg
@@ -174,30 +177,28 @@ function Menu() {
                     className="fixed inset-0 z-10"
                     onClick={() => setIsUserMenuOpen(false)}
                   ></div>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100">
+                  <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded border border-slate-700 shadow-xl py-2 z-20">
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-base hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      style={{ color: "#333" }}
+                      className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 hover:text-teal-400 transition-colors"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       개인 정보
                     </Link>
                     <Link
                       to="/user-management"
-                      className="block px-4 py-2 text-base hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      style={{ color: "#333" }}
+                      className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 hover:text-teal-400 transition-colors"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       회원 관리
                     </Link>
-                    <hr className="my-2 border-gray-100" />
+                    <hr className="my-2 border-slate-700" />
                     <button
                       onClick={() => {
                         setIsUserMenuOpen(false);
                         logout();
                       }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
+                      className="block w-full text-left px-4 py-2 text-sm text-slate-400 hover:bg-slate-700 hover:text-red-400 transition-colors"
                     >
                       로그아웃
                     </button>

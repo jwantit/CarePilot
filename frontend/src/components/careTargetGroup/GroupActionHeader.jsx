@@ -1,37 +1,42 @@
 import React from 'react';
-import { Search, RotateCcw } from 'lucide-react';
+import { Search, RotateCcw, Plus } from 'lucide-react';
 
-const GroupActionHeader = ({ searchTerm, setSearchTerm, filterStatus, setFilterStatus, onReset }) => (
-  <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
-    <div className="relative w-full md:w-96">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-      <input
-        type="text"
-        placeholder="그룹명 또는 타입 검색..."
-        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-    </div>
+const GroupActionHeader = ({ searchTerm, setSearchTerm, filterStatus, setFilterStatus, onReset, onCreateGroup, role }) => (
+  <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 mb-6 shadow-lg hover:shadow-xl transition-shadow">
+    <div className="flex flex-col md:flex-row items-center gap-2">
+      {/* 왼쪽: 그룹 생성 버튼 */}
+      {(role === 'ADMIN' || role === 'MANAGER') && (
+        <button 
+          onClick={onCreateGroup}
+          className="flex items-center justify-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 h-[42px] font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap flex-shrink-0 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+        >
+          <Plus size={18} />
+          그룹 생성
+        </button>
+      )}
 
-    <div className="flex items-center gap-3 w-full md:w-auto">
-      <select
-        value={filterStatus}
-        onChange={(e) => setFilterStatus(e.target.value)}
-        className="bg-slate-50 border-none text-slate-600 font-semibold text-sm rounded-2xl px-4 py-3 outline-none cursor-pointer min-w-[150px] focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="all">전체 상태</option>
-        <option value="active">스케줄 활성</option>
-        <option value="inactive">스케줄 비활성</option>
-      </select>
-      
-      <button
-        onClick={onReset}
-        className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all"
-        title="필터 초기화"
-      >
-        <RotateCcw size={22} />
-      </button>
+      {/* 오른쪽: 검색창, 전체보기 버튼 */}
+      <div className="flex items-center gap-2 w-full">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <input
+            type="text"
+            placeholder="그룹명 또는 타입 검색..."
+            className="w-full pl-10 pr-3 h-[42px] border border-slate-600 bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all placeholder:text-slate-600 shadow-md focus:shadow-lg"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <button
+          onClick={onReset}
+          className="flex items-center justify-center gap-1.5 px-5 h-[42px] bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 border border-slate-600 text-slate-300 text-sm font-semibold hover:border-slate-500 hover:text-slate-100 transition-all whitespace-nowrap flex-shrink-0 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          title="필터 초기화"
+        >
+          <RotateCcw size={14} />
+          전체보기
+        </button>
+      </div>
     </div>
   </div>
 );

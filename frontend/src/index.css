@@ -3,8 +3,115 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    font-family: "Pretendard", sans-serif;
-    color: #333;
+  html {
+    overflow-y: scroll; /* 항상 스크롤바 공간 유지 */
+    scrollbar-gutter: stable; /* 스크롤바 공간 항상 확보 */
   }
+
+  html, body {
+    font-family: "Pretendard", sans-serif;
+    background-color: #161223 !important;    
+    color: #e2e8f0; /* slate-200 */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 커스텀 체크박스 스타일 */
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+  }
+
+  .custom-checkbox:checked {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .custom-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .custom-checkbox:hover:not(:checked) {
+    border-color: #5eead4;
+    background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+  }
+
+  .custom-checkbox:checked:hover {
+    background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+    border-color: #2dd4bf;
+  }
+}
+
+/* react-virtualized 스크롤바 스타일 - 어두운 계열 (전역 스타일) */
+.ReactVirtualized__Grid,
+.ReactVirtualized__List,
+.ReactVirtualized__Grid__innerScrollContainer {
+  scrollbar-width: thin !important;
+  scrollbar-color: #475569 #1e293b !important;
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar,
+.ReactVirtualized__List::-webkit-scrollbar,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar-track,
+.ReactVirtualized__List::-webkit-scrollbar-track,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-track {
+  background: #1e293b !important; /* slate-800 */
+  border-radius: 4px;
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar-thumb,
+.ReactVirtualized__List::-webkit-scrollbar-thumb,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* slate-600 */
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar-thumb:hover,
+.ReactVirtualized__List::-webkit-scrollbar-thumb:hover,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important; /* slate-500 */
+}
+
+/* 모달 스크롤바 스타일 - 어두운 계열 */
+.modal-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #475569 #1e293b !important;
+}
+
+.modal-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: #1e293b !important; /* slate-800 */
+  border-radius: 4px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* slate-600 */
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important; /* slate-500 */
 }

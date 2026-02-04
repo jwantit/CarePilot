@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getCareTargetList } from '../../api/caretarget/careTargetGroupApi';
+import { getCareTargetAllList } from '../../api/caretarget/careTargetApi';
 // 호출할 API 함수명을 실제 사용하는 이름으로 변경해서 임포트하세요.
 
 // 비동기 Thunk 생성
@@ -8,7 +8,7 @@ export const fetchCareTargets = createAsyncThunk(
   async ({ organizationId }, { rejectWithValue }) => {
     try {
       // API 정의서에 따라 organizationId만 전달
-      const data = await getCareTargetList(organizationId);
+      const data = await getCareTargetAllList(organizationId);
       
       // 콘솔로 데이터가 잘 들어오는지 확인 (디버깅용)
       console.log("API Response Data:", data);

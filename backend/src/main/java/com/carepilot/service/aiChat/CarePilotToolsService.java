@@ -99,7 +99,7 @@ public class CarePilotToolsService {
         Long organizationId = userDTO.getOrganizationId();
         Long userId = userDTO.getUserId();
 
-        // AI 설정 확인
+         //AI 설정 확인
         AIConfigDTO chatbotConfig = aiConfigService.getAIConfig(organizationId, "CHATBOT_AUTOMATION");
         boolean isChatbotAutomationEnabled = chatbotConfig.getIsEnabled();
         log.info("[챗봇 자동화] CHATBOT_AUTOMATION 설정: {}", isChatbotAutomationEnabled ? "ON" : "OFF");
@@ -137,7 +137,7 @@ public class CarePilotToolsService {
 
         if (!isChatbotAutomationEnabled) {
             // OFF: Task 생성 (USER, WAITING)
-            createChatbotTask(organizationId, userId, TaskType.CARETARGET_UPDATE, 
+            createChatbotTask(organizationId, userId, TaskType.CARETARGET_UPDATE,
                     "AI 케어 대상 정보 수정 요청 확인", description, null);
             return "케어 대상 정보 수정 요청이 할일 목록에 추가되었습니다. 확인 후 처리해 주세요.";
         }
@@ -180,7 +180,7 @@ public class CarePilotToolsService {
         UserDTO userDTO = userUtil.getCurrentUserDTO();
         Long userId = userDTO.getUserId();
 
-        // AI 설정 확인
+         //AI 설정 확인
         AIConfigDTO chatbotConfig = aiConfigService.getAIConfig(organizationId, "CHATBOT_AUTOMATION");
         boolean isChatbotAutomationEnabled = chatbotConfig.getIsEnabled();
         log.info("[챗봇 자동화] CHATBOT_AUTOMATION 설정: {}", isChatbotAutomationEnabled ? "ON" : "OFF");

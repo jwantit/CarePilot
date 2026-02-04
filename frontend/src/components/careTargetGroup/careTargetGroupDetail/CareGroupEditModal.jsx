@@ -27,65 +27,73 @@ const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, 
   };
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
-
-      <div className="relative bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 w-full max-w-2xl rounded-sm shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
         
         {/* 헤더 */}
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+        <div className="relative px-6 py-4 text-slate-800 bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700">
+          <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"><X size={20} /></button>
           <div className="space-y-1 text-left">
-            <h2 className="text-xl font-black text-slate-800">그룹 정보 수정</h2>
-            <p className="text-xs font-bold text-red-500">※ 제외할 멤버를 선택하고 상태를 변경해 주세요.</p>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
+                <Activity size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-100 tracking-tight">그룹 정보 수정</h2>
+                <p className="text-xs font-semibold text-red-400 mt-0.5">※ 제외할 멤버를 선택하고 상태를 변경해 주세요.</p>
+              </div>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
-            <X size={24} />
-          </button>
         </div>
 
         {/* 컨텐츠 */}
-        <div className="p-8 overflow-y-auto space-y-6 custom-scrollbar text-left">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 modal-scrollbar text-left">
           <div className="space-y-4">
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase ml-1 tracking-wider">그룹 이름</label>
+              <label className="block text-sm font-semibold text-slate-200 ml-1 mb-2">그룹 이름</label>
               <input 
                 type="text" 
                 value={editData.groupName || ''}
                 onChange={(e) => setEditData(prev => ({ ...prev, groupName: e.target.value }))}
-                className="w-full mt-1 px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-slate-700 outline-none"
+                className="w-full px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
               />
             </div>
             <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase ml-1 tracking-wider">그룹 설명</label>
+              <label className="block text-sm font-semibold text-slate-200 ml-1 mb-2">그룹 설명</label>
               <textarea 
                 value={editData.groupDescription || ''}
                 onChange={(e) => setEditData(prev => ({ ...prev, groupDescription: e.target.value }))}
-                className="w-full mt-1 px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-slate-700 h-24 resize-none outline-none"
+                className="w-full px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 font-medium h-24 resize-none outline-none transition-all shadow-sm"
               />
             </div>
 
             {/* 시나리오 선택 섹션 */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">
-                <BookOpen size={12} style={{ color: '#008080' }} /> 시나리오 선택
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-200 ml-1">
+                <div className="p-1.5 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
+                  <BookOpen size={14} />
+                </div>
+                <span>시나리오 선택</span>
               </label>
-              <div className="max-h-32 overflow-y-auto pr-1 space-y-2 custom-scrollbar border rounded-2xl p-2 border-slate-100 bg-slate-50">
+              <div className="max-h-32 overflow-y-auto space-y-2 modal-scrollbar border border-slate-700 rounded-sm p-2 bg-gradient-to-br from-slate-900 to-slate-950">
                 {scenarios && scenarios.length > 0 ? (
                   scenarios.map((sc) => (
                     <div
                       key={sc.scenarioId}
                       onClick={() => setEditData(prev => ({ ...prev, scenarioId: sc.scenarioId }))}
-                      className={`p-3 px-4 rounded-xl cursor-pointer transition-all border-2 flex justify-between items-center ${
-                        editData.scenarioId === sc.scenarioId ? 'border-teal-500 bg-teal-50/30' : 'bg-white border-slate-50 hover:border-slate-200'
+                      className={`p-3 px-4 rounded-sm cursor-pointer transition-all border flex justify-between items-center shadow-sm ${
+                        editData.scenarioId === sc.scenarioId 
+                          ? 'border-teal-500 bg-gradient-to-br from-teal-500/20 to-teal-600/20 hover:from-teal-500/30 hover:to-teal-600/30' 
+                          : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-600 hover:border-slate-500'
                       }`}
                     >
                       <div className="space-y-0.5">
-                        <p className={`text-sm font-bold ${editData.scenarioId === sc.scenarioId ? 'text-teal-700' : 'text-slate-700'}`}>
+                        <p className={`text-sm font-bold ${editData.scenarioId === sc.scenarioId ? 'text-teal-400' : 'text-slate-200'}`}>
                           {sc.scenarioName}
                         </p>
-                        <p className="text-[11px] text-slate-400 font-medium">{sc.scenarioDescription}</p>
+                        <p className="text-xs text-slate-400 font-medium">{sc.scenarioDescription}</p>
                       </div>
-                      {editData.scenarioId === sc.scenarioId && <CheckCircle2 size={16} className="text-teal-500" />}
+                      {editData.scenarioId === sc.scenarioId && <CheckCircle2 size={16} className="text-teal-400" />}
                     </div>
                   ))
                 ) : (
@@ -95,18 +103,26 @@ const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, 
             </div>
 
             {/* ✅ 다시 추가된 활성/비활성 토글 섹션 */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-              <span className="text-sm font-bold text-slate-600">그룹 스케줄 상태</span>
-              <div className="flex bg-white p-1 rounded-xl border border-slate-200">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-br from-slate-900 to-slate-950 rounded-sm border border-slate-700 shadow-md">
+              <span className="text-sm font-semibold text-slate-200">그룹 스케줄 상태</span>
+              <div className="flex p-1 bg-gradient-to-br from-slate-800 to-slate-900 rounded-sm border border-slate-700 shadow-sm">
                 <button 
                   type="button"
                   onClick={() => setEditData(prev => ({ ...prev, groupStatus: true }))}
-                  className={`px-6 py-2 rounded-lg text-sm font-black transition-all ${editData.groupStatus ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400'}`}
+                  className={`px-6 py-2 rounded-sm text-sm font-semibold transition-all ${
+                    editData.groupStatus 
+                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white border border-teal-500 shadow-md' 
+                      : 'text-slate-400 border border-transparent'
+                  }`}
                 >활성</button>
                 <button 
                   type="button"
                   onClick={() => setEditData(prev => ({ ...prev, groupStatus: false }))}
-                  className={`px-6 py-2 rounded-lg text-sm font-black transition-all ${!editData.groupStatus ? 'bg-slate-600 text-white shadow-md' : 'text-slate-400'}`}
+                  className={`px-6 py-2 rounded-sm text-sm font-semibold transition-all ${
+                    !editData.groupStatus 
+                      ? 'bg-gradient-to-br from-slate-600 to-slate-700 text-white border border-slate-500 shadow-md' 
+                      : 'text-slate-400 border border-transparent'
+                  }`}
                 >비활성</button>
               </div>
             </div>
@@ -115,33 +131,41 @@ const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, 
           {/* 멤버 제외 관리 */}
           <div className="space-y-3">
             <div className="flex justify-between items-end ml-1">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">멤버 제외 관리</label>
-              <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+              <label className="text-sm font-semibold text-slate-200">멤버 제외 관리</label>
+              <span className="text-xs font-bold text-red-400 bg-gradient-to-br from-red-500/20 to-red-600/20 px-2.5 py-1 rounded-sm border border-red-500/50 shadow-sm">
                 제외 선택: {editData.careTargetIds?.length || 0}명
               </span>
             </div>
-            <div className="border border-slate-100 rounded-2xl overflow-hidden max-h-72 overflow-y-auto bg-slate-50 shadow-inner">
+            <div className="border border-slate-700 rounded-sm overflow-hidden max-h-72 overflow-y-auto bg-gradient-to-br from-slate-900 to-slate-950 shadow-inner modal-scrollbar">
               {careList?.map((p) => {
                 const isSelected = editData.careTargetIds?.includes(p.careTargetId);
                 return (
                   <div 
                     key={p.careTargetId}
                     onClick={() => toggleMemberSelection(p.careTargetId)}
-                    className={`flex items-center justify-between p-4 cursor-pointer border-b border-white last:border-0 transition-all ${isSelected ? 'bg-red-50' : 'bg-white hover:bg-slate-50'}`}
+                    className={`flex items-center justify-between p-4 cursor-pointer border-b border-slate-700 last:border-0 transition-all ${
+                      isSelected 
+                        ? 'bg-gradient-to-r from-red-500/20 to-red-600/20 hover:from-red-500/30 hover:to-red-600/30' 
+                        : 'bg-gradient-to-r from-slate-800/50 to-slate-900/50 hover:from-slate-700/50 hover:to-slate-800/50'
+                    }`}
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${isSelected ? 'bg-red-500 border-red-500' : 'bg-white border-slate-300'}`}>
+                      <div className={`w-6 h-6 rounded-sm border flex items-center justify-center transition-all shadow-sm ${
+                        isSelected 
+                          ? 'bg-gradient-to-br from-red-500 to-red-600 border-red-500' 
+                          : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-600'
+                      }`}>
                         {isSelected && <Check size={14} className="text-white" strokeWidth={4} />}
                       </div>
                       <div className="flex flex-col min-w-[80px]">
-                        <span className={`font-bold text-sm ${isSelected ? 'text-red-700' : 'text-slate-700'}`}>{p.name}</span>
-                        <span className="text-[10px] text-slate-400">{p.gender} | {p.age}세</span>
+                        <span className={`font-bold text-sm ${isSelected ? 'text-red-400' : 'text-slate-200'}`}>{p.name}</span>
+                        <span className="text-xs text-slate-400">{p.gender} | {p.age}세</span>
                       </div>
                     </div>
                     {isSelected && (
-                      <div className="flex items-center gap-1 text-red-500 animate-pulse">
+                      <div className="flex items-center gap-1 text-red-400">
                         <Trash2 size={12} />
-                        <span className="text-[9px] font-black">제외 예정</span>
+                        <span className="text-[10px] font-bold">제외 예정</span>
                       </div>
                     )}
                   </div>
@@ -152,11 +176,16 @@ const CareGroupEditModal = ({ isOpen, onClose, editData, setEditData, careList, 
         </div>
 
         {/* 푸터 */}
-        <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3 shrink-0">
-          <button onClick={onClose} className="flex-1 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black">취소</button>
+        <div className="p-6 bg-gradient-to-r from-slate-800 to-slate-900 border-t border-slate-700 flex gap-3 shrink-0">
+          <button 
+            onClick={onClose} 
+            className="flex-1 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            취소
+          </button>
           <button 
             onClick={onSave} 
-            className="flex-[2] py-4 bg-teal-600 text-white rounded-2xl font-black shadow-lg hover:bg-teal-700 transition-all"
+            className="flex-[2] py-2.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 border border-teal-500 text-white rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             수정 완료
           </button>

@@ -48,9 +48,9 @@ function CareTarget({
 
   if (loading && careTargetList.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 gap-3">
-        <div className="w-8 h-8 border-4 border-[#008080]/20 border-t-[#008080] rounded-full animate-spin" />
-        <p className="text-gray-400 text-sm">데이터를 불러오는 중입니다...</p>
+      <div className="flex flex-col items-center justify-center p-20 gap-4 bg-slate-800">
+        <div className="w-12 h-12 border-4 border-slate-700 border-t-teal-400 rounded-full animate-spin" />
+        <p className="text-slate-400 text-sm font-mono">// Loading patient data...</p>
       </div>
     );
   }
@@ -74,29 +74,29 @@ function CareTarget({
 
   if (careTargetList && careTargetList.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 bg-gray-50/30">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <span className="text-2xl text-gray-300">!</span>
+      <div className="flex flex-col items-center justify-center p-20 bg-slate-800">
+        <div className="w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded flex items-center justify-center mb-5">
+          <span className="text-3xl text-slate-600">[ ]</span>
         </div>
-        <p className="text-gray-500 font-medium">
-          {keyword ? `"${keyword}"에 대한 검색 결과가 없습니다.` : "등록된 환자 데이터가 없습니다."}
+        <p className="text-slate-300 font-mono font-semibold text-base mb-2">
+          {keyword ? `// No results for "${keyword}"` : "// No patient data found"}
         </p>
-        <p className="text-gray-400 text-sm mt-1">
-          {keyword ? "검색어를 다시 확인해 주세요." : "상단의 '환자 등록' 버튼을 통해 추가해 보세요."}
+        <p className="text-slate-500 text-sm font-mono">
+          {keyword ? "// Please check your search query" : "// Use 'ADD' button to register patients"}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full" style={{ height: '600px' }}>
+    <div className="w-full bg-slate-800" style={{ height: '600px' }}>
       <AutoSizer>
         {({ height, width }) => (
           <List
             width={width}
             height={height}
             rowCount={careTargetList.length}
-            rowHeight={73} // CareTargetRow의 예상 높이 (py-4 포함)
+            rowHeight={60} // CareTargetRow의 높이 조정
             rowRenderer={rowRenderer}
             overscanRowCount={5} // 성능 최적화를 위한 추가 렌더링 행 수
           />
