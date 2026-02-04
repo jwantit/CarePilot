@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { getUnreadCount } from '../../api/notificationApi';
-import { useAuth } from '../../hooks/useAuth';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { getUnreadCount } from "../../api/notificationApi";
+import { useAuth } from "../../hooks/useAuth";
 
 function Menu() {
   const location = useLocation();
@@ -21,7 +21,7 @@ function Menu() {
         const count = await getUnreadCount(userId);
         setUnreadCount(count);
       } catch (error) {
-        console.error('읽지 않은 알림 개수 조회 실패:', error);
+        console.error("읽지 않은 알림 개수 조회 실패:", error);
       }
     };
 
@@ -36,37 +36,48 @@ function Menu() {
       fetchUnreadCount();
     };
 
-    window.addEventListener('notification-received', handleNotificationReceived);
-    window.addEventListener('notification-updated', handleNotificationUpdated);
+    window.addEventListener(
+      "notification-received",
+      handleNotificationReceived,
+    );
+    window.addEventListener("notification-updated", handleNotificationUpdated);
 
     // 주기적으로 개수 업데이트 (30초마다)
     const interval = setInterval(fetchUnreadCount, 30000);
 
     return () => {
-      window.removeEventListener('notification-received', handleNotificationReceived);
-      window.removeEventListener('notification-updated', handleNotificationUpdated);
+      window.removeEventListener(
+        "notification-received",
+        handleNotificationReceived,
+      );
+      window.removeEventListener(
+        "notification-updated",
+        handleNotificationUpdated,
+      );
       clearInterval(interval);
     };
   }, [userId]);
 
   const menuItems = [
-    { path: '/', label: '대시보드' },
-    { path: '/care-target', label: '케어 대상자' },
-    { path: '/care-target-group', label: '케어 그룹' },
-    { path: '/call', label: '통화' },
-    { path: '/task', label: '작업' },
-    { path: '/report', label: '보고서' },
-    { path: '/setting', label: '설정' },
-    { path: '/notice', label: '공지사항' },
-    { path: '/notification', label: '알림', isIcon: true },
+    { path: "/", label: "대시보드" },
+    { path: "/care-target", label: "케어 대상자" },
+    { path: "/care-target-group", label: "케어 그룹" },
+    { path: "/call", label: "통화" },
+    { path: "/task", label: "작업" },
+    { path: "/report", label: "통계" },
+    { path: "/setting", label: "설정" },
+    { path: "/notice", label: "공지사항" },
+    { path: "/notification", label: "알림", isIcon: true },
   ];
 
   const isActive = (path) => {
-    if (path === '/') {
-      return location.pathname === '/';
+    if (path === "/") {
+      return location.pathname === "/";
     }
     // 정확히 일치하거나, 경로 뒤에 / 가 오는 경우만 활성화
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    return (
+      location.pathname === path || location.pathname.startsWith(path + "/")
+    );
   };
 
   return (
@@ -80,11 +91,11 @@ function Menu() {
               alt="CarePilot"
               className="h-10 w-auto object-contain"
               onError={(e) => {
-                console.error('Logo failed to load');
-                e.target.style.display = 'none';
+                console.error("Logo failed to load");
+                e.target.style.display = "none";
               }}
             />
-            <span className="text-xl font-semibold" style={{ color: '#333' }}>
+            <span className="text-xl font-semibold" style={{ color: "#333" }}>
               Care<span className="text-teal-500">Pilot</span>
             </span>
           </Link>
@@ -96,11 +107,9 @@ function Menu() {
                 key={item.path}
                 to={item.path}
                 className={`px-4 py-2 text-base font-semibold transition-colors relative ${
-                  isActive(item.path)
-                    ? 'text-teal-600'
-                    : 'hover:text-teal-600'
+                  isActive(item.path) ? "text-teal-600" : "hover:text-teal-600"
                 }`}
-                style={{ color: isActive(item.path) ? undefined : '#333' }}
+                style={{ color: isActive(item.path) ? undefined : "#333" }}
               >
                 {item.isIcon ? (
                   <div className="relative">
@@ -121,7 +130,7 @@ function Menu() {
                     {/* 읽지 않은 알림 개수 배지 */}
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                        {unreadCount > 99 ? '99+' : unreadCount}
+                        {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
                   </div>
@@ -139,12 +148,12 @@ function Menu() {
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center space-x-2 px-4 py-2 text-base font-semibold hover:text-teal-600 transition-colors"
-                style={{ color: '#333' }}
+                style={{ color: "#333" }}
               >
-                <span>{user?.name || user?.email || '유저'}</span>
+                <span>{user?.name || user?.email || "유저"}</span>
                 <svg
                   className={`w-4 h-4 transition-transform ${
-                    isUserMenuOpen ? 'rotate-180' : ''
+                    isUserMenuOpen ? "rotate-180" : ""
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -169,7 +178,7 @@ function Menu() {
                     <Link
                       to="/profile"
                       className="block px-4 py-2 text-base hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      style={{ color: '#333' }}
+                      style={{ color: "#333" }}
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       개인 정보
@@ -177,7 +186,7 @@ function Menu() {
                     <Link
                       to="/user-management"
                       className="block px-4 py-2 text-base hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      style={{ color: '#333' }}
+                      style={{ color: "#333" }}
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       회원 관리
@@ -204,4 +213,3 @@ function Menu() {
 }
 
 export default Menu;
-
