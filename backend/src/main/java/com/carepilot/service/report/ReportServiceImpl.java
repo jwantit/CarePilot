@@ -66,6 +66,7 @@ public class ReportServiceImpl implements ReportService {
                                 .directionDistribution(new HashMap<>())
                                 .timeSlotDistribution(new HashMap<>())
                                 .avgDuration(0.0)
+                                .failureReasonDistribution(new HashMap<>())
                                 .build())
                         .riskStatistics(RiskStatisticsDTO.builder()
                                 .riskLevelDistribution(new HashMap<>())
@@ -245,12 +246,27 @@ public class ReportServiceImpl implements ReportService {
                 .average()
                 .orElse(0.0);
 
+        // 실패 원인별 분포 (SUCCESS가 아닌 통화만)
+        Map<String, Long> failureReasonDistribution = filteredCalls.stream()
+                .filter(call -> call.getStatus() != null && call.getStatus() != CallStatus.SUCCESS)
+                .collect(Collectors.groupingBy(
+                        call -> {
+                            CallStatus status = call.getStatus();
+                            if (status == CallStatus.FAILED) return "실패";
+                            if (status == CallStatus.NO_ANSWER) return "무응답";
+                            if (status == CallStatus.CANCELLED) return "취소됨";
+                            return "기타";
+                        },
+                        Collectors.counting()
+                ));
+
         return CallStatisticsDTO.builder()
                 .trend(trend)
                 .statusDistribution(statusDistribution)
                 .directionDistribution(directionDistribution)
                 .timeSlotDistribution(timeSlotDistribution)
                 .avgDuration(Math.round(avgDuration * 10.0) / 10.0)
+                .failureReasonDistribution(failureReasonDistribution)
                 .build();
     }
 
@@ -362,8 +378,7 @@ public class ReportServiceImpl implements ReportService {
         // 필터 적용된 Task 목록 가져오기
         List<com.carepilot.domain.task.Task> allTasks = taskRepository.findAll().stream()
                 .filter(t -> t.getOrganization().getOrganizationId().equals(organizationId))
-                .filter(t -> t.getCreatedAt() != null && 
-                        t.getCreatedAt().isAfter(startDate) && t.getCreatedAt().isBefore(endDate))
+                .filter(t -> t.getCreatedAt() != null && t.getCreatedAt().isAfter(startDate) && t.getCreatedAt().isBefore(endDate))
                 .filter(t -> filteredCareTargetIds == null || 
                         (t.getCareTarget() != null && filteredCareTargetIds.contains(t.getCareTarget().getCareTargetId())))
                 .filter(t -> disease == null || disease.isEmpty() || 

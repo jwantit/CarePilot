@@ -27,5 +27,8 @@ public class CallStatisticsDTO {
     
     // 평균 통화 시간 (초)
     private Double avgDuration;
+    
+    // 통화 실패 원인별 분포
+    private Map<String, Long> failureReasonDistribution;
 }
 
