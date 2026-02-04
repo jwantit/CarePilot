@@ -26,6 +26,7 @@ public class CareTargetDetailResponseDTO {
     private String aiMemo;
     private List<RiskTrendDTO> riskTrendDTOS;
     private List<CallHistoryDTO> callHistoryDTOS;
+    private List<PrescriptionHistoryDTO> prescriptionHistoryDTOS;
     private List<CareGroupDetailResponseDTO> careGroups;
 
 }

@@ -38,15 +38,19 @@ public class PrescriptionServiceImpl implements PrescriptionService {
             이미지를 보고 다음 JSON 형식으로만 응답하세요. 다른 설명 없이 JSON만 출력하세요.
 
             {
+              "rawOcrText": "이미지에 보이는 글자를 가능한 한 그대로 옮겨 적은 전체 텍스트 (줄바꿈 유지)",
               "prescribedDate": "YYYY-MM-DD",
               "diagnoses": [{"name": "진단명", "icdCode": "ICD코드"}],
               "medications": [{"name": "약명", "dosage": "1회 1정", "frequency": "1일 1회", "timing": "아침 식후", "duration": "30일분"}],
-              "summary": "2~3문장 한글 요약 (환자명, 진단, 처방약, 복용법 등을 포함)"
+              "summary": "1~2문장 한글 요약 (환자명 제외, 진단·처방약·복용법만 포함)",
+              "analysis": "처방전에 대한 분석·해석 (복용 시 주의사항, 약물 간 상호작용 참고, 생활 권장사항 등 2~3문장)"
             }
 
+            - rawOcrText: 이미지에서 읽은 원문 텍스트 전체. 읽기 어려운 부분은 [불명] 등으로 표시
             - prescribedDate: 파싱 불가 시 null
             - diagnoses, medications: 없으면 빈 배열 []
-            - summary: 반드시 한글로 요약
+            - summary: 환자명은 넣지 말고, 진단·처방약·복용법만 한글로 요약
+            - analysis: 한글로 분석·권장 내용 (없으면 빈 문자열)
             """;
 
     private final PrescriptionRepository prescriptionRepository;
@@ -103,15 +107,17 @@ public class PrescriptionServiceImpl implements PrescriptionService {
                 PrescriptionAnalysisResult result = analyzePrescriptionImage(trimmed);
                 if (result == null) continue;
 
+                String summaryWithoutPatient = stripPatientNameFromSummary(result.summary);
+                String fullSummary = buildSummaryWithAnalysis(summaryWithoutPatient, result.analysis);
                 prescriptionRepository.save(Prescription.builder()
                         .careTarget(careTarget)
                         .uploadFile(uploadFile)
                         .inboundSms(inboundSms)
                         .prescribedDate(result.prescribedDate)
-                        .rawOcrText(null)
+                        .rawOcrText(result.rawOcrText)
                         .diagnoses(result.diagnosesJson)
                         .medications(result.medicationsJson)
-                        .summary(result.summary)
+                        .summary(fullSummary)
                         .analyzedAt(LocalDateTime.now())
                         .build());
                 log.info("[Prescription] 저장 완료 careTargetId={}, path={}", careTarget.getCareTargetId(), trimmed);
@@ -138,6 +144,26 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         String lower = path.toLowerCase();
         return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
                 || lower.endsWith(".gif") || lower.endsWith(".webp");
+    }
+
+    /** 요약 + 분석을 하나의 summary 문자열로 합침 */
+    private String stripPatientNameFromSummary(String summary) {
+        if (summary == null || summary.isBlank()) return summary;
+        return summary
+                .replaceFirst("^\\s*환자명[은는]?\\s*[^,.]*[이며,]?\\s*", "")
+                .replaceFirst("^\\s*환자명\\s*[:：]?\\s*[^,.]*[,.]?\\s*", "")
+                .trim();
+    }
+
+    private String buildSummaryWithAnalysis(String summary, String analysis) {
+        if (summary == null || summary.isBlank()) {
+            return (analysis != null && !analysis.isBlank()) ? "[분석]\n" + analysis : null;
+        }
+        String withLabel = "[요약]\n" + summary.trim();
+        if (analysis == null || analysis.isBlank()) {
+            return withLabel;
+        }
+        return withLabel + "\n\n[분석]\n" + analysis;
     }
 
     private PrescriptionAnalysisResult analyzePrescriptionImage(String storagePath) {
@@ -193,12 +219,16 @@ public class PrescriptionServiceImpl implements PrescriptionService {
                 }
             }
 
+            String rawOcrText = json.has("rawOcrText") && !json.get("rawOcrText").isJsonNull()
+                    ? json.get("rawOcrText").getAsString() : null;
             String diagnosesJson = json.has("diagnoses") ? json.get("diagnoses").toString() : "[]";
             String medicationsJson = json.has("medications") ? json.get("medications").toString() : "[]";
             String summary = json.has("summary") && !json.get("summary").isJsonNull()
                     ? json.get("summary").getAsString() : null;
+            String analysis = json.has("analysis") && !json.get("analysis").isJsonNull()
+                    ? json.get("analysis").getAsString() : null;
 
-            return new PrescriptionAnalysisResult(prescribedDate, diagnosesJson, medicationsJson, summary);
+            return new PrescriptionAnalysisResult(prescribedDate, rawOcrText, diagnosesJson, medicationsJson, summary, analysis);
         } catch (Exception e) {
             log.warn("[Prescription] JSON 파싱 실패: {}", e.getMessage());
             return null;
@@ -207,8 +237,10 @@ public class PrescriptionServiceImpl implements PrescriptionService {
 
     private record PrescriptionAnalysisResult(
             LocalDate prescribedDate,
+            String rawOcrText,
             String diagnosesJson,
             String medicationsJson,
-            String summary
+            String summary,
+            String analysis
     ) {}
 }

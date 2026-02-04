@@ -12,12 +12,14 @@ import com.carepilot.dto.caretarget.*;
 import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.dto.upload.TargetFileDTO;
 import com.carepilot.dto.upload.UploadFileResponseDTO;
+import com.carepilot.domain.prescription.Prescription;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.RiskScoreRepository;
 import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.repository.prescription.PrescriptionRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.service.config.risk.RiskConfigService;
 import com.carepilot.service.upload.UploadFileService;
@@ -48,6 +50,7 @@ public class CareServiceImpl implements CareService {
     private final CareTargetGroupMapRepository careTargetGroupMapRepository;
     private final RiskConfigService riskConfigService;
     private final UploadFileRepository uploadFileRepository;
+    private final PrescriptionRepository prescriptionRepository;
 
     //대량 환자등록 ---------------------------------------------------------------------------
     @Override
@@ -261,7 +264,29 @@ public class CareServiceImpl implements CareService {
                 ))
                 .toList();
 
-        // 6. 의사 정보 및 최종 빌드
+        // 6. 처방 이력 (최신순)
+        List<Prescription> prescriptions = prescriptionRepository.findByCareTarget_CareTargetIdOrderByAnalyzedAtDesc(careTargetId);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        List<PrescriptionHistoryDTO> prescriptionHistoryDTOS = prescriptions.stream()
+                .map(p -> {
+                    UploadFile uf = p.getUploadFile();
+                    String storagePath = (uf != null) ? uf.getStoragePath() : null;
+                    String imageFileUrl = (storagePath != null && !storagePath.isBlank())
+                            ? "/display/" + storagePath.trim()
+                            : null;
+                    return PrescriptionHistoryDTO.builder()
+                            .prescriptionId(p.getPrescriptionId())
+                            .prescribedDate(p.getPrescribedDate() != null ? p.getPrescribedDate().format(formatter) : null)
+                            .summary(p.getSummary())
+                            .diagnoses(p.getDiagnoses())
+                            .medications(p.getMedications())
+                            .analyzedAt(p.getAnalyzedAt() != null ? p.getAnalyzedAt().format(dateTimeFormatter) : null)
+                            .imageFileUrl(imageFileUrl)
+                            .build();
+                })
+                .toList();
+
+        // 7. 의사 정보 및 최종 빌드
         CareTargetDoctorResponseDTO doctor = Optional.ofNullable(careTarget.getDoctor())
                 .map(d -> CareTargetDoctorResponseDTO.builder()
                         .doctorId(d.getDoctorId())
@@ -284,6 +309,7 @@ public class CareServiceImpl implements CareService {
                 .aiMemo(latestAiMemo)
                 .riskTrendDTOS(trendList)
                 .callHistoryDTOS(callHistoryDTOS)
+                .prescriptionHistoryDTOS(prescriptionHistoryDTOS)
                 .build();
     }
 

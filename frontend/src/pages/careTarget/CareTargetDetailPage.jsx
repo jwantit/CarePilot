@@ -5,6 +5,7 @@ import { getCareTargetDetail, doctorList, updateCareTargetDetail } from '../../a
 import ProfileSection from '../../components/caretarget/caretargetdetail/ProfileSection';
 import { AiAnalysisBox, RiskTrendChart } from '../../components/caretarget/caretargetdetail/RiskTrendChart';
 import CallHistoryTable from '../../components/caretarget/caretargetdetail/CallHistoryTable';
+import PrescriptionHistoryTable from '../../components/caretarget/caretargetdetail/PrescriptionHistoryTable';
 import { useAuth } from '../../hooks/useAuth';
 
 function CareTargetDetailPage() {
@@ -177,6 +178,7 @@ function CareTargetDetailPage() {
         </div>
       </div>
       <CallHistoryTable history={data.callHistoryDTOS || []} />
+      <PrescriptionHistoryTable list={data.prescriptionHistoryDTOS || []} />
     </div>
   );
 }
