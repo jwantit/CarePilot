@@ -18,7 +18,6 @@ public class NotificationConfigServiceImpl implements NotificationConfigService 
 
     private final NotificationConfigRepository notificationConfigRepository;
     private final UserRepository userRepository;
-    private final OrganizationRepository organizationRepository; // 주입
 
     @Override
     @Transactional(readOnly = true)
@@ -33,7 +32,6 @@ public class NotificationConfigServiceImpl implements NotificationConfigService 
                                 .organization(user.getOrganization())
                                 .user(user)
                                 .smsEnabled(false)
-                                .kakaoEnabled(false)
                                 .emailEnabled(false)
                                 .riskDetectionEnabled(true)
                                 .callFailureEnabled(true)
@@ -45,7 +43,6 @@ public class NotificationConfigServiceImpl implements NotificationConfigService 
                 .notificationConfigId(config.getNotificationConfigId())
                 .userId(user.getUserId())
                 .smsEnabled(config.getSmsEnabled())
-                .kakaoEnabled(config.getKakaoEnabled())
                 .emailEnabled(config.getEmailEnabled())
                 .riskDetectionEnabled(config.getRiskDetectionEnabled())
                 .callFailureEnabled(config.getCallFailureEnabled())
@@ -70,7 +67,6 @@ public class NotificationConfigServiceImpl implements NotificationConfigService 
         // 기존 엔티티 수정
         config.updateSettings(
                 dto.getSmsEnabled(),
-                dto.getKakaoEnabled(),
                 dto.getEmailEnabled(),
                 dto.getRiskDetectionEnabled(),
                 dto.getCallFailureEnabled(),
@@ -85,7 +81,6 @@ public class NotificationConfigServiceImpl implements NotificationConfigService 
                 .notificationConfigId(saved.getNotificationConfigId())
                 .userId(saved.getUser().getUserId())
                 .smsEnabled(saved.getSmsEnabled())
-                .kakaoEnabled(saved.getKakaoEnabled())
                 .emailEnabled(saved.getEmailEnabled())
                 .riskDetectionEnabled(saved.getRiskDetectionEnabled())
                 .callFailureEnabled(saved.getCallFailureEnabled())

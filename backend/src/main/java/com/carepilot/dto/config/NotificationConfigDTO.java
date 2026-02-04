@@ -16,7 +16,6 @@ public class NotificationConfigDTO {
     private Long notificationConfigId;
     private Long userId;
     private Boolean smsEnabled;
-    private Boolean kakaoEnabled;
     private Boolean emailEnabled;
     private Boolean riskDetectionEnabled;
     private Boolean callFailureEnabled;

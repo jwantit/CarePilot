@@ -33,15 +33,11 @@ public class NotificationConfig extends BaseEntity {
 
     // @Column(name = "sms_enabled", nullable = false)
     @Column(name = "sms_enabled")
-    private Boolean smsEnabled = false;
-
-    // @Column(name = "kakao_enabled", nullable = false)
-    @Column(name = "kakao_enabled")
-    private Boolean kakaoEnabled = false;
+    private Boolean smsEnabled = true;
 
     // @Column(name = "email_enabled", nullable = false)
     @Column(name = "email_enabled")
-    private Boolean emailEnabled = false;
+    private Boolean emailEnabled = true;
 
     // @Column(name = "risk_detection_enabled", nullable = false)
     @Column(name = "risk_detection_enabled")
@@ -63,14 +59,13 @@ public class NotificationConfig extends BaseEntity {
 
     @Builder
     public NotificationConfig(Organization organization, User user,
-                             Boolean smsEnabled, Boolean kakaoEnabled, Boolean emailEnabled,
+                             Boolean smsEnabled, Boolean emailEnabled,
                              Boolean riskDetectionEnabled, Boolean callFailureEnabled,
                              Boolean emergencyEventEnabled, LocalTime nightRestrictionStart,
                              LocalTime nightRestrictionEnd) {
         this.organization = organization;
         this.user = user;
         this.smsEnabled = smsEnabled != null ? smsEnabled : false;
-        this.kakaoEnabled = kakaoEnabled != null ? kakaoEnabled : false;
         this.emailEnabled = emailEnabled != null ? emailEnabled : false;
         this.riskDetectionEnabled = riskDetectionEnabled != null ? riskDetectionEnabled : true;
         this.callFailureEnabled = callFailureEnabled != null ? callFailureEnabled : true;
@@ -81,7 +76,6 @@ public class NotificationConfig extends BaseEntity {
 
     public void updateSettings(
             Boolean smsEnabled,
-            Boolean kakaoEnabled,
             Boolean emailEnabled,
             Boolean riskDetectionEnabled,
             Boolean callFailureEnabled,
@@ -90,7 +84,6 @@ public class NotificationConfig extends BaseEntity {
             LocalTime nightRestrictionEnd
     ) {
         this.smsEnabled = smsEnabled != null ? smsEnabled : false;
-        this.kakaoEnabled = kakaoEnabled != null ? kakaoEnabled : false;
         this.emailEnabled = emailEnabled != null ? emailEnabled : false;
         this.riskDetectionEnabled = riskDetectionEnabled != null ? riskDetectionEnabled : true;
         this.callFailureEnabled = callFailureEnabled != null ? callFailureEnabled : true;

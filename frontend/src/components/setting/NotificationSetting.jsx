@@ -11,9 +11,8 @@ function NotificationSetting() {
   const userId = auth.user?.userId;
   const [loading, setLoading] = useState(false);
   const [notificationConfig, setNotificationConfig] = useState({
-    smsEnabled: false,
-    kakaoEnabled: false,
-    emailEnabled: false,
+    smsEnabled: true,
+    emailEnabled: true,
     riskDetectionEnabled: true,
     callFailureEnabled: true,
     emergencyEventEnabled: true,
@@ -70,6 +69,8 @@ function NotificationSetting() {
           : null,
       };
       await updateNotificationConfig(userId, configToSave);
+      // 설정 저장 후 이벤트 발송 (WebSocketContext에서 구독)
+      window.dispatchEvent(new CustomEvent("notification-config-updated"));
       toast.success("설정이 저장되었습니다.");
     } catch (error) {
       console.error("설정 저장 실패:", error);
@@ -108,14 +109,6 @@ function NotificationSetting() {
             checked={notificationConfig.smsEnabled}
             onChange={(e) => handleConfigChange("smsEnabled", e.target.checked)}
             label="SMS 알림"
-          />
-
-          <ToggleSwitch
-            checked={notificationConfig.kakaoEnabled}
-            onChange={(e) =>
-              handleConfigChange("kakaoEnabled", e.target.checked)
-            }
-            label="카카오톡 알림"
           />
 
           <ToggleSwitch
