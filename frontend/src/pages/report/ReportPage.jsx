@@ -6,6 +6,7 @@ import html2pdf from "html2pdf.js";
 import OverviewTab from "../../components/report/OverviewTab";
 import RiskAnalysisTab from "../../components/report/RiskAnalysisTab";
 import CallAnalysisTab from "../../components/report/CallAnalysisTab";
+import AIAutomationTab from "../../components/report/AIAutomationTab";
 import { Download } from "lucide-react";
 
 function ReportPage() {
@@ -15,7 +16,7 @@ function ReportPage() {
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview"); // 'overview', 'risk', 'call'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview', 'risk', 'call', 'ai'
   const [dateRange, setDateRange] = useState("month"); // 'today', 'week', 'month', 'custom'
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -342,6 +343,16 @@ function ReportPage() {
             >
               통화 분석
             </button>
+            <button
+              onClick={() => setActiveTab("ai")}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === "ai"
+                  ? "border-[#008080] text-[#008080]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              AI 자동화
+            </button>
           </nav>
         </div>
       </div>
@@ -359,6 +370,14 @@ function ReportPage() {
         {activeTab === "risk" && <RiskAnalysisTab statistics={statistics} />}
 
         {activeTab === "call" && <CallAnalysisTab statistics={statistics} />}
+
+        {activeTab === "ai" && (
+          <AIAutomationTab
+            statistics={statistics}
+            formatNumber={formatNumber}
+            formatPercent={formatPercent}
+          />
+        )}
       </div>
     </div>
   );

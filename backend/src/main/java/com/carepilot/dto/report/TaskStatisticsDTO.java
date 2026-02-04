@@ -23,5 +23,13 @@ public class TaskStatisticsDTO {
     
     // 완료율
     private Double completionRate;
+    
+    // AI 작업 전용 통계
+    private Long totalAiTasks;              // 총 AI 작업 수
+    private Long successfulAiTasks;          // 성공한 AI 작업 수
+    private Long failedAiTasks;              // 실패한 AI 작업 수
+    private Double aiSuccessRate;            // AI 작업 성공률
+    private Map<String, Long> aiTaskTypeDistribution;    // AI 작업 타입별 분포
+    private Map<String, Long> aiTaskStatusDistribution;  // AI 작업 상태별 분포
 }
 

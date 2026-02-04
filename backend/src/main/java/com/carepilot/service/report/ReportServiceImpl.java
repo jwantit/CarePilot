@@ -79,6 +79,12 @@ public class ReportServiceImpl implements ReportService {
                                 .priorityDistribution(new HashMap<>())
                                 .sourceTypeDistribution(new HashMap<>())
                                 .completionRate(0.0)
+                                .totalAiTasks(0L)
+                                .successfulAiTasks(0L)
+                                .failedAiTasks(0L)
+                                .aiSuccessRate(0.0)
+                                .aiTaskTypeDistribution(new HashMap<>())
+                                .aiTaskStatusDistribution(new HashMap<>())
                                 .build())
                         .build();
             }
@@ -413,11 +419,48 @@ public class ReportServiceImpl implements ReportService {
                 .count();
         Double completionRate = totalTasks > 0 ? (completedTasks.doubleValue() / totalTasks.doubleValue()) * 100 : 0.0;
 
+        // AI 작업 전용 통계
+        List<com.carepilot.domain.task.Task> aiTasks = allTasks.stream()
+                .filter(t -> t.getSourceType() == com.carepilot.domain.task.TaskSourceType.AI)
+                .collect(Collectors.toList());
+        
+        Long totalAiTasks = (long) aiTasks.size();
+        Long successfulAiTasks = aiTasks.stream()
+                .filter(t -> t.getStatus() == com.carepilot.domain.task.TaskStatus.SUCCESS)
+                .count();
+        Long failedAiTasks = aiTasks.stream()
+                .filter(t -> t.getStatus() == com.carepilot.domain.task.TaskStatus.FAILED)
+                .count();
+        
+        Double aiSuccessRate = totalAiTasks > 0 
+                ? (successfulAiTasks.doubleValue() / totalAiTasks.doubleValue()) * 100 
+                : 0.0;
+        
+        // AI 작업 타입별 분포
+        Map<String, Long> aiTaskTypeDistribution = aiTasks.stream()
+                .collect(Collectors.groupingBy(
+                        task -> task.getType() != null ? task.getType().name() : "UNKNOWN",
+                        Collectors.counting()
+                ));
+        
+        // AI 작업 상태별 분포
+        Map<String, Long> aiTaskStatusDistribution = aiTasks.stream()
+                .collect(Collectors.groupingBy(
+                        task -> task.getStatus() != null ? task.getStatus().name() : "UNKNOWN",
+                        Collectors.counting()
+                ));
+
         return TaskStatisticsDTO.builder()
                 .statusDistribution(statusDistribution)
                 .priorityDistribution(priorityDistribution)
                 .sourceTypeDistribution(sourceTypeDistribution)
                 .completionRate(Math.round(completionRate * 10.0) / 10.0)
+                .totalAiTasks(totalAiTasks)
+                .successfulAiTasks(successfulAiTasks)
+                .failedAiTasks(failedAiTasks)
+                .aiSuccessRate(Math.round(aiSuccessRate * 10.0) / 10.0)
+                .aiTaskTypeDistribution(aiTaskTypeDistribution)
+                .aiTaskStatusDistribution(aiTaskStatusDistribution)
                 .build();
     }
     
