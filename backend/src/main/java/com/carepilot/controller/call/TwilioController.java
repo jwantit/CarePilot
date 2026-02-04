@@ -735,6 +735,9 @@ public class TwilioController {
                 Map<String, Object> payload = new HashMap<>();
                 payload.put("type", "NEW_INBOUND_SMS");
                 payload.put("delta", 1);
+                payload.put("from", from);
+                payload.put("body", body != null ? body : "");
+                payload.put("careTargetName", careTarget != null && careTarget.getName() != null ? careTarget.getName() : null);
                 String topic = "/topic/org/" + wsOrgId;
                 messagingTemplate.convertAndSend(topic, payload);
                 log.debug("SMS 알림 WebSocket 전송: topic={}", topic);

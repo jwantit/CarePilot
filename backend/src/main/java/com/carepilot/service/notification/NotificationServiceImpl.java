@@ -68,9 +68,11 @@ public class NotificationServiceImpl implements NotificationService {
         message.put("severity", severity != null ? severity.name() : null);
         message.put("occurredAt", savedNotification.getOccurredAt().toString());
 
-        // 특정 사용자에게만 전송 (userId 기반)
-        messagingTemplate.convertAndSend("/topic/notifications", message);
-        log.info("Notification sent via WebSocket to user: {}", userId);
+        // 조직별 토픽으로 브로드캐스트: /topic/org/{organizationId}
+        Long orgId = organization.getOrganizationId();
+        String topic = "/topic/org/" + orgId;
+        messagingTemplate.convertAndSend(topic, message);
+        log.info("Notification sent via WebSocket to topic: {}, userId: {}", topic, userId);
 
         return savedNotification;
     }
@@ -117,9 +119,11 @@ public class NotificationServiceImpl implements NotificationService {
         message.put("severity", severity != null ? severity.name() : null);
         message.put("occurredAt", savedNotification.getOccurredAt().toString());
 
-        // 특정 사용자에게만 전송 (userId 기반)
-        messagingTemplate.convertAndSend("/topic/notifications", message);
-        log.info("Notification sent via WebSocket to user: {}", userId);
+        // 조직별 토픽으로 브로드캐스트: /topic/org/{organizationId}
+        Long orgId = organization.getOrganizationId();
+        String topic = "/topic/org/" + orgId;
+        messagingTemplate.convertAndSend(topic, message);
+        log.info("Notification sent via WebSocket to topic: {}, userId: {}", topic, userId);
 
         return savedNotification;
     }

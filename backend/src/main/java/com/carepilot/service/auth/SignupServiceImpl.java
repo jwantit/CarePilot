@@ -15,11 +15,14 @@ import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -35,6 +38,7 @@ public class SignupServiceImpl implements SignupService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApprovalService approvalService;
+    private final SimpMessagingTemplate messagingTemplate;
     
     private static final Random RANDOM = new Random();
     private static final String PREFIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -249,6 +253,21 @@ public class SignupServiceImpl implements SignupService {
                 );
                 log.info("승인 요청 메일 발송 완료: managerEmail={}, userEmail={}", 
                         manager.getEmail(), user.getEmail());
+            }
+
+            // MANAGER에게 앱 내 토스트 알림 (개인 큐로 전송, 이메일 알림 설정 연동)
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("type", "SIGNUP_APPROVAL_REQUEST");
+            payload.put("userName", user.getName());
+            payload.put("userEmail", user.getEmail());
+            payload.put("title", "회원가입 승인 요청");
+            payload.put("text", user.getName() + "(" + user.getEmail() + ")님이 회원가입 승인을 요청했습니다.");
+            
+            // 각 MANAGER에게 개인 큐로 전송
+            for (User manager : managers) {
+                String userQueue = "/queue/users/" + manager.getUserId();
+                messagingTemplate.convertAndSend(userQueue, payload);
+                log.debug("회원가입 승인 요청 WebSocket 전송: userQueue={}, managerId={}", userQueue, manager.getUserId());
             }
         } catch (Exception e) {
             log.error("승인 요청 메일 발송 실패: userId={}, error={}", user.getUserId(), e.getMessage(), e);
