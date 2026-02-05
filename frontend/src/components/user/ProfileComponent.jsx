@@ -12,7 +12,7 @@ const ProfileComponent = ({ formData, handleChange, handleSave }) => {
   const inputClass = "mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500";
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md space-y-6">
+    <div className="bg-white p-8 rounded-none shadow-md space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700">이름</label>
         <input name="name" className={inputClass} value={formData.name} onChange={handleChange} />

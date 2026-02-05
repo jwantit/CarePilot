@@ -27,7 +27,7 @@ const NoticeList = ({ notices, onDetail }) => {
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+    <div className="border border-gray-200 rounded-none overflow-hidden bg-white">
       {notices && notices.length > 0 ? (
         <table className="w-full table-fixed">
           <colgroup><col className="w-16" /><col className="w-auto" /><col className="w-28" /><col className="w-32" /><col className="w-20" /></colgroup>

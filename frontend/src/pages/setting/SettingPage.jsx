@@ -24,7 +24,7 @@ function SettingPage() {
       <Breadcrumb items={["설정"]} />
       <div className="flex min-h-[500px]">
       {/* 왼쪽 사이드바 */}
-      <div className="w-64 flex-shrink-0 bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-4 mr-4">
+      <div className="w-64 flex-shrink-0 bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 rounded-none p-4 mr-4 shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-slate-100">설정</h2>
         <div className="space-y-1">
           {menuItems.map((item) => (
@@ -44,7 +44,7 @@ function SettingPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="flex-1 p-8 overflow-auto bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm">
+      <div className="flex-1 p-8 overflow-auto bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg">
         <ActiveComponent />
       </div>
       </div>

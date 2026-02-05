@@ -94,7 +94,7 @@ const NoticeDetail = ({
                     <img
                       src={displayUrl}
                       alt={file.originalName}
-                      className="max-w-full h-auto rounded-lg shadow-sm border"
+                      className="max-w-full h-auto rounded-none shadow-sm border"
                     />
                   </div>
                 );
@@ -112,7 +112,7 @@ const NoticeDetail = ({
         </div>
 
         {selectedNotice.files && selectedNotice.files.length > 0 && (
-          <div className="mb-10 p-4 bg-gray-50 rounded-lg border border-gray-100">
+          <div className="mb-10 p-4 bg-gray-50 rounded-none border border-gray-100">
             <h4 className="text-sm font-bold text-gray-600 mb-3 flex items-center gap-2">
               📎 첨부 파일 ({selectedNotice.files.length})
             </h4>
@@ -183,7 +183,7 @@ const NoticeDetail = ({
                     : "댓글을 입력하세요..."
               }
               disabled={!currentUserId}
-              className="w-full p-3 pr-24 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none resize-none h-24"
+              className="w-full p-3 pr-24 border rounded-none focus:ring-2 focus:ring-blue-400 outline-none resize-none h-24"
             />
             <button
               type="submit"

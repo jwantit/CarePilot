@@ -174,7 +174,7 @@ const CallHistoryTab = () => {
   return (
     <div className="relative space-y-6">
       {isListLoading ? (
-        <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-slate-600 bg-slate-800/50">
+        <div className="flex min-h-[320px] items-center justify-center rounded-none border border-slate-600 bg-slate-800/50">
           <Loading />
         </div>
       ) : (
@@ -425,7 +425,7 @@ const CallHistoryTab = () => {
       {/* 상세 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-slate-600 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-none border border-slate-600 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-xl">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-slate-100">
                 통화 상세

@@ -86,7 +86,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
 
   if (!staff || staff.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+      <div className="bg-white border border-gray-200 rounded-none p-12 text-center">
         <div className="text-gray-400 mb-2">
           <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -98,7 +98,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-none shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full table-fixed">
           <thead className="bg-gray-50 border-b border-gray-200">
@@ -163,7 +163,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                             cancelRoleEdit(member.userId);
                           }
                         }}
-                        className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-[#008080] focus:border-[#008080] outline-none"
+                        className="border border-gray-300 rounded-none px-2 py-1 text-sm focus:ring-2 focus:ring-[#008080] focus:border-[#008080] outline-none"
                         autoFocus
                         onBlur={() => cancelRoleEdit(member.userId)}
                       >
@@ -214,7 +214,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                       <>
                         <button
                           onClick={() => handleStatusClick(member.userId, member.status)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-[#008080] hover:bg-[#006666] text-white text-xs font-medium rounded-lg transition-colors shadow-sm min-w-[70px] justify-center"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-[#008080] hover:bg-[#006666] text-white text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
                           title="승인"
                         >
                           <CheckCircle2 size={14} />
@@ -222,7 +222,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                         </button>
                         <button
                           onClick={() => handleDenyClick(member.userId)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 text-xs font-medium rounded-lg transition-colors shadow-sm min-w-[70px] justify-center"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
                           title="거부"
                         >
                           <XCircle size={14} />
@@ -233,7 +233,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {member.status === 'ACTIVE' && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-orange-300 text-orange-600 hover:bg-orange-50 text-xs font-medium rounded-lg transition-colors shadow-sm min-w-[70px] justify-center"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-orange-300 text-orange-600 hover:bg-orange-50 text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
                         title="중지"
                       >
                         <PauseCircle size={14} />
@@ -243,7 +243,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {(member.status === 'DENIED' || member.status === 'DISABLED') && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-[#008080] hover:bg-[#006666] text-white text-xs font-medium rounded-lg transition-colors shadow-sm min-w-[70px] justify-center"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-[#008080] hover:bg-[#006666] text-white text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
                         title="활성화"
                       >
                         <PlayCircle size={14} />

@@ -37,7 +37,7 @@ const NoticeForm = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-12 p-8 border rounded-xl bg-gray-50 shadow-sm border-gray-200"
+      className="mb-12 p-8 border rounded-none bg-gray-50 shadow-sm border-gray-200"
     >
       <h2 className="text-center font-bold text-lg mb-6 text-gray-700">
         {editingId ? "공지사항 수정하기" : "새 공지사항 쓰기"}
@@ -101,7 +101,7 @@ const NoticeForm = ({
       />
       {/* 기존 파일 목록 (수정 시에만 표시) */}
       {editingId && existingFiles && existingFiles.length > 0 && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="mb-4 p-3 bg-gray-50 rounded-none border border-gray-200">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             기존 첨부 파일
           </label>

@@ -244,26 +244,26 @@ function ScenarioSetting() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">시나리오 설정</h1>
+        <h1 className="text-2xl font-bold text-slate-100">시나리오 설정</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
+          className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold shadow-md"
         >
           시나리오 등록
         </button>
       </div>
 
       {/* 필터 섹션 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-4 mb-6">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-slate-400 mb-2">
               상태
             </label>
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
             >
               <option value="전체">전체</option>
               <option value="활성">활성</option>
@@ -271,13 +271,13 @@ function ScenarioSetting() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-slate-400 mb-2">
               위험 단계
             </label>
             <select
               value={filters.riskLevel}
               onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
             >
               <option value="전체">전체</option>
               <option value="LOW">낮음</option>
@@ -288,13 +288,13 @@ function ScenarioSetting() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-slate-400 mb-2">
               카테고리
             </label>
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange("category", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
             >
               <option value="전체">전체</option>
               <option value="정기 모니터링">정기 모니터링</option>
@@ -306,55 +306,55 @@ function ScenarioSetting() {
       </div>
 
       {/* 테이블 */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-slate-800 border border-slate-700 rounded-none overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="text-gray-500">로딩 중...</div>
+            <div className="text-slate-500">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-700">
+            <thead className="bg-slate-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   시나리오명
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   설명
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   위험 레벨
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   사용 여부
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   관리
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-700">
               {scenarios.length === 0 ? (
                 <tr>
                   <td
                     colSpan="5"
-                    className="px-6 py-4 text-center text-gray-500"
+                    className="px-6 py-4 text-center text-slate-500"
                   >
                     등록된 시나리오가 없습니다.
                   </td>
                 </tr>
               ) : (
                 scenarios.map((scenario) => (
-                  <tr key={scenario.scenarioId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={scenario.scenarioId} className="hover:bg-slate-700/50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-100">
                       {scenario.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
+                    <td className="px-6 py-4 text-sm text-slate-300 max-w-md truncate">
                       {scenario.description}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
                       {getRiskLevelLabel(scenario.riskLevel)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -367,7 +367,7 @@ function ScenarioSetting() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-slate-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-200 after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
@@ -402,14 +402,14 @@ function ScenarioSetting() {
 
       {/* 등록/수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
-            <h2 className="text-2xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none p-6 w-full max-w-2xl my-8 shadow-xl">
+            <h2 className="text-xl font-bold mb-4 text-slate-100">
               {editingScenario ? "시나리오 수정" : "시나리오 등록"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-slate-400 mb-1">
                   시나리오명
                 </label>
                 <input
@@ -419,12 +419,12 @@ function ScenarioSetting() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-slate-400 mb-1">
                   설명
                 </label>
                 <textarea
@@ -433,13 +433,13 @@ function ScenarioSetting() {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">
                     카테고리
                   </label>
                   <input
@@ -448,12 +448,12 @@ function ScenarioSetting() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">
                     위험 레벨
                   </label>
                   <select
@@ -462,7 +462,7 @@ function ScenarioSetting() {
                       setFormData({ ...formData, riskLevel: e.target.value })
                     }
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                   >
                     <option value="LOW">낮음</option>
                     <option value="MEDIUM">보통</option>
@@ -473,7 +473,7 @@ function ScenarioSetting() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-400 mb-1">
                   위험 기준
                 </label>
                 <textarea
@@ -482,20 +482,20 @@ function ScenarioSetting() {
                     setFormData({ ...formData, riskCriteria: e.target.value })
                   }
                   rows="2"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                 />
               </div>
 
               {/* 질문 리스트 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-slate-400">
                     질문 리스트
                   </label>
                   <button
                     type="button"
                     onClick={addQuestion}
-                    className="px-3 py-1 text-sm bg-teal-500 text-white rounded-md hover:bg-teal-600"
+                    className="px-3 py-1 text-sm bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:border-teal-500"
                   >
                     질문 추가
                   </button>
@@ -504,7 +504,7 @@ function ScenarioSetting() {
                   {formData.questions.map((question, index) => (
                     <div
                       key={index}
-                      className="flex items-start space-x-2 p-2 border border-gray-200 rounded-md"
+                      className="flex items-start space-x-2 p-2 border border-slate-600 rounded-sm"
                     >
                       <div className="flex-1">
                         <input
@@ -518,7 +518,7 @@ function ScenarioSetting() {
                             )
                           }
                           placeholder="질문 내용"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 mb-2"
+                          className="w-full px-3 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none mb-2"
                         />
                         <div className="flex items-center space-x-2">
                           <input
@@ -532,9 +532,9 @@ function ScenarioSetting() {
                               )
                             }
                             placeholder="순서"
-                            className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="w-20 px-2 py-1 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                           />
-                          <label className="flex items-center text-sm text-gray-700">
+                          <label className="flex items-center text-sm text-slate-400">
                             <input
                               type="checkbox"
                               checked={question.isRequired}
@@ -567,14 +567,14 @@ function ScenarioSetting() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-slate-600 rounded-sm text-slate-300 hover:bg-slate-700/50"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 disabled:opacity-50"
+                  className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold disabled:opacity-50"
                 >
                   {loading ? "저장 중..." : "저장"}
                 </button>
@@ -586,58 +586,58 @@ function ScenarioSetting() {
 
       {/* 상세 모달 */}
       {showDetailModal && selectedScenario && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">시나리오 상세</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-slate-100">시나리오 상세</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-400 mb-1">
                   시나리오명
                 </label>
-                <p className="text-base text-gray-900">
+                <p className="text-base text-slate-100">
                   {selectedScenario.name}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-400 mb-1">
                   설명
                 </label>
-                <p className="text-base text-gray-900">
+                <p className="text-base text-slate-100">
                   {selectedScenario.description}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">
                     카테고리
                   </label>
-                  <p className="text-base text-gray-900">
+                  <p className="text-base text-slate-100">
                     {selectedScenario.category || "-"}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">
                     위험 레벨
                   </label>
-                  <p className="text-base text-gray-900">
+                  <p className="text-base text-slate-100">
                     {getRiskLevelLabel(selectedScenario.riskLevel)}
                   </p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-400 mb-1">
                   위험 기준
                 </label>
-                <p className="text-base text-gray-900">
+                <p className="text-base text-slate-100">
                   {selectedScenario.riskCriteria || "-"}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-400 mb-2">
                   질문 리스트
                 </label>
                 {selectedScenario.questions &&
@@ -646,14 +646,14 @@ function ScenarioSetting() {
                     {selectedScenario.questions.map((question, index) => (
                       <div
                         key={question.questionId || index}
-                        className="p-3 border border-gray-200 rounded-md"
+                        className="p-3 border border-slate-600 rounded-sm"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="text-sm text-gray-900">
+                            <p className="text-sm text-slate-100">
                               {index + 1}. {question.questionText}
                             </p>
-                            <div className="mt-1 text-xs text-gray-500">
+                            <div className="mt-1 text-xs text-slate-500">
                               순서: {question.questionOrder} |{" "}
                               {question.isRequired ? "필수" : "선택"}
                             </div>
@@ -663,7 +663,7 @@ function ScenarioSetting() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-slate-500">
                     등록된 질문이 없습니다.
                   </p>
                 )}
@@ -673,7 +673,7 @@ function ScenarioSetting() {
             <div className="flex justify-end pt-4">
               <button
                 onClick={handleCloseDetailModal}
-                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600"
+                className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold"
               >
                 닫기
               </button>

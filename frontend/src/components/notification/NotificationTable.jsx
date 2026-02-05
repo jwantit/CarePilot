@@ -188,7 +188,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
   if (notifications.length === 0) {
     return (
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden shadow-sm">
+      <div className="bg-slate-800 rounded-none border border-slate-700 overflow-hidden shadow-sm">
         <div className="px-4 py-8 text-center text-slate-500">
           알림이 없습니다.
         </div>
@@ -197,7 +197,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   }
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden shadow-sm">
+    <div className="bg-slate-800 rounded-none border border-slate-700 overflow-hidden shadow-sm">
       <div style={{ height: '600px', width: '100%' }}>
         <AutoSizer>
           {({ height, width }) => (
@@ -313,7 +313,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
               <div>
                 <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">상세 내용</label>
-                <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-sm text-slate-300 whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                <div className="bg-slate-800/50 p-4 rounded-none border border-slate-700 text-sm text-slate-300 whitespace-pre-wrap leading-relaxed min-h-[120px]">
                   {selectedNotification.description}
                 </div>
               </div>
@@ -330,7 +330,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               </div>
 
               {selectedNotification.status === 'RESOLVED' && (
-                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                <div className="mt-6 p-4 bg-green-50 rounded-none border border-green-100">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-green-700 font-bold">✓ 확인 완료</span>
                     <span className="text-green-600">{formatDateTime(selectedNotification.resolvedAt)}</span>
@@ -349,14 +349,14 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
                     handleConfirm(e, selectedNotification.notificationId);
                     closeModal();
                   }}
-                  className="px-5 py-2.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 font-bold shadow-sm transition-all active:scale-95"
+                  className="px-5 py-2.5 bg-teal-500 text-white rounded-none hover:bg-teal-600 font-bold shadow-sm transition-all active:scale-95"
                 >
                   확인 처리하기
                 </button>
               )}
               <button 
                 onClick={closeModal} 
-                className="px-5 py-2.5 bg-slate-800 border border-gray-300 rounded-lg hover:bg-slate-800/50 font-bold text-slate-300 transition-all"
+                className="px-5 py-2.5 bg-slate-800 border border-gray-300 rounded-none hover:bg-slate-800/50 font-bold text-slate-300 transition-all"
               >
                 닫기
               </button>

@@ -82,7 +82,7 @@ function NotificationSetting() {
 
   const ToggleSwitch = ({ checked, onChange, label }) => (
     <div className="flex items-center justify-between">
-      <label className="text-base font-medium text-gray-700">{label}</label>
+      <label className="text-base font-semibold text-slate-300">{label}</label>
       <label className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
@@ -90,19 +90,19 @@ function NotificationSetting() {
           onChange={onChange}
           className="sr-only peer"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-slate-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-200 after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
       </label>
     </div>
   );
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">알림 설정</h1>
+      <h1 className="text-2xl font-bold mb-6 text-slate-100">알림 설정</h1>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-8">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6 space-y-8">
         {/* 알림 수신 방식 섹션 */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
             알림 수신 방식
           </h2>
           <ToggleSwitch
@@ -121,11 +121,11 @@ function NotificationSetting() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-gray-200"></div>
+        <div className="border-t border-slate-700"></div>
 
         {/* 알림 유형 섹션 */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
             알림 유형
           </h2>
           <ToggleSwitch
@@ -154,16 +154,16 @@ function NotificationSetting() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-gray-200"></div>
+        <div className="border-t border-slate-700"></div>
 
         {/* 알림 제한 시간 섹션 */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
             알림 제한 시간
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-400 mb-2">
                 시작 시간
               </label>
               <input
@@ -172,11 +172,11 @@ function NotificationSetting() {
                 onChange={(e) =>
                   handleConfigChange("nightRestrictionStart", e.target.value)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-400 mb-2">
                 종료 시간
               </label>
               <input
@@ -185,20 +185,20 @@ function NotificationSetting() {
                 onChange={(e) =>
                   handleConfigChange("nightRestrictionEnd", e.target.value)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
               />
             </div>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             설정한 시간 동안 알림이 제한됩니다.
           </p>
         </div>
 
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-slate-700">
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-6 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "저장 중..." : "저장"}
           </button>

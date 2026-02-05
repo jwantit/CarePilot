@@ -81,8 +81,8 @@ function AISetting() {
   const ToggleSwitch = ({ checked, onChange, label, disabled }) => (
     <div className="flex items-center justify-between py-3">
       <div>
-        <label className="text-base font-medium text-gray-700">{label}</label>
-        <p className="text-sm text-gray-500 mt-1">
+        <label className="text-base font-semibold text-slate-300">{label}</label>
+        <p className="text-sm text-slate-500 mt-1">
           {checked ? "자동화가 활성화되어 있습니다." : "자동화가 비활성화되어 있습니다."}
         </p>
       </div>
@@ -94,7 +94,7 @@ function AISetting() {
           disabled={disabled}
           className="sr-only peer"
         />
-        <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+        <div className={`w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-slate-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-200 after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
       </label>
     </div>
   );
@@ -102,9 +102,9 @@ function AISetting() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-3xl font-bold mb-6">AI 설정</h1>
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-center py-8 text-gray-500">로딩 중...</div>
+        <h1 className="text-2xl font-bold mb-6 text-slate-100">AI 설정</h1>
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
+          <div className="text-center py-8 text-slate-500">로딩 중...</div>
         </div>
       </div>
     );
@@ -112,15 +112,15 @@ function AISetting() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">AI 설정</h1>
-      <p className="text-gray-600 mb-6">
+      <h1 className="text-2xl font-bold mb-6 text-slate-100">AI 설정</h1>
+      <p className="text-slate-400 mb-6">
         각 기능별 AI 자동화를 활성화하거나 비활성화할 수 있습니다.
       </p>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6 space-y-6">
         {/* 전화 자동화 섹션 */}
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
             전화 자동화
           </h2>
           <ToggleSwitch
@@ -132,11 +132,11 @@ function AISetting() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-gray-200"></div>
+        <div className="border-t border-slate-700"></div>
 
         {/* 문자 자동화 섹션 */}
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
             문자 자동화
           </h2>
           <ToggleSwitch
@@ -148,11 +148,11 @@ function AISetting() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-gray-200"></div>
+        <div className="border-t border-slate-700"></div>
 
         {/* 챗봇 자동화 섹션 */}
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
             챗봇 자동화
           </h2>
           <ToggleSwitch

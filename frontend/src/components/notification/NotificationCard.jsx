@@ -71,7 +71,7 @@ function NotificationCard({ notification, onMarkAsRead, currentUserId }) {
 
   return (
     <div
-      className={`p-4 rounded-lg border transition-all cursor-pointer ${
+      className={`p-4 rounded-none border transition-all cursor-pointer ${
         isUnread
           ? 'bg-teal-50 border-teal-200 hover:bg-teal-100 hover:shadow-md'
           : 'bg-white border-gray-200 hover:bg-gray-50'

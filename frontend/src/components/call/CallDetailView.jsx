@@ -11,7 +11,7 @@ const CallDetailView = ({ detail, loading }) => {
     );
 
   return (
-    <div className="flex flex-col h-full bg-white border rounded-lg overflow-hidden shadow-sm">
+    <div className="flex flex-col h-full bg-white border rounded-none overflow-hidden shadow-sm">
       <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
         <h3 className="font-bold text-lg text-gray-800">통화 상세 분석</h3>
         <span className="text-sm px-2 py-1 bg-blue-100 text-blue-700 rounded">
@@ -25,7 +25,7 @@ const CallDetailView = ({ detail, loading }) => {
           <h4 className="text-sm font-semibold text-gray-500 mb-2 uppercase">
             STT 대화 기록
           </h4>
-          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm min-h-[200px] whitespace-pre-line leading-relaxed">
+          <div className="bg-white p-4 rounded-none border border-gray-200 shadow-sm min-h-[200px] whitespace-pre-line leading-relaxed">
             {detail.transcript || "대화 기록이 없습니다."}
           </div>
         </div>
@@ -35,7 +35,7 @@ const CallDetailView = ({ detail, loading }) => {
           <h4 className="text-sm font-semibold text-gray-500 mb-2 uppercase">
             AI 요약 및 메모
           </h4>
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <div className="bg-blue-50 p-4 rounded-none border border-blue-100">
             <p className="text-gray-700">
               {detail.summary || "분석된 요약 내용이 없습니다."}
             </p>
