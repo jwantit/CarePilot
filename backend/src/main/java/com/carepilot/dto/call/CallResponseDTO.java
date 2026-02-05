@@ -46,7 +46,7 @@ public class CallResponseDTO {
                 .duration(durationStr)
                 .resultStatus("성공")
                 .riskScore(riskScore != null ? riskScore.getRiskScore() : null)
-                .riskLevel(calculatedRiskLevel != null ? calculatedRiskLevel.name() : "LOW")
+                .riskLevel(calculatedRiskLevel != null ? calculatedRiskLevel.name() : null)
                 .build();
     }
 

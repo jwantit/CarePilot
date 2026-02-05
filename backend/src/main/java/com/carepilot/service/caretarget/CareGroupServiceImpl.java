@@ -219,10 +219,17 @@ public class CareGroupServiceImpl implements CareGroupService {
         for (CareTargetGroupMap map : ctgms) {
             CareTarget ct = map.getCareTarget();
 
+            // 최신 위험도 기록 조회
+            Optional<com.carepilot.domain.call.RiskScore> latestRiskOpt = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId());
+
             // 최신 위험도 점수를 기반으로 레벨 계산 (케어대상 페이지와 동일한 로직)
-            RiskLevel riskLevel = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId())
+            RiskLevel riskLevel = latestRiskOpt
                     .map(rs -> riskConfigService.resolveLevel(rs.getRiskScore(), riskConfig))
-                    .orElse(RiskLevel.LOW);
+                    .orElse(null);
+
+            int riskScore = latestRiskOpt
+                    .map(com.carepilot.domain.call.RiskScore::getRiskScore)
+                    .orElse(0);
 
             // 위험도 카운트 증가
             switch (riskLevel) {
@@ -240,6 +247,7 @@ public class CareGroupServiceImpl implements CareGroupService {
                     .disease(ct.getDisease())
                     .careTargetPhone(ct.getTargetPhone())
                     .riskLevel(riskLevel)
+                    .riskScore(riskScore)
                     .build());
         }
 
