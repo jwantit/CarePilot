@@ -7,6 +7,7 @@ import NoticeDetail from "../../components/notice/NoticeDetail";
 import { useAuth } from "../../hooks/useAuth";
 import useCustomMove from "../../hooks/useCustomMove";
 import Breadcrumb from "../../components/common/Breadcrumb";
+import { PlusCircle, X } from "lucide-react";
 
 function NoticePage() {
   const { user } = useAuth();
@@ -239,12 +240,11 @@ function NoticePage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={["공지사항"]} />
-      <header className="flex justify-between items-center">
-               {" "}
-        <h1 className="text-4xl font-extrabold text-slate-100 tracking-tight">
-                    공지사항        {" "}
-        </h1>
-               {" "}
+      <header className="flex justify-between items-center bg-slate-800/50 p-4 rounded-sm border border-slate-700">
+        <div>
+          <h1 className="text-xl font-bold text-slate-100">공지사항</h1>
+          <p className="text-sm text-slate-500">CarePilot의 주요 공지 및 안내 사항을 확인하세요.</p>
+        </div>
         <button
           onClick={() => {
             setShowForm(!showForm);
@@ -252,13 +252,17 @@ function NoticePage() {
             setTitle("");
             setContent("");
           }}
-          className="bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white px-6 py-2.5 rounded-sm font-bold transition shadow-lg border border-teal-500 text-center flex items-center justify-center"
+          className={`flex items-center gap-2 px-4 py-2 rounded-sm font-bold transition shadow-lg border text-center ${
+            showForm 
+              ? "bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600" 
+              : "bg-teal-600 text-white border-teal-500 hover:bg-teal-500"
+          }`}
         >
-          {showForm ? "닫기" : "글쓰기"}
+          {showForm ? <X size={18} /> : <PlusCircle size={18} />}
+          {showForm ? "닫기" : "공지 등록"}
         </button>
-             {" "}
       </header>
-           {" "}
+
       {showForm && (
         <NoticeForm
           title={title}

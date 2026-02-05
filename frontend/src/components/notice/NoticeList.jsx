@@ -1,4 +1,5 @@
 import React from "react";
+import { FileText, MessageSquare, Pin } from "lucide-react";
 
 const NoticeList = ({ notices, onDetail }) => {
   const formatDate = (dateString) => {
@@ -6,96 +7,97 @@ const NoticeList = ({ notices, onDetail }) => {
     const date = new Date(dateString);
     const today = new Date();
     
-    // 오늘 날짜인지 확인 (년, 월, 일만 비교)
     const isToday = 
       date.getFullYear() === today.getFullYear() &&
       date.getMonth() === today.getMonth() &&
       date.getDate() === today.getDate();
     
     if (isToday) {
-      // 오늘이면 시간만 표시
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${hours}:${minutes}`;
     } else {
-      // 오늘이 아니면 일자만 표시
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
-      return `${year}.${month}.${day}.`;
+      return `${year}.${month}.${day}`;
     }
   };
 
   return (
-    <div className="border border-gray-200 rounded-none overflow-hidden bg-white">
+    <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden shadow-lg">
       {notices && notices.length > 0 ? (
-        <table className="w-full table-fixed">
-          <colgroup><col className="w-16" /><col className="w-auto" /><col className="w-28" /><col className="w-32" /><col className="w-20" /></colgroup>
-          <thead className="bg-gray-50 border-b border-gray-200">
+        <table className="w-full text-left">
+          <thead className="bg-slate-900 text-slate-400 uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
-              <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">종류</th>
-              <th className="pl-1 pr-2 py-3 text-center text-sm font-semibold text-gray-700">제목</th>
-              <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">작성자</th>
-              <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">작성 시간</th>
-              <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700">조회수</th>
+              <th className="px-4 py-3 text-teal-400 w-20 text-center">종류</th>
+              <th className="px-4 py-3 text-teal-400">제목</th>
+              <th className="px-4 py-3 text-teal-400 w-32 text-center">작성자</th>
+              <th className="px-4 py-3 text-teal-400 w-32 text-center">작성 시간</th>
+              <th className="px-4 py-3 text-teal-400 w-24 text-center">조회수</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-700">
             {notices.map((notice) => {
+              const isPinned = notice.isPinned;
               return (
                 <tr
                   key={notice.noticeId}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
+                  className="hover:bg-slate-700/50 transition cursor-pointer bg-slate-800/30 group"
                   onClick={() => onDetail(notice)}
                 >
-                  <td className="px-3 py-3 text-center text-sm text-gray-600">
+                  <td className="px-4 py-5 text-center">
                     {(() => {
                       const type = notice.noticeType || "NORMAL";
                       if (type === "NOTICE") {
                         return (
-                          <span className="inline-block bg-red-500 text-white border border-red-600 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                          <span className="inline-block bg-red-500/20 text-red-400 border border-red-500/50 text-xs px-2.5 py-1 rounded-sm font-black whitespace-nowrap uppercase">
                             공지
                           </span>
                         );
                       } else if (type === "MANUAL") {
                         return (
-                          <span className="inline-block bg-green-500 text-white border border-green-600 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                          <span className="inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 text-xs px-2.5 py-1 rounded-sm font-black whitespace-nowrap uppercase">
                             매뉴얼
                           </span>
                         );
                       } else {
                         return (
-                          <span className="inline-block bg-white border border-gray-300 text-gray-700 text-xs px-2 py-0.5 rounded font-bold whitespace-nowrap">
+                          <span className="inline-block bg-slate-700 text-slate-300 border border-slate-600 text-xs px-2.5 py-1 rounded-sm font-bold whitespace-nowrap uppercase">
                             일반
                           </span>
                         );
                       }
                     })()}
                   </td>
-                  <td className="pl-1 pr-2 py-3 text-sm text-gray-800">
-                    <div className="flex items-center gap-2">
-                      <span className="hover:text-blue-600 truncate">{notice.title}</span>
-                      {/* 파일 첨부 아이콘 */}
-                      {notice.files && notice.files.length > 0 && (
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                        </svg>
+                  <td className="px-4 py-5">
+                    <div className="flex items-center gap-3">
+                      {isPinned && (
+                        <Pin size={16} className="text-teal-400 fill-teal-400/20 rotate-45 shrink-0" />
                       )}
-                      {/* 댓글 개수 */}
+                      <span className="text-slate-100 font-bold text-base truncate max-w-lg group-hover:text-teal-400 transition-colors">
+                        {notice.title}
+                      </span>
+                      {notice.files && notice.files.length > 0 && (
+                        <FileText size={16} className="text-slate-500 shrink-0" />
+                      )}
                       {notice.commentCount > 0 && (
-                        <span className="text-red-500 text-xs font-medium flex-shrink-0">[{notice.commentCount}]</span>
+                        <div className="flex items-center gap-1.5 text-teal-500 bg-teal-500/10 px-2 py-0.5 rounded-sm border border-teal-500/20">
+                          <MessageSquare size={14} />
+                          <span className="text-xs font-black font-mono">{notice.commentCount}</span>
+                        </div>
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-600 truncate">
+                  <td className="px-4 py-5 text-center text-base text-slate-300 font-bold truncate">
                     {notice.writerName || "익명"}
                   </td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-500 whitespace-nowrap">
+                  <td className="px-4 py-5 text-center text-sm text-slate-400 whitespace-nowrap font-mono tracking-tighter">
                     {notice.updatedAt && notice.updatedAt !== notice.createdAt 
                       ? formatDate(notice.updatedAt) 
                       : formatDate(notice.createdAt)}
                   </td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-600">
+                  <td className="px-4 py-5 text-center text-base text-slate-400 font-mono font-bold">
                     {notice.viewCount || 0}
                   </td>
                 </tr>
@@ -104,7 +106,7 @@ const NoticeList = ({ notices, onDetail }) => {
           </tbody>
         </table>
       ) : (
-        <div className="text-center py-20 text-gray-500">
+        <div className="text-center py-20 text-slate-500 bg-slate-800/30">
           게시글이 없습니다.
         </div>
       )}

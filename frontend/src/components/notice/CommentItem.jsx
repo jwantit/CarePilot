@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { noticeApi } from "../../api/noticeApi";
+import { User, Edit2, Trash2, Reply } from "lucide-react";
 
 const CommentItem = ({
   comment,
@@ -11,7 +12,6 @@ const CommentItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
 
-  // 날짜 포맷 함수 (2026.02.02. 14:57 형식)
   const formatDateTime = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -24,7 +24,6 @@ const CommentItem = ({
     return `${year}.${month}.${day}. ${hours}:${minutes}`;
   };
 
-  // 댓글 삭제 로직
   const handleDelete = async () => {
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
     try {
@@ -50,103 +49,91 @@ const CommentItem = ({
     }
   };
 
-  // 삭제된 댓글인지 확인
   const isDeleted = comment.content === "삭제된 댓글입니다";
   const displayName = comment.userName || comment.writerName;
 
   return (
     <div
-      className={`${comment.parentCommentId ? "ml-6 pl-4" : "border-b border-gray-200 pb-3 mb-3"}`}
+      className={`${comment.parentCommentId ? "ml-8 pl-5 border-l-2 border-slate-700 mt-4" : "border-b border-slate-700/50 pb-6 mb-6 last:border-0"}`}
     >
       {isDeleted ? (
-        // 삭제된 댓글: "삭제된 댓글입니다"만 표시
-        <div className="text-gray-400 text-sm py-2">
+        <div className="text-slate-500 text-base italic py-3 bg-slate-900/40 px-5 rounded-sm border border-slate-800">
           {comment.content}
         </div>
       ) : (
-        // 일반 댓글: 간결한 레이아웃
-        <div className="flex items-start gap-3 py-2">
-          {/* 프로필 이미지 (빈 프로필) */}
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-            <svg
-              className="w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+            <User size={20} className="text-slate-300" />
           </div>
 
           <div className="flex-1">
-            {/* 사용자 이름과 태그 */}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="font-medium text-gray-900 text-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="font-bold text-slate-100 text-base tracking-tight">
                 {displayName || "익명"}
               </span>
               {comment.userId === currentUserId && (
-                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                  작성자
+                <span className="text-[10px] font-black text-teal-300 bg-teal-600/30 border border-teal-500/50 px-1.5 py-0.5 rounded-sm uppercase tracking-widest shadow-sm">
+                  Author
                 </span>
               )}
-              {/* 작성 일시를 유저명 옆으로 이동 */}
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-slate-400 font-mono font-medium">
                 {formatDateTime(comment.createdAt)}
               </span>
-              {comment.userId === currentUserId && (
-                <div className="flex gap-2 ml-auto text-xs text-gray-500">
+              {comment.userId === currentUserId && !isEditing && (
+                <div className="flex gap-3 ml-auto">
                   <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="hover:text-blue-500"
+                    onClick={() => setIsEditing(true)}
+                    className="text-slate-400 hover:text-teal-400 transition-all transform hover:scale-110"
+                    title="수정"
                   >
-                    수정
+                    <Edit2 size={16} />
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="hover:text-red-500"
+                    className="text-slate-400 hover:text-red-400 transition-all transform hover:scale-110"
+                    title="삭제"
                   >
-                    삭제
+                    <Trash2 size={16} />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* 댓글 내용 */}
             {isEditing ? (
-              <div className="mb-2">
+              <div className="mb-5 animate-in fade-in slide-in-from-top-2 duration-200">
                 <textarea
-                  className="w-full p-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-400"
+                  className="w-full p-4 border border-slate-500 rounded-sm bg-slate-950 text-slate-100 text-base outline-none focus:ring-2 focus:ring-teal-500/50 resize-none h-28 shadow-inner leading-relaxed"
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                 />
-                <button
-                  onClick={handleUpdate}
-                  className="mt-1 bg-blue-500 text-white px-3 py-1 rounded text-xs"
-                >
-                  수정 완료
-                </button>
+                <div className="flex justify-end gap-3 mt-2.5">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="text-xs font-bold text-slate-400 hover:text-slate-200 px-3 py-1.5 transition-colors"
+                  >
+                    취소하기
+                  </button>
+                  <button
+                    onClick={handleUpdate}
+                    className="bg-teal-600 text-white border border-teal-500 text-xs font-black px-5 py-1.5 rounded-sm hover:bg-teal-500 transition-all shadow-lg"
+                  >
+                    수정 완료
+                  </button>
+                </div>
               </div>
             ) : (
-              <div className="mb-2 text-left">
-                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+              <div className="mb-4 text-left">
+                <p className="text-slate-200 text-lg leading-relaxed whitespace-pre-wrap font-medium tracking-wide">
                   {(() => {
-                    // @유저이름 패턴을 파란색으로 강조 표시하는 함수
                     const renderContentWithMentions = (text) => {
                       if (!text) return text;
-                      // @로 시작하고 공백 전까지 또는 줄바꿈 전까지 매칭
                       const mentionRegex = /(@[^\s\n]+)/g;
                       const parts = text.split(mentionRegex);
                       
                       return parts.map((part, index) => {
                         if (part.match(mentionRegex)) {
-                          // @로 시작하는 부분은 파란색으로 표시
                           return (
-                            <span key={index} className="text-blue-500 font-medium">
+                            <span key={index} className="text-teal-400 font-bold decoration-teal-500/30 underline-offset-4">
                               {part}
                             </span>
                           );
@@ -155,23 +142,19 @@ const CommentItem = ({
                       });
                     };
 
-                    // 답글인 경우 댓글 내용에 이미 @유저이름이 포함되어 있는지 확인
                     if (comment.parentCommentId && comment.parentUserName) {
                       const mentionText = `@${comment.parentUserName}`;
-                      // 댓글 내용이 이미 @유저이름으로 시작하면 중복 표시하지 않음
                       if (comment.content.trim().startsWith(mentionText)) {
                         return renderContentWithMentions(comment.content);
                       } else {
-                        // 댓글 내용에 @유저이름이 없으면 추가
                         return (
                           <>
-                            <span className="text-blue-500 font-medium">@{comment.parentUserName}</span>{" "}
+                            <span className="text-teal-400 font-bold">@{comment.parentUserName}</span>{" "}
                             {renderContentWithMentions(comment.content)}
                           </>
                         );
                       }
                     } else {
-                      // 일반 댓글도 @유저이름이 있으면 파란색으로 표시
                       return renderContentWithMentions(comment.content);
                     }
                   })()}
@@ -179,22 +162,21 @@ const CommentItem = ({
               </div>
             )}
 
-            {/* 답글 쓰기 버튼 (댓글 아래 좌측) */}
             <div className="text-left">
               <button
                 onClick={() => setReplyTo(comment)}
-                className="text-xs text-gray-500 hover:text-blue-500 font-medium"
+                className="flex items-center gap-1.5 text-xs font-black text-slate-400 hover:text-teal-400 transition-all bg-slate-800/80 px-3 py-1.5 rounded-sm border border-slate-700 hover:border-teal-500/50 shadow-sm"
               >
-                {comment.parentCommentId ? "답글쓰기" : "답글 쓰기"}
+                <Reply size={12} className="rotate-180" />
+                답글 달기
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 대댓글 재귀 렌더링 로직 */}
       {comment.children && comment.children.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-2 space-y-4">
           {comment.children.map((child) => (
             <CommentItem
               key={child.commentId}
