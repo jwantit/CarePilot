@@ -55,6 +55,8 @@ public class TwilioService {
                     .setRecord(true)  // 통화 녹음 활성화
                     .setRecordingStatusCallback(ngrokBaseUrl + "/api/twilio/recording/status")
                     .setRecordingStatusCallbackMethod(com.twilio.http.HttpMethod.POST)
+                    .setStatusCallback(ngrokBaseUrl + "/api/twilio/voice/status")
+                    .setStatusCallbackMethod(com.twilio.http.HttpMethod.POST)
                     .create();
 
             log.info("전화 발신 성공: from={}, to={}, callSid={}", fromNumber, to, call.getSid());

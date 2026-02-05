@@ -102,6 +102,13 @@ public class Call extends BaseEntity {
     }
 
     /**
+     * 통화 상태를 업데이트합니다.
+     */
+    public void updateStatus(CallStatus status) {
+        this.status = status;
+    }
+
+    /**
      * 통화 종료 시 end_time과 duration을 업데이트하고 상태를 SUCCESS로 변경합니다.
      */
     public void completeCall() {

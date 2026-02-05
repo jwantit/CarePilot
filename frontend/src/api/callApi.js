@@ -68,3 +68,19 @@ export const makeCallTest = async ({ to, scheduledTime }) => {
   // });
   // return res.data;
 };
+
+// 9. [테스트용] 위험 감지 알림 생성 테스트
+export const testRiskDetectionNotification = async (
+  careTargetId,
+  riskScore = 75,
+  riskLevel = "HIGH",
+) => {
+  const res = await apiClient.post(`${host}/test/risk-detection`, null, {
+    params: {
+      careTargetId: careTargetId,
+      riskScore: riskScore,
+      riskLevel: riskLevel,
+    },
+  });
+  return res.data;
+};

@@ -6,6 +6,9 @@ import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.carepilot.domain.call.Call;
+import com.carepilot.domain.call.CallStatus;
+import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.repository.notification.NotificationRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
@@ -46,57 +49,6 @@ public class NotificationServiceImpl implements NotificationService {
         
         Notification notification = Notification.builder()
                 .organization(organization)
-                .user(user)
-                .type(type)
-                .title(title)
-                .description(description)
-                .severity(severity)
-                .status(NotificationStatus.ACTIVE)
-                .occurredAt(LocalDateTime.now())
-                .build();
-
-        // DB에 저장
-        Notification savedNotification = notificationRepository.save(notification);
-        log.info("Notification saved: {}", savedNotification.getNotificationId());
-
-        // WebSocket으로 실시간 전송
-        Map<String, Object> message = new HashMap<>();
-        message.put("id", savedNotification.getNotificationId());
-        message.put("type", type.name());
-        message.put("title", title);
-        message.put("text", description);
-        message.put("severity", severity != null ? severity.name() : null);
-        message.put("occurredAt", savedNotification.getOccurredAt().toString());
-
-        // 조직별 토픽으로 브로드캐스트: /topic/org/{organizationId}
-        Long orgId = organization.getOrganizationId();
-        String topic = "/topic/org/" + orgId;
-        messagingTemplate.convertAndSend(topic, message);
-        log.info("Notification sent via WebSocket to topic: {}, userId: {}", topic, userId);
-
-        return savedNotification;
-    }
-
-    @Override
-    @Transactional
-    public Notification createAndSendNotification(Long userId, NotificationType type,
-                                                   String title, String description, RiskLevel severity,
-                                                   com.carepilot.domain.call.Call call,
-                                                   com.carepilot.domain.caretarget.CareTarget careTarget) {
-        // User 조회
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        
-        // Organization 조회 (User의 organization 사용)
-        Organization organization = user.getOrganization();
-        if (organization == null) {
-            throw new RuntimeException("User's organization not found");
-        }
-        
-        Notification notification = Notification.builder()
-                .organization(organization)
-                .careTarget(careTarget)
-                .call(call)
                 .user(user)
                 .type(type)
                 .title(title)
@@ -184,8 +136,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public Notification createOrganizationNotification(Long organizationId, NotificationType type,
                                                        String title, String description, RiskLevel severity,
-                                                       com.carepilot.domain.call.Call call,
-                                                       com.carepilot.domain.caretarget.CareTarget careTarget) {
+                                                       Call call,
+                                                       CareTarget careTarget) {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new RuntimeException("Organization not found with id: " + organizationId));
         
@@ -223,6 +175,62 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Organization notification sent via WebSocket to topic: {}", topic);
 
         return savedNotification;
+    }
+
+    @Override
+    @Transactional
+    public Notification createCallFailureNotification(Long organizationId, Call call,
+                                                     CareTarget careTarget,
+                                                     CallStatus status) {
+        String statusText = "";
+        if (status == CallStatus.FAILED) {
+            statusText = "실패";
+        } else if (status == CallStatus.NO_ANSWER) {
+            statusText = "무응답";
+        } else if (status == CallStatus.CANCELLED) {
+            statusText = "취소";
+        }
+
+        String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
+        String title = String.format("통화 %s: %s", statusText, careTargetName);
+        String description = String.format("케어대상자 '%s'의 통화가 %s되었습니다.",
+                careTargetName, statusText);
+
+        return createOrganizationNotification(
+                organizationId,
+                NotificationType.CALL,
+                title,
+                description,
+                RiskLevel.MEDIUM,
+                call,
+                careTarget
+        );
+    }
+
+    @Override
+    @Transactional
+    public Notification createRiskDetectionNotification(Long organizationId, Call call,
+                                                       CareTarget careTarget,
+                                                       Integer riskScore, RiskLevel riskLevel) {
+        String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
+        String title = String.format("위험 감지: %s (위험도 %d점)", careTargetName, riskScore);
+        String description = String.format("케어대상자 '%s'의 통화 분석 결과 위험도가 %d점으로 감지되었습니다.\n위험 수준: %s",
+                careTargetName, riskScore, riskLevel.name());
+
+        // 위험도에 따라 severity 결정
+        RiskLevel severity = (riskLevel == RiskLevel.CRITICAL) ? RiskLevel.CRITICAL :
+                (riskLevel == RiskLevel.HIGH) ? RiskLevel.HIGH :
+                        RiskLevel.MEDIUM;
+
+        return createOrganizationNotification(
+                organizationId,
+                NotificationType.RISK_DETECTION,
+                title,
+                description,
+                severity,
+                call,
+                careTarget
+        );
     }
 }
 

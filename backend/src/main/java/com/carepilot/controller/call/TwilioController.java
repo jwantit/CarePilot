@@ -534,6 +534,84 @@ public class TwilioController {
     }
 
     /**
+     * [3-1단계] Twilio 통화 상태 변경 콜백
+     * 통화가 완료되거나 실패했을 때 Twilio가 호출합니다.
+     */
+    @PostMapping("/voice/status")
+    @Transactional
+    public ResponseEntity<Void> handleCallStatusCallback(
+            @RequestParam(value = "CallSid") String callSid,
+            @RequestParam(value = "CallStatus") String callStatus,
+            @RequestParam(value = "CallDuration", required = false) String callDurationStr) {
+        
+        log.info("Twilio 통화 상태 업데이트: callSid={}, callStatus={}, duration={}", 
+                callSid, callStatus, callDurationStr);
+        
+        Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+        if (callOpt.isPresent()) {
+            Call call = callOpt.get();
+            
+            // 통화 상태 맵핑
+            CallStatus newStatus = null;
+            if ("completed".equals(callStatus)) {
+                // completed인 경우 실제 응답 여부 확인
+                boolean hasRealResponse = checkIfHasRealResponse(call, callDurationStr);
+                newStatus = hasRealResponse ? CallStatus.SUCCESS : CallStatus.NO_ANSWER;
+                log.info("통화 completed 상태 판단: callId={}, hasRealResponse={}, newStatus={}, 현재상태={}", 
+                        call.getCallId(), hasRealResponse, newStatus, call.getStatus());
+            } else if ("failed".equals(callStatus)) {
+                newStatus = CallStatus.FAILED;
+            } else if ("no-answer".equals(callStatus)) {
+                newStatus = CallStatus.NO_ANSWER;
+            } else if ("busy".equals(callStatus) || "canceled".equals(callStatus)) {
+                newStatus = CallStatus.CANCELLED;
+            }
+            
+            // 상태 업데이트 필요 여부 확인
+            boolean statusChanged = (newStatus != null && newStatus != call.getStatus());
+            log.info("통화 상태 변경 확인: callId={}, newStatus={}, 현재상태={}, 변경필요={}", 
+                    call.getCallId(), newStatus, call.getStatus(), statusChanged);
+            
+            if (statusChanged) {
+                call.updateStatus(newStatus);
+                callRepository.save(call);
+                log.info("통화 상태 업데이트 완료: callId={}, newStatus={}", call.getCallId(), newStatus);
+            }
+            
+            // 통화 실패 알림 생성 (상태 변경 여부와 관계없이 실패/무응답/취소 상태면 확인)
+            // 주의: 상태가 변경되지 않았어도 이미 NO_ANSWER로 저장된 경우 알림이 없을 수 있으므로 확인 필요
+            if (newStatus == CallStatus.FAILED || newStatus == CallStatus.NO_ANSWER || newStatus == CallStatus.CANCELLED) {
+                try {
+                    // 중복 생성 방지
+                    List<com.carepilot.domain.notification.Notification> existing = 
+                            notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.CALL);
+                    
+                    log.info("통화 실패 알림 생성 확인: callId={}, status={}, 기존알림개수={}", 
+                            call.getCallId(), newStatus, existing.size());
+                    
+                    if (existing.isEmpty()) {
+                        notificationService.createCallFailureNotification(
+                                call.getOrganization().getOrganizationId(),
+                                call,
+                                call.getCareTarget(),
+                                newStatus
+                        );
+                        log.info("통화 실패 알림 생성 완료: callId={}, status={}", call.getCallId(), newStatus);
+                    } else {
+                        log.info("이미 통화 실패 알림이 존재하여 생성하지 않음: callId={}, 기존알림개수={}", 
+                                call.getCallId(), existing.size());
+                    }
+                } catch (Exception e) {
+                    log.error("통화 실패 알림 생성 중 오류: callId={}, error={}", 
+                            call.getCallId(), e.getMessage(), e);
+                }
+            }
+        }
+        
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * [4단계] Twilio 녹음 완료 웹훅 엔드포인트
      * TwilioService.makeCall()에서 setRecordingStatusCallback으로 설정된 콜백입니다.
      * 녹음이 완료되면 Twilio가 자동으로 호출하며, 녹음 파일을 다운로드하여 저장하고 CallRecording의 file 필드를 업데이트합니다.
@@ -1086,6 +1164,56 @@ public class TwilioController {
         } catch (Exception e) {
             log.error("긴급 알림 전송 중 오류 발생: callId={}, error={}",
                 call.getCallId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 실제 응답이 있었는지 확인
+     * - duration이 너무 짧으면 (예: 10초 이하) 무응답으로 판단
+     * - 또는 CallRecording의 transcript에 실제 대화 내용이 있는지 확인
+     */
+    private boolean checkIfHasRealResponse(Call call, String callDurationStr) {
+        try {
+            // 1. Duration 확인 (10초 이하면 무응답으로 판단)
+            if (callDurationStr != null && !callDurationStr.isEmpty()) {
+                int duration = Integer.parseInt(callDurationStr);
+                if (duration <= 10) {  // 10초 이하면 TwiML만 재생되고 종료된 것으로 판단
+                    log.info("통화 duration이 너무 짧아 무응답으로 판단: callId={}, duration={}초", 
+                            call.getCallId(), duration);
+                    return false;
+                }
+            }
+            
+            // 2. CallRecording의 transcript 확인
+            Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
+            if (recordingOpt.isPresent()) {
+                CallRecording recording = recordingOpt.get();
+                String transcript = recording.getTranscript();
+                
+                // transcript가 비어있거나 "AI: 질문"만 있고 답변이 없으면 무응답
+                if (transcript == null || transcript.isBlank()) {
+                    log.info("transcript가 비어있어 무응답으로 판단: callId={}", call.getCallId());
+                    return false;
+                }
+                
+                // "케어대상:" 또는 실제 답변 내용이 있는지 확인
+                if (!transcript.contains("케어대상:") && !transcript.contains("케어대상자:")) {
+                    log.info("transcript에 실제 답변이 없어 무응답으로 판단: callId={}, transcript={}", 
+                            call.getCallId(), transcript.length() > 50 ? transcript.substring(0, 50) + "..." : transcript);
+                    return false;
+                }
+            } else {
+                // CallRecording이 없으면 무응답으로 판단
+                log.info("CallRecording이 없어 무응답으로 판단: callId={}", call.getCallId());
+                return false;
+            }
+            
+            return true;
+        } catch (Exception e) {
+            log.error("실제 응답 여부 확인 중 오류: callId={}, error={}", 
+                    call.getCallId(), e.getMessage(), e);
+            // 오류 발생 시 기본적으로 SUCCESS로 처리 (기존 동작 유지)
+            return true;
         }
     }
 }

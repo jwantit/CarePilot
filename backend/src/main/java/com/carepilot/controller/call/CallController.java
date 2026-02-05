@@ -253,7 +253,7 @@ public class CallController {
                 .callSchedule(callSchedule)
                 .direction(CallDirection.OUTBOUND)
                 .callType(CallType.REGULAR_MONITORING)
-                .status(CallStatus.NO_ANSWER) // 초기 상태는 무응답 (통화 완료 시 업데이트됨)
+                .status(null) // 초기 상태는 null (통화 완료 시 Twilio callback에서 업데이트됨)
                 .startTime(LocalDateTime.now())
                 .callerId(normalizedPhone)
                 .callSid(callSid)
@@ -450,6 +450,91 @@ public class CallController {
         } catch (Exception e) {
             log.error("긴급 상황 테스트 실패: careTargetId={}, answer={}, error={}", 
                     careTargetId, answer, e.getMessage(), e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
+    // [테스트용] 위험 감지 알림 생성 테스트 API (Postman용)
+    @PostMapping("/test/risk-detection")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> testRiskDetectionNotification(
+            @RequestParam Long careTargetId,
+            @RequestParam(required = false, defaultValue = "75") Integer riskScore,
+            @RequestParam(required = false, defaultValue = "HIGH") String riskLevelStr) {
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // CareTarget 조회
+            CareTarget careTarget = careTargetRepository.findById(careTargetId)
+                    .orElseThrow(() -> new RuntimeException("CareTarget not found: " + careTargetId));
+            
+            com.carepilot.domain.organization.Organization organization = careTarget.getOrganization();
+            if (organization == null) {
+                result.put("success", false);
+                result.put("error", "CareTarget의 Organization이 없습니다.");
+                return ResponseEntity.badRequest().body(result);
+            }
+            
+            // RiskLevel 파싱
+            com.carepilot.domain.notification.RiskLevel riskLevel;
+            try {
+                riskLevel = com.carepilot.domain.notification.RiskLevel.valueOf(riskLevelStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                result.put("success", false);
+                result.put("error", "Invalid riskLevel: " + riskLevelStr + " (가능한 값: LOW, MEDIUM, HIGH, CRITICAL)");
+                return ResponseEntity.badRequest().body(result);
+            }
+            
+            // Call 생성 (테스트용 - 항상 새로 생성)
+            String shortCallSid = "TEST_RISK_" + UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+            Call testCall = callRepository.save(Call.builder()
+                    .organization(organization)
+                    .careTarget(careTarget)
+                    .direction(CallDirection.OUTBOUND)
+                    .callType(CallType.REGULAR_MONITORING)
+                    .status(CallStatus.SUCCESS)
+                    .startTime(java.time.LocalDateTime.now())
+                    .callSid(shortCallSid)
+                    .callerId(careTarget.getTargetPhone())
+                    .build());
+            
+            // 위험 감지 알림 생성
+            com.carepilot.domain.notification.Notification notification = 
+                    notificationService.createRiskDetectionNotification(
+                            organization.getOrganizationId(),
+                            testCall,
+                            careTarget,
+                            riskScore,
+                            riskLevel
+                    );
+            
+            result.put("success", true);
+            result.put("message", "위험 감지 알림이 생성되었습니다.");
+            result.put("notification", Map.of(
+                    "notificationId", notification.getNotificationId(),
+                    "title", notification.getTitle(),
+                    "description", notification.getDescription(),
+                    "type", notification.getType().name(),
+                    "severity", notification.getSeverity().name(),
+                    "status", notification.getStatus().name(),
+                    "organizationId", notification.getOrganization().getOrganizationId(),
+                    "userId", notification.getUser() == null ? "null (조직 공유)" : notification.getUser().getUserId(),
+                    "callId", testCall.getCallId(),
+                    "careTargetId", careTarget.getCareTargetId()
+            ));
+            result.put("testData", Map.of(
+                    "riskScore", riskScore,
+                    "riskLevel", riskLevel.name()
+            ));
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("위험 감지 알림 테스트 실패: careTargetId={}, riskScore={}, riskLevel={}, error={}", 
+                    careTargetId, riskScore, riskLevelStr, e.getMessage(), e);
             result.put("success", false);
             result.put("error", e.getMessage());
             return ResponseEntity.internalServerError().body(result);

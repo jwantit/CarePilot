@@ -6,6 +6,7 @@ import {
   markAsRead,
   createTestNotification,
 } from "../../api/notificationApi";
+import { testRiskDetectionNotification } from "../../api/callApi";
 import NotificationTable from "../../components/notification/NotificationTable";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -125,9 +126,9 @@ function NotificationPage() {
     try {
       await createTestNotification(
         currentUserId,
-        "RISK_DETECTION",
-        "낙상 위험 감지",
-        "환자의 낙상 위험이 감지되었습니다.",
+        "EMERGENCY",
+        "긴급 알림 테스트",
+        "긴급 상황이 발생했습니다.",
         "CRITICAL",
       );
       toast.success("테스트 알림이 생성되었습니다.");
@@ -135,6 +136,35 @@ function NotificationPage() {
     } catch (error) {
       console.error("테스트 알림 생성 실패:", error);
       toast.error("테스트 알림 생성에 실패했습니다.");
+    }
+  };
+
+  // 위험 감지 알림 테스트 (개발용)
+  const handleTestRiskDetection = async () => {
+    const careTargetId = prompt("케어대상자 ID를 입력하세요:");
+    if (!careTargetId) {
+      return;
+    }
+
+    const riskScore = prompt("위험도 점수를 입력하세요 (기본값: 75):", "75");
+    const riskLevel = prompt("위험 수준을 입력하세요 (LOW/MEDIUM/HIGH/CRITICAL, 기본값: HIGH):", "HIGH");
+
+    try {
+      const result = await testRiskDetectionNotification(
+        parseInt(careTargetId),
+        riskScore ? parseInt(riskScore) : 75,
+        riskLevel || "HIGH",
+      );
+      
+      if (result.success) {
+        toast.success("위험 감지 알림이 생성되었습니다.");
+        fetchNotifications();
+      } else {
+        toast.error(result.error || "위험 감지 알림 생성에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("위험 감지 알림 테스트 실패:", error);
+      toast.error(error.response?.data?.error || "위험 감지 알림 생성에 실패했습니다.");
     }
   };
 
@@ -156,45 +186,62 @@ function NotificationPage() {
   // 알림 상세 정보를 위한 헬퍼 함수들 (NotificationTable과 동일)
   const getSeverityBadge = (severity) => {
     const severityMap = {
-      CRITICAL: { label: '긴급', color: 'bg-red-100 text-red-700 border-red-300' },
-      HIGH: { label: '높음', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-      MEDIUM: { label: '보통', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-      LOW: { label: '낮음', color: 'bg-green-100 text-green-700 border-green-300' },
+      CRITICAL: {
+        label: "긴급",
+        color: "bg-red-100 text-red-700 border-red-300",
+      },
+      HIGH: {
+        label: "높음",
+        color: "bg-orange-100 text-orange-700 border-orange-300",
+      },
+      MEDIUM: {
+        label: "보통",
+        color: "bg-yellow-100 text-yellow-700 border-yellow-300",
+      },
+      LOW: {
+        label: "낮음",
+        color: "bg-green-100 text-green-700 border-green-300",
+      },
     };
-    return severityMap[severity] || { label: severity || '-', color: 'bg-gray-100 text-gray-700 border-gray-300' };
+    return (
+      severityMap[severity] || {
+        label: severity || "-",
+        color: "bg-gray-100 text-gray-700 border-gray-300",
+      }
+    );
   };
 
   const getTypeLabel = (type) => {
     const typeMap = {
-      VITAL_SIGN: '생체신호',
-      EMERGENCY: '긴급',
-      MEDICATION: '약물',
-      CALL: '통화',
-      RISK_DETECTION: '위험감지',
-      SCHEDULE: '스케줄',
-      OTHER: '기타',
+      VITAL_SIGN: "생체신호",
+      EMERGENCY: "긴급",
+      MEDICATION: "약물",
+      CALL: "통화",
+      RISK_DETECTION: "위험감지",
+      SCHEDULE: "스케줄",
+      OTHER: "기타",
     };
     return typeMap[type] || type;
   };
 
   const getStatusLabel = (status) => {
     const statusMap = {
-      ACTIVE: '활성',
-      PROCESSING: '처리중',
-      RESOLVED: '해결됨',
+      ACTIVE: "활성",
+      PROCESSING: "처리중",
+      RESOLVED: "해결됨",
     };
     return statusMap[status] || status;
   };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return '-';
+    if (!dateString) return "-";
     try {
       const date = new Date(dateString);
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${year}-${month}-${day} ${hours}:${minutes}`;
     } catch (error) {
       return dateString;
@@ -231,6 +278,12 @@ function NotificationPage() {
             className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
           >
             테스트 알림 생성
+          </button>
+          <button
+            onClick={handleTestRiskDetection}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 font-semibold"
+          >
+            위험 감지 알림 테스트
           </button>
         </div>
       </div>
@@ -321,18 +374,22 @@ function NotificationPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-900">알림 상세 내역</h3>
-              <button 
-                onClick={closeModal} 
+              <h3 className="text-lg font-bold text-gray-900">
+                알림 상세 내역
+              </h3>
+              <button
+                onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors text-2xl p-1"
               >
                 &times;
               </button>
             </div>
-            
+
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-3">
-                <span className={`px-2.5 py-1 rounded text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}>
+                <span
+                  className={`px-2.5 py-1 rounded text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}
+                >
                   {getSeverityBadge(selectedNotification.severity).label}
                 </span>
                 <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
@@ -344,12 +401,18 @@ function NotificationPage() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">알림 제목</label>
-                <p className="text-lg font-bold text-gray-900 leading-tight">{selectedNotification.title}</p>
+                <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">
+                  알림 제목
+                </label>
+                <p className="text-lg font-bold text-gray-900 leading-tight">
+                  {selectedNotification.title}
+                </p>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">상세 내용</label>
+                <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">
+                  상세 내용
+                </label>
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[120px]">
                   {selectedNotification.description}
                 </div>
@@ -357,20 +420,32 @@ function NotificationPage() {
 
               <div className="grid grid-cols-2 gap-6 pt-2">
                 <div>
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">케어대상자</label>
-                  <p className="text-sm font-bold text-gray-800">{selectedNotification.careTarget?.name || '-'}</p>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                    케어대상자
+                  </label>
+                  <p className="text-sm font-bold text-gray-800">
+                    {selectedNotification.careTarget?.name || "-"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">상태</label>
-                  <p className="text-sm font-bold text-gray-800">{getStatusLabel(selectedNotification.status)}</p>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                    상태
+                  </label>
+                  <p className="text-sm font-bold text-gray-800">
+                    {getStatusLabel(selectedNotification.status)}
+                  </p>
                 </div>
               </div>
 
-              {selectedNotification.status === 'RESOLVED' && (
+              {selectedNotification.status === "RESOLVED" && (
                 <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-green-700 font-bold">✓ 확인 완료</span>
-                    <span className="text-green-600">{formatDateTime(selectedNotification.resolvedAt)}</span>
+                    <span className="text-green-700 font-bold">
+                      ✓ 확인 완료
+                    </span>
+                    <span className="text-green-600">
+                      {formatDateTime(selectedNotification.resolvedAt)}
+                    </span>
                   </div>
                   <p className="text-sm text-green-800 mt-1 font-medium">
                     {selectedNotification.resolvedBy?.name} 님이 확인하였습니다.
@@ -380,10 +455,13 @@ function NotificationPage() {
             </div>
 
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-              {selectedNotification.status === 'ACTIVE' && (
+              {selectedNotification.status === "ACTIVE" && (
                 <button
                   onClick={async () => {
-                    await handleMarkAsRead(selectedNotification.notificationId, currentUserId);
+                    await handleMarkAsRead(
+                      selectedNotification.notificationId,
+                      currentUserId,
+                    );
                     closeModal();
                   }}
                   className="px-5 py-2.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 font-bold shadow-sm transition-all active:scale-95"
@@ -391,8 +469,8 @@ function NotificationPage() {
                   확인 처리하기
                 </button>
               )}
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-bold text-gray-700 transition-all"
               >
                 닫기
