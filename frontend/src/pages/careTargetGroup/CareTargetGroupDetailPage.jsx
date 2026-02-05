@@ -1,19 +1,41 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Users, Phone, Calendar, ClipboardList, User, Edit3, Trash2, ChevronLeft, UserPlus, Activity, Loader2, Shield, AlertTriangle, Clock } from 'lucide-react';
-import { getCareGroupDetail, deleteCareGroup, updateCareGroup, addCareTargetGroup, getScenarioList } from '../../api/caretarget/careTargetGroupApi';
-import { useAuth } from '../../hooks/useAuth';
-import Breadcrumb from '../../components/common/Breadcrumb';
-import StatCardGrid from '../../components/common/StatCardGrid';
-import CareGroupEditModal from '../../components/careTargetGroup/careTargetGroupDetail/CareGroupEditModal';
-import CareGroupAddMemberModal from '../../components/careTargetGroup/careTargetGroupDetail/CareGroupAddMemberModal';
-import CareGroupCallSchedule from '../../components/careTargetGroup/careTargetGroupDetail/CareGroupCallSchedule';
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Users,
+  Phone,
+  Calendar,
+  ClipboardList,
+  User,
+  Edit3,
+  Trash2,
+  ChevronLeft,
+  UserPlus,
+  Activity,
+  Loader2,
+  Shield,
+  AlertTriangle,
+  Clock,
+} from "lucide-react";
+import {
+  getCareGroupDetail,
+  deleteCareGroup,
+  updateCareGroup,
+  addCareTargetGroup,
+  getScenarioList,
+} from "../../api/caretarget/careTargetGroupApi";
+import { useAuth } from "../../hooks/useAuth";
+import Breadcrumb from "../../components/common/Breadcrumb";
+import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";
+import StatCardGrid from "../../components/common/StatCardGrid";
+import CareGroupEditModal from "../../components/careTargetGroup/careTargetGroupDetail/CareGroupEditModal";
+import CareGroupAddMemberModal from "../../components/careTargetGroup/careTargetGroupDetail/CareGroupAddMemberModal";
+import CareGroupCallSchedule from "../../components/careTargetGroup/careTargetGroupDetail/CareGroupCallSchedule";
 
 const CareTargetGroupDetailPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const organizationId = user?.organizationId;
   const role = user?.role;
 
@@ -24,17 +46,17 @@ const CareTargetGroupDetailPage = () => {
   // 1. 그룹 정보 수정 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editData, setEditData] = useState({
-    careGroupId: '',
-    groupName: '',
-    groupDescription: '',
+    careGroupId: "",
+    groupName: "",
+    groupDescription: "",
     groupStatus: true,
     scenarioId: null,
-    careTargetIds: [] // 제외할 ID들이 담기는 배열
+    careTargetIds: [], // 제외할 ID들이 담기는 배열
   });
 
   // 2. 대상자 추가 모달 상태
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState([]); 
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const fetchDetail = async () => {
     if (!organizationId || !groupId) return;
@@ -42,10 +64,12 @@ const CareTargetGroupDetailPage = () => {
       setLoading(true);
       const data = await getCareGroupDetail(organizationId, groupId);
       setFormData(data);
-      
+
       // 시나리오 리스트 조회
       const scenarioRes = await getScenarioList(organizationId);
-      setScenarios(Array.isArray(scenarioRes) ? scenarioRes : (scenarioRes.data || []));
+      setScenarios(
+        Array.isArray(scenarioRes) ? scenarioRes : scenarioRes.data || [],
+      );
     } catch (error) {
       console.error("그룹 상세 조회 실패:", error);
     } finally {
@@ -77,11 +101,11 @@ const CareTargetGroupDetailPage = () => {
   const handleUpdateSubmit = async () => {
     try {
       setLoading(true);
-  
+
       // ✅ 사용자가 모달에서 체크한 ID 리스트 (제외할 사람들)
       // 선택을 안했다면 빈 배열 [] 이 전송됩니다.
       const excludedIds = editData.careTargetIds || [];
-  
+
       const requestData = {
         organizationId: Number(organizationId),
         careGroupId: Number(groupId),
@@ -89,11 +113,11 @@ const CareTargetGroupDetailPage = () => {
         groupDescription: editData.groupDescription,
         groupStatus: editData.groupStatus,
         scenarioId: editData.scenarioId,
-        careTargetIds: excludedIds 
+        careTargetIds: excludedIds,
       };
-  
+
       console.log("전송 데이터(제외 대상):", requestData);
-  
+
       const result = await updateCareGroup(requestData);
       setFormData(result);
       alert("성공적으로 수정되었습니다.");
@@ -120,30 +144,36 @@ const CareTargetGroupDetailPage = () => {
       const requestData = {
         organizationId: Number(organizationId),
         careGroupId: Number(groupId),
-        careTargetIds: newAddedIds 
+        careTargetIds: newAddedIds,
       };
 
       const result = await addCareTargetGroup(requestData);
-      setFormData(result); 
-      
+      setFormData(result);
+
       alert(`신규 멤버 ${newAddedIds.length}명이 추가되었습니다.`);
       setIsAddModalOpen(false);
-      setSelectedIds([]); 
+      setSelectedIds([]);
     } catch (error) {
       console.error("멤버 추가 실패:", error);
-      alert(error.response?.data?.message || "멤버 추가 중 오류가 발생했습니다.");
+      alert(
+        error.response?.data?.message || "멤버 추가 중 오류가 발생했습니다.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm("정말 이 그룹을 삭제하시겠습니까? 관련 데이터가 모두 삭제됩니다.")) {
+    if (
+      window.confirm(
+        "정말 이 그룹을 삭제하시겠습니까? 관련 데이터가 모두 삭제됩니다.",
+      )
+    ) {
       try {
         setLoading(true);
         await deleteCareGroup(groupId);
-        alert("그룹이 삭제되었습니다."); 
-        navigate('/care-target-group');
+        alert("그룹이 삭제되었습니다.");
+        navigate("/care-target-group");
       } catch (error) {
         console.error("삭제 실패:", error);
         alert("삭제 중 오류가 발생했습니다.");
@@ -154,88 +184,99 @@ const CareTargetGroupDetailPage = () => {
   };
 
   // 통계 카드 데이터 준비 (early return 전에 호출되어야 함)
-  const statCards = useMemo(() => [
-    {
-      value: formData?.low || 0,
-      label: '일반 대상자',
-      icon: Shield,
-      iconColor: 'text-emerald-400',
-      valueColor: 'text-emerald-400',
-      hoverBorderColor: 'hover:border-emerald-500/50'
-    },
-    {
-      value: formData?.medium || 0,
-      label: '주의 대상자',
-      icon: AlertTriangle,
-      iconColor: 'text-yellow-400',
-      valueColor: 'text-yellow-400',
-      hoverBorderColor: 'hover:border-yellow-500/50'
-    },
-    {
-      value: formData?.high || 0,
-      label: '위험 대상자',
-      icon: AlertTriangle,
-      iconColor: 'text-orange-400',
-      valueColor: 'text-orange-400',
-      hoverBorderColor: 'hover:border-orange-500/50'
-    },
-    {
-      value: formData?.critical || 0,
-      label: '긴급 대상자',
-      icon: AlertTriangle,
-      iconColor: 'text-red-400',
-      valueColor: 'text-red-400',
-      hoverBorderColor: 'hover:border-red-500/50'
-    }
-  ], [formData?.low, formData?.medium, formData?.high, formData?.critical]);
+  const statCards = useMemo(
+    () => [
+      {
+        value: formData?.low || 0,
+        label: "일반 대상자",
+        icon: Shield,
+        iconColor: "text-emerald-400",
+        valueColor: "text-emerald-400",
+        hoverBorderColor: "hover:border-emerald-500/50",
+      },
+      {
+        value: formData?.medium || 0,
+        label: "주의 대상자",
+        icon: AlertTriangle,
+        iconColor: "text-yellow-400",
+        valueColor: "text-yellow-400",
+        hoverBorderColor: "hover:border-yellow-500/50",
+      },
+      {
+        value: formData?.high || 0,
+        label: "위험 대상자",
+        icon: AlertTriangle,
+        iconColor: "text-orange-400",
+        valueColor: "text-orange-400",
+        hoverBorderColor: "hover:border-orange-500/50",
+      },
+      {
+        value: formData?.critical || 0,
+        label: "긴급 대상자",
+        icon: AlertTriangle,
+        iconColor: "text-red-400",
+        valueColor: "text-red-400",
+        hoverBorderColor: "hover:border-red-500/50",
+      },
+    ],
+    [formData?.low, formData?.medium, formData?.high, formData?.critical],
+  );
 
   if (loading && !formData) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <Loader2 className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full" size={48} />
-        <p className="text-slate-400 text-sm font-mono">// Loading group data...</p>
+        <Loader2
+          className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full"
+          size={48}
+        />
+        <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
       </div>
     );
   }
-  
+
   if (!formData) {
     return (
       <div className="flex flex-col items-center justify-center h-80 bg-slate-800 border border-slate-700">
         <div className="w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded flex items-center justify-center mb-5">
           <span className="text-3xl text-slate-600">[ ]</span>
         </div>
-        <p className="text-slate-300 font-mono font-semibold text-base mb-2">// No group data found</p>
-        <p className="text-slate-500 text-sm font-mono">// 그룹 정보를 찾을 수 없습니다.</p>
+        <p className="text-slate-300 font-mono font-semibold text-base mb-2">
+          // No group data found
+        </p>
+        <p className="text-slate-500 text-sm font-mono">
+          // 그룹 정보를 찾을 수 없습니다.
+        </p>
       </div>
     );
   }
 
   const getLevelColor = (level) => {
     const l = level?.toUpperCase();
-    if (l === 'CRITICAL' || l === 'URGENT') return 'bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50';
-    if (l === 'HIGH') return 'bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50';
-    if (l === 'MEDIUM') return 'bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50';
-    return 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50';
+    if (l === "CRITICAL" || l === "URGENT")
+      return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
+    if (l === "HIGH")
+      return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50";
+    if (l === "MEDIUM")
+      return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
+    return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
   };
 
   return (
-    <>      
-      <div className="mb-8">
-      </div>
-
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow">
+    <div className="space-y-6">
+      <Breadcrumb items={["케어 그룹", formData?.groupName ?? "상세"]} />
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate('/care-target-group')}
+          <button
+            onClick={() => navigate("/care-target-group")}
             className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
           >
             <ChevronLeft size={18} />
             목록으로
           </button>
 
-          {(role === 'ADMIN' || role === 'MANAGER') && (
+          {(role === "ADMIN" || role === "MANAGER") && (
             <>
-              <button 
+              <button
                 onClick={() => {
                   setSelectedIds([]);
                   setIsAddModalOpen(true);
@@ -245,14 +286,14 @@ const CareTargetGroupDetailPage = () => {
                 <UserPlus size={18} />
                 대상자 추가
               </button>
-              <button 
+              <button
                 onClick={handleOpenEditModal}
                 className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-orange-400 px-5 py-2.5 text-sm font-semibold transition-all border border-orange-500/50 hover:border-orange-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
               >
                 <Edit3 size={18} />
                 수정하기
               </button>
-              <button 
+              <button
                 onClick={handleDelete}
                 className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-red-400 px-5 py-2.5 text-sm font-semibold transition-all border border-red-500/50 hover:border-red-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
               >
@@ -267,8 +308,12 @@ const CareTargetGroupDetailPage = () => {
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-8 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         {/* 그룹 제목 및 설명 */}
         <div className="mb-8 pb-6 border-b border-slate-700">
-          <h1 className="text-3xl font-black text-slate-100 tracking-tight mb-3">{formData.groupName}</h1>
-          <p className="text-base text-slate-400 font-medium leading-relaxed">{formData.groupDescription}</p>
+          <h1 className="text-3xl font-black text-slate-100 tracking-tight mb-3">
+            {formData.groupName}
+          </h1>
+          <p className="text-base text-slate-400 font-medium leading-relaxed">
+            {formData.groupDescription}
+          </p>
         </div>
 
         {/* 그룹 상세 정보 */}
@@ -276,27 +321,46 @@ const CareTargetGroupDetailPage = () => {
           {/* 시나리오 정보 - 전체 너비 사용 */}
           <div className="space-y-4 pb-6 border-b border-slate-700">
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">시나리오명</p>
-              <p className="text-base font-bold text-slate-200 break-words">{formData.scenarioName || '-'}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                시나리오명
+              </p>
+              <p className="text-base font-bold text-slate-200 break-words">
+                {formData.scenarioName || "-"}
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">시나리오 설명</p>
-              <p className="text-base font-bold text-slate-200 break-words leading-relaxed">{formData.scenarioDescription || '-'}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                시나리오 설명
+              </p>
+              <p className="text-base font-bold text-slate-200 break-words leading-relaxed">
+                {formData.scenarioDescription || "-"}
+              </p>
             </div>
           </div>
 
           {/* 기타 정보 - 한 줄 레이아웃 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { label: "소속된 대상자", value: `${formData.careTargetCount || 0}명` },
-              { label: "스케줄 상태", value: formData.groupStatus ? "활성" : "비활성", highlight: formData.groupStatus },
+              {
+                label: "소속된 대상자",
+                value: `${formData.careTargetCount || 0}명`,
+              },
+              {
+                label: "스케줄 상태",
+                value: formData.groupStatus ? "활성" : "비활성",
+                highlight: formData.groupStatus,
+              },
               { label: "생성일", value: formData.createDate },
               { label: "그룹 생성자", value: formData.createdByName },
             ].map((item, idx) => (
               <div key={idx} className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
-                <p className={`text-base font-bold ${item.highlight ? 'text-teal-400' : 'text-slate-200'}`}>
-                  {item.value || '-'}
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {item.label}
+                </p>
+                <p
+                  className={`text-base font-bold ${item.highlight ? "text-teal-400" : "text-slate-200"}`}
+                >
+                  {item.value || "-"}
                 </p>
               </div>
             ))}
@@ -315,7 +379,9 @@ const CareTargetGroupDetailPage = () => {
             <h2 className="text-lg font-bold text-slate-200">대상자 목록</h2>
           </div>
           <span className="text-xs font-bold text-slate-400">
-            <span className="font-mono">Total: [{formData.careList?.length || 0}]</span>
+            <span className="font-mono">
+              Total: [{formData.careList?.length || 0}]
+            </span>
           </span>
         </div>
         <div className="overflow-y-auto flex-1 modal-scrollbar">
@@ -351,22 +417,34 @@ const CareTargetGroupDetailPage = () => {
             </thead>
             <tbody className="divide-y divide-slate-700">
               {formData.careList?.map((p) => (
-                <tr key={p.careTargetId} className="hover:bg-slate-700/50 transition-colors group bg-gradient-to-r from-slate-800/50 to-slate-900/50">
+                <tr
+                  key={p.careTargetId}
+                  className="hover:bg-slate-700/50 transition-colors group bg-gradient-to-r from-slate-800/50 to-slate-900/50"
+                >
                   <td className="px-8 py-5">
-                    <div className="font-bold text-slate-200 group-hover:text-teal-400 transition-colors">{p.name}</div>
+                    <div className="font-bold text-slate-200 group-hover:text-teal-400 transition-colors">
+                      {p.name}
+                    </div>
                   </td>
                   <td className="px-8 py-5 text-sm font-bold text-slate-300">
-                    {p.gender} <span className="mx-1 text-slate-600">|</span> {p.age}세
+                    {p.gender} <span className="mx-1 text-slate-600">|</span>{" "}
+                    {p.age}세
                   </td>
-                  <td className="px-8 py-5 font-bold text-slate-300">{p.careTargetPhone || '미등록'}</td>
+                  <td className="px-8 py-5 font-bold text-slate-300">
+                    {p.careTargetPhone || "미등록"}
+                  </td>
                   <td className="px-8 py-5 text-center">
-                    <span className={`px-3 py-1 rounded-sm text-[10px] font-black tracking-tighter border ${getLevelColor(p.riskLevel)} shadow-sm`}>
-                      {p.riskLevel || 'NORMAL'}
+                    <span
+                      className={`px-3 py-1 rounded-sm text-[10px] font-black tracking-tighter border ${getRiskLevelStyle(p.riskLevel)} shadow-sm`}
+                    >
+                      {getRiskLevelLabel(p.riskLevel) || "보통"}
                     </span>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <button 
-                      onClick={() => navigate(`/care-target/detail/${p.careTargetId}`)}
+                    <button
+                      onClick={() =>
+                        navigate(`/care-target/detail/${p.careTargetId}`)
+                      }
                       className="px-3 py-1 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
                     >
                       <span className="font-mono text-teal-400">&gt;</span>
@@ -380,30 +458,30 @@ const CareTargetGroupDetailPage = () => {
         </div>
       </div>
 
-      <CareGroupCallSchedule 
-        organizationId={organizationId} 
-        groupId={groupId} 
+      <CareGroupCallSchedule
+        organizationId={organizationId}
+        groupId={groupId}
       />
 
-      <CareGroupEditModal 
+      <CareGroupEditModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         editData={editData}
         setEditData={setEditData}
         careList={formData?.careList}
         scenarios={scenarios}
-        onSave={handleUpdateSubmit} 
+        onSave={handleUpdateSubmit}
       />
 
-      <CareGroupAddMemberModal 
+      <CareGroupAddMemberModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         selectedIds={selectedIds}
         setSelectedIds={setSelectedIds}
-        onSave={() => handleAddMemberSubmit(selectedIds)} 
-        existingMemberIds={formData?.careList?.map(m => m.careTargetId) || []}
+        onSave={() => handleAddMemberSubmit(selectedIds)}
+        existingMemberIds={formData?.careList?.map((m) => m.careTargetId) || []}
       />
-    </>
+    </div>
   );
 };
 

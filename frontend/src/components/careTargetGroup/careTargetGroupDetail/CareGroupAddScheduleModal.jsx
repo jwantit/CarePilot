@@ -125,7 +125,7 @@ const CareGroupAddScheduleModal = ({ isOpen, onClose, onSubmit, initialData }) =
                 value={form.priority} onChange={(e) => setForm({...form, priority: e.target.value})}>
                 <option value="LOW" className="bg-slate-900">낮음</option>
                 <option value="MEDIUM" className="bg-slate-900">보통</option>
-                <option value="HIGH" className="bg-slate-900">높음</option>
+                <option value="HIGH" className="bg-slate-900">위험</option>
                 <option value="URGENT" className="bg-slate-900">긴급</option>
               </select>
             </div>

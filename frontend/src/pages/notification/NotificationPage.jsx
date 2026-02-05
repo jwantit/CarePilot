@@ -10,6 +10,7 @@ import { testRiskDetectionNotification } from "../../api/callApi";
 import NotificationTable from "../../components/notification/NotificationTable";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import Breadcrumb from "../../components/common/Breadcrumb";
 
 function NotificationPage() {
   const auth = useSelector((state) => state.auth);
@@ -184,32 +185,6 @@ function NotificationPage() {
   };
 
   // 알림 상세 정보를 위한 헬퍼 함수들 (NotificationTable과 동일)
-  const getSeverityBadge = (severity) => {
-    const severityMap = {
-      CRITICAL: {
-        label: "긴급",
-        color: "bg-red-100 text-red-700 border-red-300",
-      },
-      HIGH: {
-        label: "높음",
-        color: "bg-orange-100 text-orange-700 border-orange-300",
-      },
-      MEDIUM: {
-        label: "보통",
-        color: "bg-yellow-100 text-yellow-700 border-yellow-300",
-      },
-      LOW: {
-        label: "낮음",
-        color: "bg-green-100 text-green-700 border-green-300",
-      },
-    };
-    return (
-      severityMap[severity] || {
-        label: severity || "-",
-        color: "bg-gray-100 text-gray-700 border-gray-300",
-      }
-    );
-  };
 
   const getTypeLabel = (type) => {
     const typeMap = {
@@ -249,33 +224,34 @@ function NotificationPage() {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">알림 관리</h1>
+    <div className="space-y-6">
+      <Breadcrumb items={["알림 관리"]} />
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-slate-100">알림 관리</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setFilter("active")}
-            className={`px-4 py-2 rounded-md font-semibold transition-colors ${
+            className={`px-4 py-2 rounded-sm font-semibold transition-colors ${
               filter === "active"
-                ? "bg-teal-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-teal-600 text-white border border-teal-500"
+                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
             }`}
           >
             활성 알림
           </button>
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-md font-semibold transition-colors ${
+            className={`px-4 py-2 rounded-sm font-semibold transition-colors ${
               filter === "all"
-                ? "bg-teal-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-teal-600 text-white border border-teal-500"
+                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
             }`}
           >
             전체
           </button>
           <button
             onClick={handleCreateTestNotification}
-            className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
+            className="px-4 py-2 bg-teal-600 text-white rounded-sm hover:bg-teal-500 border border-teal-500 font-semibold transition-colors"
           >
             테스트 알림 생성
           </button>
@@ -289,16 +265,15 @@ function NotificationPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        {/* 왼쪽: 활성 알림 목록 */}
         <div className="col-span-2">
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl font-semibold text-slate-200 mb-2">
               활성 알림 목록
             </h2>
           </div>
           {loading ? (
-            <div className="flex justify-center items-center py-12 bg-white rounded-lg border border-gray-200">
-              <div className="text-gray-500">알림을 불러오는 중...</div>
+            <div className="flex justify-center items-center py-12 bg-slate-800 rounded-sm border border-slate-700">
+              <div className="text-slate-400">로딩 중...</div>
             </div>
           ) : (
             <NotificationTable
@@ -311,40 +286,38 @@ function NotificationPage() {
 
         {/* 오른쪽: 통계 + 최근 해결된 알림 */}
         <div className="space-y-6">
-          {/* 알림 통계 요약 */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-sm border border-slate-700 p-4 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-200 mb-4">
               알림 통계 요약
             </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">활성 알림 수</span>
-                <span className="text-lg font-semibold text-red-600">
+                <span className="text-sm text-slate-400">활성 알림 수</span>
+                <span className="text-lg font-semibold text-red-400">
                   {activeCount}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">주의 알림 수</span>
-                <span className="text-lg font-semibold text-orange-600">
+                <span className="text-sm text-slate-400">주의 알림 수</span>
+                <span className="text-lg font-semibold text-orange-400">
                   {warningCount}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">해결된 알림 수</span>
-                <span className="text-lg font-semibold text-green-600">
+                <span className="text-sm text-slate-400">해결된 알림 수</span>
+                <span className="text-lg font-semibold text-emerald-400">
                   {resolvedCount}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* 최근 해결된 알림 */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-sm border border-slate-700 p-4 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-200 mb-4">
               최근 해결된 알림
             </h2>
             {resolvedNotifications.length === 0 ? (
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-slate-500">
                 해결된 알림이 없습니다.
               </div>
             ) : (
@@ -352,13 +325,13 @@ function NotificationPage() {
                 {resolvedNotifications.map((notification) => (
                   <div
                     key={notification.notificationId}
-                    className="border-b border-gray-100 pb-3 last:border-0 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                    className="border-b border-slate-700 pb-3 last:border-0 cursor-pointer hover:bg-slate-700/50 p-2 rounded-sm transition-colors"
                     onClick={() => setSelectedNotification(notification)}
                   >
-                    <div className="text-sm font-medium text-gray-900 mb-1">
+                    <div className="text-sm font-medium text-slate-200 mb-1">
                       {notification.title || "-"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-slate-500">
                       해결 시간: {formatResolvedDate(notification.resolvedAt)}
                     </div>
                   </div>
@@ -371,15 +344,13 @@ function NotificationPage() {
 
       {/* 상세 보기 모달 (NotificationTable의 모달과 동일한 로직) */}
       {selectedNotification && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-900">
-                알림 상세 내역
-              </h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+              <h3 className="text-lg font-bold text-slate-100">알림 상세 내역</h3>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors text-2xl p-1"
+                className="text-slate-400 hover:text-slate-200 transition-colors text-2xl p-1"
               >
                 &times;
               </button>
@@ -387,74 +358,54 @@ function NotificationPage() {
 
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-3">
-                <span
-                  className={`px-2.5 py-1 rounded text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}
-                >
+                <span className={`px-2.5 py-1 rounded-sm text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}>
                   {getSeverityBadge(selectedNotification.severity).label}
                 </span>
-                <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
+                <span className="px-2.5 py-1 bg-slate-700 text-slate-300 rounded-sm text-xs font-bold border border-slate-600">
                   {getTypeLabel(selectedNotification.type)}
                 </span>
-                <span className="text-xs text-gray-400 ml-auto">
+                <span className="text-xs text-slate-500 ml-auto">
                   {formatDateTime(selectedNotification.occurredAt)}
                 </span>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">
-                  알림 제목
-                </label>
-                <p className="text-lg font-bold text-gray-900 leading-tight">
-                  {selectedNotification.title}
-                </p>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">알림 제목</label>
+                <p className="text-lg font-bold text-slate-100 leading-tight">{selectedNotification.title}</p>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">
-                  상세 내용
-                </label>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">상세 내용</label>
+                <div className="bg-slate-800/50 p-4 rounded-sm border border-slate-600 text-sm text-slate-200 whitespace-pre-wrap leading-relaxed min-h-[120px]">
                   {selectedNotification.description}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6 pt-2">
                 <div>
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    케어대상자
-                  </label>
-                  <p className="text-sm font-bold text-gray-800">
-                    {selectedNotification.careTarget?.name || "-"}
-                  </p>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">케어대상자</label>
+                  <p className="text-sm font-bold text-slate-200">{selectedNotification.careTarget?.name || "-"}</p>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    상태
-                  </label>
-                  <p className="text-sm font-bold text-gray-800">
-                    {getStatusLabel(selectedNotification.status)}
-                  </p>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">상태</label>
+                  <p className="text-sm font-bold text-slate-200">{getStatusLabel(selectedNotification.status)}</p>
                 </div>
               </div>
 
               {selectedNotification.status === "RESOLVED" && (
-                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                <div className="mt-6 p-4 bg-emerald-500/10 rounded-sm border border-emerald-500/30">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-green-700 font-bold">
-                      ✓ 확인 완료
-                    </span>
-                    <span className="text-green-600">
-                      {formatDateTime(selectedNotification.resolvedAt)}
-                    </span>
+                    <span className="text-emerald-400 font-bold">✓ 확인 완료</span>
+                    <span className="text-emerald-400/80">{formatDateTime(selectedNotification.resolvedAt)}</span>
                   </div>
-                  <p className="text-sm text-green-800 mt-1 font-medium">
+                  <p className="text-sm text-emerald-300 mt-1 font-medium">
                     {selectedNotification.resolvedBy?.name} 님이 확인하였습니다.
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+            <div className="px-6 py-4 bg-slate-800/50 border-t border-slate-700 flex justify-end gap-3">
               {selectedNotification.status === "ACTIVE" && (
                 <button
                   onClick={async () => {
@@ -464,14 +415,14 @@ function NotificationPage() {
                     );
                     closeModal();
                   }}
-                  className="px-5 py-2.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 font-bold shadow-sm transition-all active:scale-95"
+                  className="px-5 py-2.5 bg-teal-600 text-white rounded-sm hover:bg-teal-500 border border-teal-500 font-bold shadow-sm transition-all"
                 >
                   확인 처리하기
                 </button>
               )}
               <button
                 onClick={closeModal}
-                className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-bold text-gray-700 transition-all"
+                className="px-5 py-2.5 bg-slate-800 border border-slate-600 rounded-sm hover:bg-slate-700 font-bold text-slate-200 transition-all"
               >
                 닫기
               </button>

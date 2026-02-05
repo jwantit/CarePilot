@@ -8,6 +8,7 @@ import {
 } from "../../api/scenarioApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import { getRiskLevelLabel } from "../../utils/riskLevelStyles";
 
 function ScenarioSetting() {
   const auth = useSelector((state) => state.auth);
@@ -178,15 +179,6 @@ function ScenarioSetting() {
     }
   };
 
-  const getRiskLevelLabel = (riskLevel) => {
-    const levelMap = {
-      LOW: "낮음",
-      MEDIUM: "보통",
-      HIGH: "높음",
-      CRITICAL: "긴급",
-    };
-    return levelMap[riskLevel] || riskLevel;
-  };
 
   const handleToggleEnabled = async (scenarioId, newEnabledStatus) => {
     try {

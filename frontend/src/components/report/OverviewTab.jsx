@@ -3,6 +3,7 @@ import KPICard from './KPICard';
 import LineChart from './LineChart';
 import DoughnutChart from './DoughnutChart';
 import BarChart from './BarChart';
+import { mapRiskLevelKeysToLabels } from '../../utils/riskLevelStyles';
 
 function OverviewTab({ statistics, formatNumber, formatPercent }) {
   const { summary, callStatistics, riskStatistics } = statistics;
@@ -47,15 +48,7 @@ function OverviewTab({ statistics, formatNumber, formatPercent }) {
 
   // 위험 레벨 분포
   const riskLevelData = riskStatistics?.riskLevelDistribution || {};
-  const riskLevelLabels = Object.keys(riskLevelData).map(key => {
-    const labels = {
-      'LOW': '일반',
-      'MEDIUM': '주의',
-      'HIGH': '위험',
-      'CRITICAL': '긴급'
-    };
-    return labels[key] || key;
-  });
+  const riskLevelLabels = mapRiskLevelKeysToLabels(Object.keys(riskLevelData));
   const riskLevelValues = Object.values(riskLevelData);
   const riskLevelColors = ['#10b981', '#f59e0b', '#ef4444', '#dc2626'];
 

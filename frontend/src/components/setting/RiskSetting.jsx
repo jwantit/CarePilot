@@ -104,12 +104,12 @@ function RiskSetting() {
             />
 
             <ThresholdInput
-              label="위험 점수 임계값 (높음)"
+              label="위험 점수 임계값 (위험)"
               value={riskConfig.highThreshold}
               onChange={(value) =>
                 handleThresholdChange("highThreshold", value)
               }
-              description="이 값 이상이면 높음(HIGH)으로 분류됩니다."
+              description="이 값 이상이면 위험(HIGH)으로 분류됩니다."
             />
 
             <ThresholdInput
