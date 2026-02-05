@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { API_SERVER_HOST } from "../../api/apiClient";
 import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
 import { useAuth } from "../../hooks/useAuth";
@@ -6,17 +7,21 @@ import { useAuth } from "../../hooks/useAuth";
 const CallHistoryTab = () => {
   const { user } = useAuth();
   const organizationId = user?.organizationId;
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // URL 파라미터에서 페이지 읽기, 없으면 기본값 1
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  
   const [history, setHistory] = useState([]);
   const [pageData, setPageData] = useState({
     page: 1,
-    size: 10,
+    size: 20,
     total: 0,
     start: 1,
     end: 1,
     prev: false,
     next: false,
   });
-  const [currentPage, setCurrentPage] = useState(1);
   const [detail, setDetail] = useState(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
@@ -35,12 +40,12 @@ const CallHistoryTab = () => {
         const res = await getCallHistoryWithPaging(
           organizationId,
           currentPage,
-          10,
+          20,
         );
         setHistory(res.dtoList || []);
         setPageData({
           page: res.page || 1,
-          size: res.size || 10,
+          size: res.size || 20,
           total: res.total || 0,
           start: res.start || 1,
           end: res.end || 1,
@@ -55,6 +60,13 @@ const CallHistoryTab = () => {
 
     loadHistory();
   }, [organizationId, currentPage]);
+
+  // 페이지 변경 함수
+  const handlePageChange = (page) => {
+    // tab 파라미터 유지하면서 page만 업데이트
+    const tab = searchParams.get("tab") || "history";
+    setSearchParams({ tab, page: page.toString() });
+  };
 
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
@@ -318,7 +330,7 @@ const CallHistoryTab = () => {
         <div className="mt-4 flex items-center justify-center gap-2">
           <button
             type="button"
-            onClick={() => setCurrentPage(1)}
+            onClick={() => handlePageChange(1)}
             disabled={!pageData.prev}
             className={`px-3 py-1 rounded border ${
               !pageData.prev
@@ -330,7 +342,7 @@ const CallHistoryTab = () => {
           </button>
           <button
             type="button"
-            onClick={() => setCurrentPage(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={!pageData.prev}
             className={`px-3 py-1 rounded border ${
               !pageData.prev
@@ -347,7 +359,7 @@ const CallHistoryTab = () => {
             <button
               key={pageNum}
               type="button"
-              onClick={() => setCurrentPage(pageNum)}
+              onClick={() => handlePageChange(pageNum)}
               className={`px-3 py-1 rounded border ${
                 pageNum === currentPage
                   ? "bg-[#008080] text-white border-[#008080]"
@@ -359,7 +371,7 @@ const CallHistoryTab = () => {
           ))}
           <button
             type="button"
-            onClick={() => setCurrentPage(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={!pageData.next}
             className={`px-3 py-1 rounded border ${
               !pageData.next
@@ -371,7 +383,7 @@ const CallHistoryTab = () => {
           </button>
           <button
             type="button"
-            onClick={() => setCurrentPage(pageData.end)}
+            onClick={() => handlePageChange(pageData.end)}
             disabled={!pageData.next}
             className={`px-3 py-1 rounded border ${
               !pageData.next
