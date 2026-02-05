@@ -57,7 +57,7 @@ public class VectorIndexingService {
    @Async // 비동기로 처리하여 메인 스레드 부하 방지
 //   @Scheduled(cron = "0 0/30 * * * *") // 30분에 한 번 실행
 //   @Scheduled(cron = "0 * * * * *") //1분
-   @Scheduled(cron = "0 0 */2 * * *") // 2시간마다 (0분 0초에 실행)
+//   @Scheduled(cron = "0 0 */2 * * *") // 2시간마다 (0분 0초에 실행)
    public void runBatchIndexing() {
        log.info("[정기 Batch 인덱싱 시작] 시간: {}", LocalDateTime.now());
 

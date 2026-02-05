@@ -52,7 +52,7 @@ const SmsWidgetPanel = ({
 
   return (
     <div
-      className="overflow-hidden bg-white rounded-3xl shadow-xl flex flex-col border border-gray-200 shrink-0"
+      className="overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-xl flex flex-col border border-slate-600 shrink-0"
       style={{ width: size.width, height: size.height }}
     >
       {edges.map(({ key, className, edge }) => (
@@ -72,21 +72,21 @@ const SmsWidgetPanel = ({
         />
       ))}
 
-      <div className="p-4 bg-teal-600 text-white rounded-t-3xl space-y-2">
+      <div className="p-4 bg-gradient-to-br from-slate-700 to-slate-800 border-b border-slate-600 space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-lg font-bold shrink-0">문자 (SMS)</h3>
+          <h3 className="text-lg font-bold shrink-0 text-teal-400">문자 (SMS)</h3>
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={loadList}
               disabled={loading}
-              className="p-1.5 hover:bg-teal-700 rounded text-white/90 hover:text-white text-sm"
+              className="p-1.5 hover:bg-slate-600 rounded text-slate-300 hover:text-slate-100 text-sm transition-colors"
               title="새로고침"
             >
               새로고침
             </button>
             <button
               onClick={closePanel}
-              className="p-1 hover:bg-teal-700 rounded-full"
+              className="p-1 hover:bg-slate-600 rounded text-slate-300 hover:text-slate-100 transition-colors"
               aria-label="닫기"
             >
               <X className="h-5 w-5" />
@@ -103,29 +103,29 @@ const SmsWidgetPanel = ({
               setShowCareTargetDropdown(true);
             }}
             placeholder="케어대상자 검색 후 선택..."
-            className="w-full px-3 py-2 rounded-lg bg-white/95 text-gray-800 placeholder-gray-500 border-0 focus:ring-2 focus:ring-white/50 text-sm"
+            className="w-full px-3 py-2 bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 placeholder:text-slate-400 border border-slate-600 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-sm"
             autoComplete="off"
           />
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
           {showCareTargetDropdown && (
-            <ul className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-white rounded-lg shadow-lg border border-gray-200 text-gray-800">
+            <ul className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg border border-slate-600 text-slate-100">
               {loadingCareTargets ? (
-                <li className="px-3 py-2 text-sm text-gray-500">검색 중...</li>
+                <li className="px-3 py-2 text-sm text-slate-300">검색 중...</li>
               ) : !organizationId ? (
-                <li className="px-3 py-2 text-sm text-gray-500">로그인 후 이용 가능합니다.</li>
+                <li className="px-3 py-2 text-sm text-slate-300">로그인 후 이용 가능합니다.</li>
               ) : filteredCareTargets.length === 0 ? (
-                <li className="px-3 py-2 text-sm text-gray-500">검색 결과가 없습니다.</li>
+                <li className="px-3 py-2 text-sm text-slate-300">검색 결과가 없습니다.</li>
               ) : (
                 filteredCareTargets.map((item) => (
                   <li
                     key={item.careTargetId}
                     role="button"
                     onClick={() => handleCareTargetSelect(item)}
-                    className="px-3 py-2 text-sm hover:bg-teal-50 cursor-pointer border-b border-gray-100 last:border-0"
+                    className="px-3 py-2 text-sm hover:bg-slate-600 cursor-pointer border-b border-slate-600 last:border-0"
                   >
                     {item.name ?? `ID ${item.careTargetId}`}
                     {item.careTargetPhone && (
-                      <span className="text-gray-500 ml-1">({item.careTargetPhone})</span>
+                      <span className="text-slate-300 ml-1">({item.careTargetPhone})</span>
                     )}
                   </li>
                 ))
@@ -137,13 +137,13 @@ const SmsWidgetPanel = ({
 
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-gray-50"
+        className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-gradient-to-br from-slate-800 to-slate-900 modal-scrollbar"
       >
         {loading && list.length === 0 ? (
-          <div className="text-center text-gray-400 py-10">로딩 중...</div>
+          <div className="text-center text-slate-400 py-10">로딩 중...</div>
         ) : displayList.length === 0 ? (
-          <div className="text-center text-gray-400 mt-10">
-            <Smartphone className="h-12 w-12 mx-auto mb-2 opacity-20" />
+          <div className="text-center text-slate-400 mt-10">
+            <Smartphone className="h-12 w-12 mx-auto mb-2 opacity-20 text-slate-600" />
             <p className="text-sm">
               {selectedCareTargetDisplay
                 ? '이 케어대상자와 주고받은 문자가 없습니다.'
@@ -162,13 +162,13 @@ const SmsWidgetPanel = ({
                 className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
+                  className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm text-left ${
                     isOutbound
-                      ? 'bg-teal-500 text-white rounded-br-none'
-                      : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm'
+                      ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white rounded-br-none shadow-md'
+                      : 'bg-gradient-to-br from-slate-700 to-slate-800 text-slate-100 border border-slate-600 rounded-bl-none shadow-sm'
                   }`}
                 >
-                  <div className={`text-xs mb-1 ${isOutbound ? 'text-teal-100' : 'text-teal-600'}`}>
+                  <div className={`text-xs mb-1 ${isOutbound ? 'text-teal-100' : 'text-teal-400'}`}>
                     {isOutbound ? (
                       senderLabel
                     ) : detailUrl && displayName ? (
@@ -183,13 +183,13 @@ const SmsWidgetPanel = ({
                       msg.fromNumber
                     )}
                     {msg.createdAt && (
-                      <span className={isOutbound ? 'text-white/80 ml-2' : 'text-gray-400 ml-2'}>
+                      <span className={isOutbound ? 'text-white/80 ml-2' : 'text-slate-400 ml-2'}>
                         {formatDate(msg.createdAt)}
                       </span>
                     )}
                   </div>
                   {msg.body && (
-                    <div className="whitespace-pre-wrap">{msg.body}</div>
+                    <div style={{ whiteSpace: 'pre-wrap' }} className="text-left">{msg.body}</div>
                   )}
                   {msg.mediaUrls && msg.mediaUrls.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -199,7 +199,7 @@ const SmsWidgetPanel = ({
                           /\.(jpg|jpeg|png|gif|webp)$/i.test(url) ||
                           url.includes('image');
                         return (
-                          <div key={idx} className="rounded overflow-hidden">
+                          <div key={idx} className="overflow-hidden">
                             {isImage ? (
                               <a
                                 href={fullUrl}
@@ -234,10 +234,10 @@ const SmsWidgetPanel = ({
         )}
       </div>
 
-      <div className="p-4 border-t bg-white rounded-b-3xl flex gap-2">
+      <div className="p-4 border-t border-slate-600 bg-gradient-to-br from-slate-700 to-slate-800 flex gap-2">
         <input
           type="text"
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+          className="flex-1 px-3 py-2 border border-slate-600 bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-sm"
           placeholder="메시지를 입력하세요..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -247,11 +247,11 @@ const SmsWidgetPanel = ({
         <button
           onClick={handleSend}
           disabled={sending || !to.trim() || !message.trim()}
-          className={`p-2 rounded-full text-white transition-colors shrink-0 ${
-            message.trim()
-              ? 'bg-teal-600 hover:bg-teal-700'
-              : 'bg-gray-300 cursor-not-allowed'
-          } ${!to.trim() || sending ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+          className={`p-2 text-white transition-colors shrink-0 ${
+            sending || !to.trim() || !message.trim()
+              ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+              : 'bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 cursor-pointer'
+          }`}
           aria-label="전송"
         >
           <Send className="h-5 w-5" />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Smartphone } from 'lucide-react';
 import { useSmsWidget } from '../../hooks/useSmsWidget';
@@ -10,6 +10,20 @@ import SmsWidgetPanel from './SmsWidgetPanel';
  * - 모든 상태·로직은 useSmsWidget 훅에서 가져옴.
  */
 const SmsChatWidget = () => {
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+
+  // AiChatBot 열림/닫힘 상태 구독
+  useEffect(() => {
+    const handleAiChatOpen = (event) => {
+      setIsAiChatOpen(event.detail.isOpen);
+    };
+
+    window.addEventListener('ai-chat-open', handleAiChatOpen);
+    return () => {
+      window.removeEventListener('ai-chat-open', handleAiChatOpen);
+    };
+  }, []);
+
   const {
     isOpen,
     openPanel,
@@ -41,6 +55,27 @@ const SmsChatWidget = () => {
     selectedCareTargetDisplay,
   } = useSmsWidget();
 
+  // SMS 위젯이 열릴 때 AiChatBot 닫기
+  useEffect(() => {
+    if (isOpen) {
+      window.dispatchEvent(new CustomEvent('ai-chat-close'));
+    }
+  }, [isOpen]);
+
+  // AiChatBot가 열릴 때 SMS 위젯 닫기
+  useEffect(() => {
+    const handleSmsWidgetClose = () => {
+      if (isOpen) {
+        closePanel();
+      }
+    };
+
+    window.addEventListener('sms-widget-close', handleSmsWidgetClose);
+    return () => {
+      window.removeEventListener('sms-widget-close', handleSmsWidgetClose);
+    };
+  }, [isOpen, closePanel]);
+
   const anchorStyle = {
     position: 'fixed',
     right: 32,
@@ -52,6 +87,11 @@ const SmsChatWidget = () => {
     flexDirection: 'column',
     alignItems: 'flex-end',
   };
+
+  // AiChatBot가 열려있으면 SMS 아이콘 숨기기
+  if (isAiChatOpen && !isOpen) {
+    return null;
+  }
 
   const widgetContent = !isOpen ? (
     <button

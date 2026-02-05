@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot,MessageSquare, X, Send, Paperclip } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { sendAiChatMessage, sendAiChatImage, deleteAiChatImage, getChatLogAll } from '../../api/aiChat/aiChatBotApi';
 import { useAuth } from '../../hooks/useAuth';
+import AiChatPanel from './AiChatPanel';
 
 const AiChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,12 +33,113 @@ const AiChatBot = () => {
   // 채팅창 하단 자동 스크롤을 위한 Ref
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // 리사이징 관련 상태 및 로직
+  const [size, setSize] = useState({ width: 450, height: 600 });
+  const resizeRef = useRef({ edge: null, startX: 0, startY: 0, startW: 0, startH: 0 });
+
+  const MIN_W = 320;
+  const MIN_H = 400;
+
+  const getMaxSize = () => ({
+    w: typeof window !== 'undefined' ? Math.floor(window.innerWidth * 0.9) : 900,
+    h: typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.85) : 800,
+  });
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  const handleResizeStart = (e, edge) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resizeRef.current = {
+      edge,
+      startX: e.clientX,
+      startY: e.clientY,
+      startW: size.width,
+      startH: size.height,
+    };
+
+    const cursors = {
+      top: 'n-resize',
+      right: 'e-resize',
+      bottom: 's-resize',
+      left: 'w-resize',
+      'top-left': 'nwse-resize',
+      'top-right': 'nesw-resize',
+      'bottom-left': 'nesw-resize',
+      'bottom-right': 'nwse-resize',
+    };
+    document.body.style.cursor = cursors[edge] || '';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (e2) => {
+      const { edge: ed, startX: sx, startY: sy, startW: sw, startH: sh } = resizeRef.current;
+      if (!ed) return;
+      const { w: maxW, h: maxH } = getMaxSize();
+      setSize((prev) => {
+        let w = prev.width;
+        let h = prev.height;
+        if (ed === 'right') w = clamp(sw + (e2.clientX - sx), MIN_W, maxW);
+        else if (ed === 'left') w = clamp(sw + (sx - e2.clientX), MIN_W, maxW);
+        else if (ed === 'bottom') h = clamp(sh + (e2.clientY - sy), MIN_H, maxH);
+        else if (ed === 'top') h = clamp(sh + (sy - e2.clientY), MIN_H, maxH);
+        else if (ed === 'top-left') {
+          w = clamp(sw + (sx - e2.clientX), MIN_W, maxW);
+          h = clamp(sh + (sy - e2.clientY), MIN_H, maxH);
+        } else if (ed === 'top-right') {
+          w = clamp(sw + (e2.clientX - sx), MIN_W, maxW);
+          h = clamp(sh + (sy - e2.clientY), MIN_H, maxH);
+        } else if (ed === 'bottom-left') {
+          w = clamp(sw + (sx - e2.clientX), MIN_W, maxW);
+          h = clamp(sh + (e2.clientY - sy), MIN_H, maxH);
+        } else if (ed === 'bottom-right') {
+          w = clamp(sw + (e2.clientX - sx), MIN_W, maxW);
+          h = clamp(sh + (e2.clientY - sy), MIN_H, maxH);
+        }
+        return { width: w, height: h };
+      });
+    };
+    const onUp = () => {
+      resizeRef.current.edge = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
+
+  // AiChatBot 열림/닫힘 상태를 다른 컴포넌트에 알리기
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('ai-chat-open', { detail: { isOpen } })
+    );
+    
+    // AiChatBot가 열릴 때 SMS 위젯 닫기
+    if (isOpen) {
+      window.dispatchEvent(new CustomEvent('sms-widget-close'));
+    }
+  }, [isOpen]);
+
+  // SMS 위젯이 열릴 때 AiChatBot 닫기
+  useEffect(() => {
+    const handleSmsWidgetOpen = () => {
+      setIsOpen(false);
+    };
+
+    window.addEventListener('ai-chat-close', handleSmsWidgetOpen);
+    return () => {
+      window.removeEventListener('ai-chat-close', handleSmsWidgetOpen);
+    };
+  }, []);
 
   // 컴포넌트가 열릴 때 전체 채팅 로그 조회
   useEffect(() => {
@@ -161,7 +263,6 @@ const AiChatBot = () => {
   };
 
   // textarea 자동 높이 조절
-  const textareaRef = useRef(null);
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -276,7 +377,7 @@ const AiChatBot = () => {
   if (!isOpen) {
     return (
       <button
-        className="fixed bottom-8 right-8 w-16 h-16 bg-teal-600 flex items-center justify-center shadow-lg cursor-pointer hover:bg-teal-700 transition-all z-[1000]"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-teal-700 transition-all z-[1000]"
         onClick={() => setIsOpen(true)}
       >
         <Bot className="h-8 w-8 text-white" />
@@ -285,156 +386,25 @@ const AiChatBot = () => {
   }
 
   return (
-    /* 가로폭 w-80 -> w-[450px], 높이 h-[500px] -> h-[600px] 수정 */
-
-    <div className="fixed bottom-8 right-8 w-[450px] h-[600px] bg-white shadow-xl flex flex-col z-[1000] border border-gray-200">
-      {/* 헤더 */}
-      <div className="flex justify-between items-center p-4 bg-teal-600 text-white">
-        <div className="flex flex-col">
-        <h3 className="text-lg font-bold">CarePilot AI 비서</h3>
-          <span className="text-xs text-white/80 mt-0.5">
-            {new Date().toLocaleDateString('ko-KR', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric',
-              weekday: 'short'
-            })}
-          </span>
-        </div>
-        <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-teal-700">
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* 메시지 영역 */}
-      <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
-        {messages.length === 0 && !isLoading && (
-          <div className="text-center text-gray-400 mt-10">
-            <Bot className="h-12 w-12 mx-auto mb-2 opacity-20" />
-            <p className="text-sm">무엇을 도와드릴까요?</p>
-          </div>
-        )}
-        
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
-              msg.sender === 'user' 
-                ? 'bg-teal-500 text-white rounded-br-none' 
-                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm'
-            }`}>
-              {/* 파일과 텍스트를 함께 보낸 경우 이미지 미리보기 표시 */}
-              {msg.imagePreview && (
-                <div className="mb-2">
-                  <img
-                    src={msg.imagePreview.previewUrl}
-                    alt={msg.imagePreview.fileName}
-                    className="max-w-[200px] max-h-[200px] object-cover rounded-lg border border-white/20"
-                  />
-                </div>
-              )}
-              {/* 줄바꿈 보존을 위해 white-space 추가 */}
-              <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
-              {/* 사용자 메시지 아래에 날짜 표시 */}
-              {msg.sender === 'user' && msg.createdAt && (
-                <div className="text-[10px] text-white/70 mt-1 text-right">
-                  {msg.createdAt}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {/* 로딩 표시 */}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 text-gray-400 px-4 py-2 rounded-2xl rounded-bl-none text-xs animate-pulse">
-              비서가 생각 중입니다...
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 입력 영역 */}
-      <div className="p-4 border-t bg-white">
-        {/* 둥둥 떠있는 이미지 미리보기 */}
-        {selectedImage && (
-          <div className="mb-3 relative inline-flex items-center gap-3 p-2 pr-10 bg-gray-50 border border-gray-200 shadow-sm">
-            <img
-              src={selectedImage.previewUrl}
-              alt="선택한 이미지 미리보기"
-              className="w-16 h-16 object-cover border border-gray-200 bg-white"
-            />
-            <div className="min-w-0">
-              <div className="text-xs text-gray-700 font-medium truncate max-w-[260px]">
-                {selectedImage.fileName}
-              </div>
-              <div className="text-[11px] text-gray-500 mt-0.5">
-                {selectedImage.isUploading && "업로드 중..."}
-                {!selectedImage.isUploading && selectedImage.fileId && `업로드 완료 (fileId: ${selectedImage.fileId})`}
-                {!selectedImage.isUploading && !selectedImage.fileId && "업로드 완료 (fileId 미수신)"}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleRemoveSelectedImage}
-              className="absolute top-2 right-2 p-1 hover:bg-gray-200 text-gray-600"
-              aria-label="선택 이미지 제거"
-              title="선택 이미지 제거"
-              disabled={isLoading || selectedImage.isUploading || selectedImage.isDeleting}
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {/* 사용자 입력 폼에 숨겨서 fileId 넣기 */}
-            <input type="hidden" name="aiChatFileId" value={selectedImage.fileId || ""} />
-          </div>
-        )}
-
-        <div className="flex items-center">
-          {/* 이미지 1장 선택 (선택 즉시 업로드) */}
-        <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple={false}
-            className="hidden"
-            onChange={handleImageChange}
-          disabled={isLoading}
-        />
-          <button
-            type="button"
-            onClick={handlePickImage}
-            disabled={isLoading}
-            className={`mr-2 p-2 transition-colors ${isLoading ? 'bg-gray-100 text-gray-300' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            aria-label="사진 선택"
-            title="사진 선택"
-          >
-            <Paperclip className="h-5 w-5" />
-          </button>
-          <textarea
-            ref={textareaRef}
-            className="flex-1 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none overflow-hidden min-h-[40px] max-h-[120px]"
-            placeholder="에이전트 (Enter: 전송, Shift+Enter: 줄바꿈)"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              adjustTextareaHeight();
-            }}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            rows={1}
-          />
-        <button 
-          onClick={handleSendMessage} 
-          disabled={isLoading || selectedImage?.isUploading}
-            className={`ml-2 p-2 text-white transition-colors ${isLoading || selectedImage?.isUploading ? 'bg-gray-300' : 'bg-teal-600 hover:bg-teal-700'}`}
-        >
-          <Send className="h-5 w-5" />
-        </button>
-        </div>
-      </div>
-    </div>
+    <AiChatPanel
+      scrollRef={scrollRef}
+      fileInputRef={fileInputRef}
+      messages={messages}
+      isLoading={isLoading}
+      input={input}
+      setInput={setInput}
+      selectedImage={selectedImage}
+      textareaRef={textareaRef}
+      adjustTextareaHeight={adjustTextareaHeight}
+      handleKeyDown={handleKeyDown}
+      handlePickImage={handlePickImage}
+      handleImageChange={handleImageChange}
+      handleRemoveSelectedImage={handleRemoveSelectedImage}
+      handleSendMessage={handleSendMessage}
+      closePanel={() => setIsOpen(false)}
+      size={size}
+      handleResizeStart={handleResizeStart}
+    />
   );
 };
 
