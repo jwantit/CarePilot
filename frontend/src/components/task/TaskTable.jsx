@@ -165,43 +165,39 @@ const TaskTable = ({
                 </td>
                 {/* 관리 버튼 그룹 */}
                 <td className="px-4 py-3">
-                  <div className="flex justify-center gap-1.5">
+                  <div className="flex justify-center gap-3">
                     {task.status === 'WAITING' && (
                       <button
                         type="button"
                         onClick={() => onStart && onStart(task)}
-                        className="p-1.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all"
-                        title="시작"
+                        className="cp-link-blue"
                       >
-                        <Play size={14} />
+                        시작
                       </button>
                     )}
                     {task.status === 'PROGRESS' && (
                       <button
                         type="button"
                         onClick={() => onComplete && onComplete(task.taskId)}
-                        className="p-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all"
-                        title="완료"
+                        className="cp-link-blue"
                       >
-                        <CheckSquare size={14} />
+                        완료
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => onDetail && onDetail(task)}
-                      className="p-1.5 rounded bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-all"
-                      title="상세"
+                      className="cp-link-slate"
                     >
-                      <FileText size={14} />
+                      상세
                     </button>
                     {task.status !== 'DONE' && (
                       <button
                         type="button"
                         onClick={() => onEdit && onEdit(task)}
-                        className="p-1.5 rounded bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-all"
-                        title="수정"
+                        className="cp-link-blue"
                       >
-                        <Edit size={14} />
+                        수정
                       </button>
                     )}
                     {task.status === 'DONE' && <span className="text-slate-600 text-xs px-2">-</span>}

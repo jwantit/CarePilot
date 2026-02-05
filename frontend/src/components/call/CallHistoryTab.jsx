@@ -328,7 +328,7 @@ const CallHistoryTab = () => {
                     <td className="px-3 py-2 text-sm">
                       <button
                         type="button"
-                        className="text-teal-400 hover:text-teal-300 underline text-sm font-medium"
+                        className="cp-link-slate"
                         onClick={() => openDetailModal(item.callId)}
                       >
                         상세

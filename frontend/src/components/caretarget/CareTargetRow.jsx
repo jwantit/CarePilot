@@ -110,10 +110,9 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
       <div className="flex justify-center">
         <button
           onClick={handleDetailGo}
-          className="px-3 py-1 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          className="cp-link-slate"
         >
-          <span className="font-mono text-teal-400">&gt;</span>
-          <span>관리</span>
+          상세
         </button>
       </div>
     </div>

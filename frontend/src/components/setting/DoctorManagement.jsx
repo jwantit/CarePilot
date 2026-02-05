@@ -333,16 +333,16 @@ function DoctorManagement() {
                         {getStatusLabel(doctor.isActive)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                       <button
                         onClick={() => handleOpenModal(doctor)}
-                        className="text-teal-600 hover:text-teal-900"
+                        className="cp-link-blue"
                       >
                         수정
                       </button>
                       <button
                         onClick={() => handleDelete(doctor.doctorId)}
-                        className="text-red-600 hover:text-red-900"
+                        className="cp-link-red"
                       >
                         삭제
                       </button>

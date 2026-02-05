@@ -80,7 +80,7 @@ const PrescriptionHistoryTable = ({ list }) => {
                         href={`${API_SERVER_HOST}${row.imageFileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[10px] font-black text-teal-400 bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 transition-all shadow-md"
+                        className="cp-link-blue"
                       >
                         이미지 보기
                       </a>

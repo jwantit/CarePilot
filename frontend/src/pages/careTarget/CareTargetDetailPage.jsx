@@ -134,7 +134,7 @@ function CareTargetDetailPage() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/care-target')} 
-            className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+            className="cp-btn-secondary px-5 py-2.5 text-teal-400 border-teal-500/50 hover:border-teal-500"
           >
             <ChevronLeft size={18} />
             목록으로
@@ -147,13 +147,13 @@ function CareTargetDetailPage() {
                 <>
                   <button 
                     onClick={() => { setIsEditing(false); fetchData(); setPreviewUrl(null); setNewFile(null); }} 
-                    className="px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 border border-slate-600 text-slate-300 rounded-sm text-sm font-semibold hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                    className="cp-btn-secondary px-5 py-2.5"
                   >
                     취소
                   </button>
                   <button 
                     onClick={handleSave} 
-                    className="px-5 py-2.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 border border-teal-500 text-white rounded-sm text-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                    className="cp-btn-primary px-5 py-2.5"
                   >
                     저장하기
                   </button>
@@ -161,7 +161,7 @@ function CareTargetDetailPage() {
               ) : (
                 <button 
                   onClick={() => setIsEditing(true)} 
-                  className="px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-orange-400 border border-orange-500/50 hover:border-orange-500 rounded-sm text-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  className="cp-btn-secondary px-5 py-2.5 text-orange-400 border-orange-500/50 hover:border-orange-500"
                 >
                   정보 수정
                 </button>

@@ -101,7 +101,7 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
                   <button
                     type="button"
                     onClick={() => onDetail && onDetail(row.taskId)}
-                    className="px-3 py-1 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-xs font-semibold border border-teal-500/50 hover:border-teal-500 transition-all"
+                    className="cp-link-slate"
                   >
                     상세
                   </button>
