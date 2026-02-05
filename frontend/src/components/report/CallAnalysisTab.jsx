@@ -157,14 +157,6 @@ function CallAnalysisTab({ statistics }) {
           />
         </div>
       )}
-
-      {/* 평균 통화 시간 카드 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-        <h2 className="text-xl font-bold text-slate-100 mb-4">평균 통화 시간</h2>
-        <div className="text-4xl font-bold text-teal-400">
-          {callStatistics?.avgDuration?.toFixed(1) || '0.0'}초
-        </div>
-      </div>
     </div>
   );
 }

@@ -8,7 +8,7 @@ import OverviewTab from "../../components/report/OverviewTab";
 import RiskAnalysisTab from "../../components/report/RiskAnalysisTab";
 import CallAnalysisTab from "../../components/report/CallAnalysisTab";
 import AIAutomationTab from "../../components/report/AIAutomationTab";
-import { Download } from "lucide-react";
+import { Download, RotateCcw } from "lucide-react";
 
 function ReportPage() {
   const { user } = useAuth();
@@ -25,6 +25,9 @@ function ReportPage() {
   const [selectedDisease, setSelectedDisease] = useState("");
   const [groups, setGroups] = useState([]);
   const [diseases, setDiseases] = useState([]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false); // 날짜 선택기 팝오버 상태
+  const [tempStartDate, setTempStartDate] = useState(null); // 팝오버용 임시 날짜
+  const [tempEndDate, setTempEndDate] = useState(null); // 팝오버용 임시 날짜
 
   // 그룹 목록과 질환 목록 로드
   useEffect(() => {
@@ -45,6 +48,17 @@ function ReportPage() {
   useEffect(() => {
     loadStatistics();
   }, [dateRange, startDate, endDate, selectedGroupId, selectedDisease]);
+
+  const handleReset = () => {
+    setDateRange("month");
+    setStartDate(null);
+    setEndDate(null);
+    setTempStartDate(null);
+    setTempEndDate(null);
+    setSelectedGroupId(null);
+    setSelectedDisease("");
+    setIsDatePickerOpen(false);
+  };
 
   const loadGroups = async () => {
     try {
@@ -198,88 +212,119 @@ function ReportPage() {
       <Breadcrumb items={["통계"]} />
 
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 mb-6 rounded-none shadow-lg hover:shadow-xl transition-shadow">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-xl font-bold text-slate-100 mb-1">통계</h1>
-            <p className="text-slate-400 text-sm">
-              시스템 운영 현황과 데이터 분석을 확인하세요.
-            </p>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              기간 선택
+            </span>
+            <div className="flex items-center gap-1.5 relative">
+              <button
+                className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
+                  dateRange === "today"
+                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                }`}
+                onClick={() => {
+                  setDateRange("today");
+                  setIsDatePickerOpen(false);
+                }}
+              >
+                오늘
+              </button>
+              <button
+                className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
+                  dateRange === "week"
+                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                }`}
+                onClick={() => {
+                  setDateRange("week");
+                  setIsDatePickerOpen(false);
+                }}
+              >
+                이번 주
+              </button>
+              <button
+                className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
+                  dateRange === "month"
+                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                }`}
+                onClick={() => {
+                  setDateRange("month");
+                  setIsDatePickerOpen(false);
+                }}
+              >
+                이번 달
+              </button>
+              <button
+                className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
+                  dateRange === "custom"
+                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                }`}
+                onClick={() => {
+                  setDateRange("custom");
+                  setTempStartDate(startDate);
+                  setTempEndDate(endDate);
+                  setIsDatePickerOpen(!isDatePickerOpen);
+                }}
+              >
+                {dateRange === "custom" && startDate && endDate
+                  ? `${startDate.toISOString().split("T")[0]} ~ ${endDate.toISOString().split("T")[0]}`
+                  : "직접 선택"}
+              </button>
+
+              {/* 날짜 선택 팝오버 */}
+              {isDatePickerOpen && (
+                <div className="absolute top-10 left-0 z-50 bg-slate-800 border border-slate-700 p-4 shadow-2xl space-y-3 min-w-[320px]">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-bold text-teal-400 uppercase">시작일</span>
+                    <input
+                      type="date"
+                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full"
+                      value={tempStartDate ? tempStartDate.toISOString().split("T")[0] : ""}
+                      onChange={(e) => setTempStartDate(new Date(e.target.value))}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-bold text-teal-400 uppercase">종료일</span>
+                    <input
+                      type="date"
+                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full"
+                      value={tempEndDate ? tempEndDate.toISOString().split("T")[0] : ""}
+                      onChange={(e) => setTempEndDate(new Date(e.target.value))}
+                    />
+                  </div>
+                  <div className="pt-2 border-t border-slate-700 flex justify-end gap-2">
+                    <button
+                      onClick={() => setIsDatePickerOpen(false)}
+                      className="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={() => {
+                        setStartDate(tempStartDate);
+                        setEndDate(tempEndDate);
+                        setIsDatePickerOpen(false);
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-teal-600/20 text-teal-400 border border-teal-500/30 hover:bg-teal-600/30 transition-all"
+                    >
+                      적용하기
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 rounded-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
-          >
-            <Download size={18} />
-            PDF 내보내기
-          </button>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            className={`px-4 py-2 rounded-sm text-sm font-semibold transition-all border ${
-              dateRange === "today"
-                ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-300 border border-slate-600 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
-            }`}
-            onClick={() => setDateRange("today")}
-          >
-            오늘
-          </button>
-          <button
-            className={`px-4 py-2 rounded-sm text-sm font-semibold transition-all border ${
-              dateRange === "week"
-                ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-300 border border-slate-600 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
-            }`}
-            onClick={() => setDateRange("week")}
-          >
-            이번 주
-          </button>
-          <button
-            className={`px-4 py-2 rounded-sm text-sm font-semibold transition-all border ${
-              dateRange === "month"
-                ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-300 border border-slate-600 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
-            }`}
-            onClick={() => setDateRange("month")}
-          >
-            이번 달
-          </button>
-          <button
-            className={`px-4 py-2 rounded-sm text-sm font-semibold transition-all border ${
-              dateRange === "custom"
-                ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-300 border border-slate-600 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
-            }`}
-            onClick={() => setDateRange("custom")}
-          >
-            직접 선택
-          </button>
-        </div>
-
-        {dateRange === "custom" && (
-          <div className="mt-4 flex items-center gap-2">
-            <input
-              type="date"
-              className="px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-              value={startDate ? startDate.toISOString().split("T")[0] : ""}
-              onChange={(e) => setStartDate(new Date(e.target.value))}
-            />
-            <span className="text-slate-500">~</span>
-            <input
-              type="date"
-              className="px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-              value={endDate ? endDate.toISOString().split("T")[0] : ""}
-              onChange={(e) => setEndDate(new Date(e.target.value))}
-            />
-          </div>
-        )}
-
-        <div className="mt-4 flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-semibold text-slate-400">그룹:</label>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              그룹
+            </span>
             <select
-              className="px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="h-9 px-3 min-w-[120px] border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
               value={selectedGroupId || ""}
               onChange={(e) =>
                 setSelectedGroupId(
@@ -296,10 +341,12 @@ function ReportPage() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-semibold text-slate-400">질환:</label>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              질환
+            </span>
             <select
-              className="px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="h-9 px-3 min-w-[120px] border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
               value={selectedDisease}
               onChange={(e) => setSelectedDisease(e.target.value)}
             >
@@ -311,9 +358,27 @@ function ReportPage() {
               ))}
             </select>
           </div>
+
+          <button
+            onClick={handleReset}
+            className="h-9 flex items-center gap-1.5 px-5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700 text-slate-400 text-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-none"
+          >
+            <RotateCcw size={14} />
+            초기화
+          </button>
+
+          <div className="flex-1" />
+
+          <button
+            onClick={handleExportPDF}
+            className="h-9 flex items-center gap-2 px-5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 rounded-none shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <Download size={18} />
+            PDF 내보내기
+          </button>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-slate-700">
+        <div className="mt-8 pt-4 border-t border-slate-700/50">
           <nav className="flex gap-4">
             <button
               onClick={() => setActiveTab("overview")}

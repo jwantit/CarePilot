@@ -7,7 +7,7 @@ function KPICard({ title, value, change, icon, onClick }) {
 
   return (
     <div
-      className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6 hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer"
+      className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl shadow-lg p-6 hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer"
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">

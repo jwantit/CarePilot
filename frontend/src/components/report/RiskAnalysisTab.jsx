@@ -73,14 +73,6 @@ function RiskAnalysisTab({ statistics }) {
           />
         </div>
       )}
-
-      {/* 평균 위험 점수 카드 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-        <h2 className="text-xl font-bold text-slate-100 mb-4">평균 위험 점수</h2>
-        <div className="text-4xl font-bold text-teal-400">
-          {riskStatistics?.avgRiskScore?.toFixed(2) || '0.00'}
-        </div>
-      </div>
     </div>
   );
 }
