@@ -83,7 +83,7 @@ function CareTargetPage() {
   const statCards = useMemo(() => [
     {
       value: stats.total,
-      label: '전체 케어 대상자',
+      label: '대상',
       icon: Users,
       iconColor: 'text-teal-400',
       valueColor: 'text-slate-100',
@@ -91,7 +91,7 @@ function CareTargetPage() {
     },
     {
       value: stats.critical,
-      label: '위급',
+      label: '긴급',
       icon: AlertTriangle,
       iconColor: 'text-red-400',
       valueColor: 'text-red-400',
@@ -99,7 +99,7 @@ function CareTargetPage() {
     },
     {
       value: stats.high,
-      label: '높음',
+      label: '위험',
       icon: AlertTriangle,
       iconColor: 'text-orange-400',
       valueColor: 'text-orange-400',
@@ -234,16 +234,6 @@ function CareTargetPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={['케어 대상자']} />
-        <div className="mb-8">
-          {selectedIds.length > 0 && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-800 border border-teal-500/50">
-              <Activity className="w-4 h-4 text-teal-400" />
-              <span className="text-teal-400 text-sm font-semibold">
-                <span className="font-mono">[{selectedIds.length}]</span> selected
-              </span>
-            </div>
-          )}
-        </div>
 
         {/* 통계 카드 섹션 */}
         <StatCardGrid cards={statCards} />
@@ -263,7 +253,7 @@ function CareTargetPage() {
 
       <div className="bg-slate-800 border border-slate-700 overflow-hidden">
         {/* 테이블 헤더 - 터미널 스타일 */}
-        <div className="grid grid-cols-8 bg-slate-900 border-b-2 border-teal-500/30 py-3.5 px-4 text-xs font-semibold text-slate-300 text-center items-center">
+        <div className="grid grid-cols-8 bg-slate-900 border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-slate-300 text-center items-center">
           <div className="flex justify-center">
             <button
               onClick={handleSelectAll}
@@ -273,18 +263,15 @@ function CareTargetPage() {
             </button>
           </div>
           <div className="flex items-center justify-center gap-1 text-teal-400">
-            <Users className="w-3.5 h-3.5" />
             <span>프로필 사진</span>
           </div>
           <div className="flex items-center justify-center gap-1 text-teal-400">
-            <Users className="w-3.5 h-3.5" />
             <span>이름</span>
           </div>
           <div className="text-teal-400">나이</div>
           <div className="text-teal-400">연락처</div>
           <div className="text-teal-400">질환</div>
           <div className="flex items-center justify-center gap-1 text-teal-400">
-            <Activity className="w-3.5 h-3.5" />
             <span>위험도</span>
           </div>
           <div className="text-teal-400">상세보기</div>

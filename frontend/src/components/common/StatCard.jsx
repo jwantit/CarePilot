@@ -16,21 +16,34 @@ function StatCard({
   icon: Icon, 
   iconColor = "text-teal-400",
   valueColor = "text-slate-100",
-  hoverBorderColor = "hover:border-teal-500/50"
+  hoverBorderColor = "hover:border-teal-500/50",
+  className = ""
 }) {
   if (!Icon) {
     return null;
   }
 
+  // 기본 다크 스타일 또는 커스텀 클래스 사용
+  const baseStyles = className || "bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 shadow-lg hover:shadow-slate-900/50";
+
   return (
-    <div className={`bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 ${hoverBorderColor} transition-all group shadow-lg hover:shadow-xl hover:shadow-slate-900/50 hover:-translate-y-0.5`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="p-2 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 shadow-md group-hover:shadow-lg transition-shadow">
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+    <div className={`${baseStyles} rounded-xl p-4 ${hoverBorderColor} transition-all group hover:shadow-xl hover:-translate-y-0.5`}>
+      <div className="flex items-center gap-4">
+        {/* 아이콘 영역 */}
+        <div className={`p-3 rounded-2xl transition-shadow ${className ? 'bg-slate-50 border border-slate-100' : 'bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 shadow-md group-hover:shadow-lg'}`}>
+          <Icon className={`w-7 h-7 ${iconColor}`} />
         </div>
-        <span className={`text-2xl font-bold ${valueColor} drop-shadow-sm`}>{value}</span>
+        
+        {/* 텍스트 영역 (라벨 + 숫자) - 한 라인 배치 */}
+        <div className="flex flex-1 items-center justify-between">
+          <p className={`text-lg font-bold tracking-tight ${className ? 'text-slate-600' : 'text-slate-200'}`}>
+            {label}
+          </p>
+          <span className={`text-4xl font-black ${valueColor} drop-shadow-sm`}>
+            {value}
+          </span>
+        </div>
       </div>
-      <p className="text-xs text-slate-200 uppercase tracking-wider">{label}</p>
     </div>
   );
 }
