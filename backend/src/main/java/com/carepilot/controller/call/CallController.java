@@ -11,6 +11,8 @@ import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.dto.call.*;
 import com.carepilot.dto.callanalysis.CallAnalyzeResponseDTO;
+import com.carepilot.dto.PageRequestDTO;
+import com.carepilot.dto.PageResponseDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
@@ -56,6 +58,13 @@ public class CallController {
     public ResponseEntity<List<CallResponseDTO>> getCallHistory(
             @PathVariable Long organizationId) {
         return ResponseEntity.ok(callService.getCallHistory(organizationId));
+    }
+
+    @GetMapping("/{organizationId}/history/paged")
+    public ResponseEntity<PageResponseDTO<CallResponseDTO>> getCallHistoryWithPaging(
+            @PathVariable Long organizationId,
+            PageRequestDTO pageRequestDTO) {
+        return ResponseEntity.ok(callService.getCallHistoryWithPaging(organizationId, pageRequestDTO));
     }
 
     // [탭 1] 실시간 또는 상세 통화 내용 조회 (사진 2 상단 STT 뷰)

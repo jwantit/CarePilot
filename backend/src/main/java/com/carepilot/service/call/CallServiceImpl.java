@@ -13,6 +13,9 @@ import com.carepilot.dto.call.ScheduleCreateRequestDTO;
 import com.carepilot.dto.call.ScheduleResponseDTO;
 import com.carepilot.dto.call.ScheduleUpdateRequestDTO;
 import com.carepilot.dto.config.RiskConfigDTO;
+import com.carepilot.dto.PageRequestDTO;
+import com.carepilot.dto.PageResponseDTO;
+import org.springframework.data.domain.Page;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.call.ScheduleRecurrence;
 import com.carepilot.domain.call.ScheduleType;
@@ -82,6 +85,47 @@ public class CallServiceImpl implements CallService {
                     return CallResponseDTO.from(call, riskScore, riskLevel);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PageResponseDTO<CallResponseDTO> getCallHistoryWithPaging(Long organizationId, PageRequestDTO pageRequestDTO) {
+        // Pageable 생성 (startTime 기준 내림차순 정렬)
+        Page<Call> callPage = callRepository.findByOrganizationOrganizationIdOrderByStartTimeDesc(
+                organizationId, 
+                pageRequestDTO.getPageable("startTime")
+        );
+
+        if (callPage.isEmpty()) {
+            return PageResponseDTO.<CallResponseDTO>withAll()
+                    .pageRequestDTO(pageRequestDTO)
+                    .dtoList(Collections.emptyList())
+                    .total(0)
+                    .build();
+        }
+
+        // 해당 organizationId의 RiskConfig 조회
+        RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
+
+        List<CallResponseDTO> dtoList = callPage.getContent().stream()
+                .map(call -> {
+                    RiskScore riskScore = riskScoreRepository.findFirstByCall_CallIdOrderByCalculatedAtDesc(call.getCallId())
+                            .orElse(null);
+
+                    // riskScore 점수를 기반으로 riskLevel 계산
+                    RiskLevel riskLevel = null;
+                    if (riskScore != null && riskScore.getRiskScore() != null) {
+                        riskLevel = riskConfigService.resolveLevel(riskScore.getRiskScore(), riskConfig);
+                    }
+
+                    return CallResponseDTO.from(call, riskScore, riskLevel);
+                })
+                .collect(Collectors.toList());
+
+        return PageResponseDTO.<CallResponseDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total((int) callPage.getTotalElements())
+                .build();
     }
 
     @Override

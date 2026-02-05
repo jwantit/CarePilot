@@ -1,12 +1,22 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { API_SERVER_HOST } from "../../api/apiClient";
-import { getCallHistory, getCallDetail } from "../../api/callApi";
+import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
 import { useAuth } from "../../hooks/useAuth";
 
 const CallHistoryTab = () => {
   const { user } = useAuth();
   const organizationId = user?.organizationId;
   const [history, setHistory] = useState([]);
+  const [pageData, setPageData] = useState({
+    page: 1,
+    size: 10,
+    total: 0,
+    start: 1,
+    end: 1,
+    prev: false,
+    next: false,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
   const [detail, setDetail] = useState(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
@@ -22,15 +32,29 @@ const CallHistoryTab = () => {
     const loadHistory = async () => {
       if (!organizationId) return;
       try {
-        const res = await getCallHistory(organizationId);
-        setHistory(res);
+        const res = await getCallHistoryWithPaging(
+          organizationId,
+          currentPage,
+          10,
+        );
+        setHistory(res.dtoList || []);
+        setPageData({
+          page: res.page || 1,
+          size: res.size || 10,
+          total: res.total || 0,
+          start: res.start || 1,
+          end: res.end || 1,
+          prev: res.prev || false,
+          next: res.next || false,
+        });
       } catch (error) {
         console.error("Failed to load call history", error);
+        setHistory([]);
       }
     };
 
     loadHistory();
-  }, [organizationId]);
+  }, [organizationId, currentPage]);
 
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
@@ -120,7 +144,8 @@ const CallHistoryTab = () => {
         !filterPatient || item.careTargetName?.includes(filterPatient);
       const matchesResult =
         !filterResult || (item.statusLabel || item.status) === filterResult;
-      const matchesRiskLevel = !filterRiskLevel || item.riskLevel === filterRiskLevel;
+      const matchesRiskLevel =
+        !filterRiskLevel || item.riskLevel === filterRiskLevel;
 
       return (
         matchesFrom &&
@@ -287,6 +312,77 @@ const CallHistoryTab = () => {
           </tbody>
         </table>
       </div>
+
+      {/* 페이징 UI */}
+      {pageData.total > 0 && (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCurrentPage(1)}
+            disabled={!pageData.prev}
+            className={`px-3 py-1 rounded border ${
+              !pageData.prev
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            처음
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={!pageData.prev}
+            className={`px-3 py-1 rounded border ${
+              !pageData.prev
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            이전
+          </button>
+          {Array.from(
+            { length: pageData.end - pageData.start + 1 },
+            (_, i) => pageData.start + i,
+          ).map((pageNum) => (
+            <button
+              key={pageNum}
+              type="button"
+              onClick={() => setCurrentPage(pageNum)}
+              className={`px-3 py-1 rounded border ${
+                pageNum === currentPage
+                  ? "bg-[#008080] text-white border-[#008080]"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {pageNum}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={!pageData.next}
+            className={`px-3 py-1 rounded border ${
+              !pageData.next
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            다음
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(pageData.end)}
+            disabled={!pageData.next}
+            className={`px-3 py-1 rounded border ${
+              !pageData.next
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            마지막
+          </button>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8">

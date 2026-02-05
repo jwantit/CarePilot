@@ -1,4 +1,4 @@
-package com.carepilot.dto.notice;
+package com.carepilot.dto;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -2,9 +2,17 @@ import { apiClient } from "./apiClient";
 
 const host = `/calls`;
 
-// 1. 통화 이력 목록 조회
+// 1. 통화 이력 목록 조회 (전체)
 export const getCallHistory = async (organizationId) => {
   const res = await apiClient.get(`${host}/${organizationId}/history`);
+  return res.data;
+};
+
+// 1-1. 통화 이력 목록 조회 (페이징)
+export const getCallHistoryWithPaging = async (organizationId, page = 1, size = 10) => {
+  const res = await apiClient.get(`${host}/${organizationId}/history/paged`, {
+    params: { page, size },
+  });
   return res.data;
 };
 
