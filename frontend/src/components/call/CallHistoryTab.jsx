@@ -3,15 +3,20 @@ import { useSearchParams } from "react-router-dom";
 import { API_SERVER_HOST } from "../../api/apiClient";
 import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
 import { useAuth } from "../../hooks/useAuth";
+import Loading from "../common/Loading";
+import {
+  getRiskLevelLabel,
+  getRiskLevelStyle,
+} from "../../utils/riskLevelStyles";
 
 const CallHistoryTab = () => {
   const { user } = useAuth();
   const organizationId = user?.organizationId;
   const [searchParams, setSearchParams] = useSearchParams();
-  
   // URL 파라미터에서 페이지 읽기, 없으면 기본값 1
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  
+
+  const [isListLoading, setIsListLoading] = useState(true);
   const [history, setHistory] = useState([]);
   const [pageData, setPageData] = useState({
     page: 1,
@@ -37,6 +42,7 @@ const CallHistoryTab = () => {
     const loadHistory = async () => {
       if (!organizationId) return;
       try {
+        setIsListLoading(true);
         const res = await getCallHistoryWithPaging(
           organizationId,
           currentPage,
@@ -53,8 +59,10 @@ const CallHistoryTab = () => {
           next: res.next || false,
         });
       } catch (error) {
-        console.error("Failed to load call history", error);
+        console.error("통화 이력 로드 실패:", error);
         setHistory([]);
+      } finally {
+        setIsListLoading(false);
       }
     };
 
@@ -70,27 +78,12 @@ const CallHistoryTab = () => {
 
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
-
-    const getRiskStyle = (level) => {
-      switch (level) {
-        case "CRITICAL":
-          return "bg-purple-100 text-purple-700 border-purple-200";
-        case "HIGH":
-          return "bg-red-100 text-red-600 border-red-200";
-        case "MEDIUM":
-          return "bg-orange-100 text-orange-600 border-orange-200";
-        case "LOW":
-        default:
-          return "bg-emerald-50 text-emerald-600 border-emerald-100";
-      }
-    };
-
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex justify-start items-center">
         <span
-          className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${getRiskStyle(displayLevel)}`}
+          className={`w-9 inline-flex justify-center px-0 py-0.5 rounded-sm text-[10px] font-black border ${getRiskLevelStyle(displayLevel)}`}
         >
-          {displayLevel}
+          {getRiskLevelLabel(displayLevel)}
         </span>
       </div>
     );
@@ -179,231 +172,267 @@ const CallHistoryTab = () => {
   ]);
 
   return (
-    <div className="relative">
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded border border-gray-200 bg-white p-4 text-xs font-medium uppercase tracking-wide text-gray-500 shadow-sm">
-        <div className="flex flex-col gap-1">
-          <span>시간</span>
-          <div className="flex gap-2">
-            <input
-              type="datetime-local"
-              className="h-9 w-[220px] rounded border border-gray-300 px-2 text-sm text-slate-700"
-              value={filterTimeFrom}
-              onChange={(event) => setFilterTimeFrom(event.target.value)}
-            />
-            <input
-              type="datetime-local"
-              className="h-9 w-[220px] rounded border border-gray-300 px-2 text-sm text-slate-700"
-              value={filterTimeTo}
-              onChange={(event) => setFilterTimeTo(event.target.value)}
-            />
-          </div>
+    <div className="relative space-y-6">
+      {isListLoading ? (
+        <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-slate-600 bg-slate-800/50">
+          <Loading />
         </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1">
-            <span>유형</span>
-            <select
-              className="h-9 min-w-[100px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
-              value={filterType}
-              onChange={(event) => setFilterType(event.target.value)}
-            >
-              <option value="">전체</option>
-              <option value="수신">수신</option>
-              <option value="발신">발신</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span>케어 대상</span>
-            <input
-              type="text"
-              className="h-9 min-w-[150px] rounded border border-gray-300 px-2 text-sm text-slate-700"
-              placeholder="이름 검색"
-              value={filterPatient}
-              onChange={(event) => setFilterPatient(event.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <span>결과</span>
-            <select
-              className="h-9 min-w-[120px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
-              value={filterResult}
-              onChange={(event) => setFilterResult(event.target.value)}
-            >
-              <option value="">전체</option>
-              <option value="성공">성공</option>
-              <option value="실패">실패</option>
-              <option value="무응답">무응답</option>
-              <option value="취소됨">취소됨</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span>위험도</span>
-            <select
-              className="h-9 min-w-[120px] rounded border border-gray-300 bg-white px-2 text-sm text-slate-700"
-              value={filterRiskLevel}
-              onChange={(event) => setFilterRiskLevel(event.target.value)}
-            >
-              <option value="">전체</option>
-              <option value="LOW">LOW</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HIGH">HIGH</option>
-              <option value="CRITICAL">CRITICAL</option>
-            </select>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setFilterTimeFrom("");
-              setFilterTimeTo("");
-              setFilterType("");
-              setFilterPatient("");
-              setFilterResult("");
-              setFilterRiskLevel("");
-            }}
-            className="h-9 rounded border border-[#008080] bg-[#008080] px-4 text-sm font-medium text-white transition hover:bg-[#006666]"
-          >
-            초기화
-          </button>
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border">
-          <thead>
-            <tr className="bg-gray-100 text-left text-sm font-medium text-gray-700">
-              <th className="px-3 py-2 border">시간</th>
-              <th className="px-3 py-2 border">ID</th>
-              <th className="px-3 py-2 border">케어 대상</th>
-              <th className="px-3 py-2 border">유형</th>
-              <th className="px-3 py-2 border">통화 시간</th>
-              <th className="px-3 py-2 border">결과</th>
-              <th className="px-3 py-2 border text-center">위험도 (점수)</th>
-              <th className="px-3 py-2 border">상세</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredHistory.map((item) => (
-              <tr key={item.callId} className="even:bg-white odd:bg-slate-50">
-                <td className="px-3 py-2 border text-sm">{item.startTime}</td>
-                <td className="px-3 py-2 border text-sm">{item.callId}</td>
-                <td className="px-3 py-2 border text-sm">
-                  {item.careTargetName}
-                </td>
-                <td className="px-3 py-2 border text-sm">{item.direction}</td>
-                <td className="px-3 py-2 border text-sm">{item.duration}</td>
-                <td className="px-3 py-2 border text-sm">
-                  {item.statusLabel || item.status}
-                </td>
-                <td className="px-3 py-2 border text-sm">
-                  <div className="flex items-center justify-center gap-2">
-                    {getRiskLevelDisplay(item.riskLevel)}
-                    <span className="text-xs text-gray-400">
-                      ({item.riskScore ?? 0}점)
-                    </span>
-                  </div>
-                </td>
-                <td className="px-3 py-2 border text-sm">
-                  <button
-                    type="button"
-                    className="rounded bg-[#008080] px-3 py-1 text-white transition hover:bg-[#006666]"
-                    onClick={() => openDetailModal(item.callId)}
-                  >
-                    상세
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filteredHistory.length === 0 && (
-              <tr>
-                <td
-                  className="px-3 py-4 border text-center text-sm text-gray-500"
-                  colSpan="8"
+      ) : (
+        <>
+          {/* 필터 바 */}
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 mb-2 space-y-4 shadow-lg">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  시간
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="datetime-local"
+                    className="h-9 w-[200px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    value={filterTimeFrom}
+                    onChange={(e) => setFilterTimeFrom(e.target.value)}
+                  />
+                  <input
+                    type="datetime-local"
+                    className="h-9 w-[200px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    value={filterTimeTo}
+                    onChange={(e) => setFilterTimeTo(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  유형
+                </span>
+                <select
+                  className="h-9 min-w-[100px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
                 >
-                  표시할 통화 기록이 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 페이징 UI */}
-      {pageData.total > 0 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => handlePageChange(1)}
-            disabled={!pageData.prev}
-            className={`px-3 py-1 rounded border ${
-              !pageData.prev
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            처음
-          </button>
-          <button
-            type="button"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={!pageData.prev}
-            className={`px-3 py-1 rounded border ${
-              !pageData.prev
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            이전
-          </button>
-          {Array.from(
-            { length: pageData.end - pageData.start + 1 },
-            (_, i) => pageData.start + i,
-          ).map((pageNum) => (
-            <button
-              key={pageNum}
-              type="button"
-              onClick={() => handlePageChange(pageNum)}
-              className={`px-3 py-1 rounded border ${
-                pageNum === currentPage
-                  ? "bg-[#008080] text-white border-[#008080]"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {pageNum}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={!pageData.next}
-            className={`px-3 py-1 rounded border ${
-              !pageData.next
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            다음
-          </button>
-          <button
-            type="button"
-            onClick={() => handlePageChange(pageData.end)}
-            disabled={!pageData.next}
-            className={`px-3 py-1 rounded border ${
-              !pageData.next
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            마지막
-          </button>
-        </div>
-      )}
-
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded bg-white p-6 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">통화 상세</h3>
+                  <option value="">전체</option>
+                  <option value="수신">수신</option>
+                  <option value="발신">발신</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  케어 대상
+                </span>
+                <input
+                  type="text"
+                  className="h-9 min-w-[140px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  placeholder="이름 검색"
+                  value={filterPatient}
+                  onChange={(e) => setFilterPatient(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  결과
+                </span>
+                <select
+                  className="h-9 min-w-[110px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  value={filterResult}
+                  onChange={(e) => setFilterResult(e.target.value)}
+                >
+                  <option value="">전체</option>
+                  <option value="성공">성공</option>
+                  <option value="실패">실패</option>
+                  <option value="무응답">무응답</option>
+                  <option value="취소됨">취소됨</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  위험도
+                </span>
+                <select
+                  className="h-9 min-w-[110px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  value={filterRiskLevel}
+                  onChange={(e) => setFilterRiskLevel(e.target.value)}
+                >
+                  <option value="">전체</option>
+                  <option value="LOW">낮음</option>
+                  <option value="MEDIUM">보통</option>
+                  <option value="HIGH">위험</option>
+                  <option value="CRITICAL">긴급</option>
+                </select>
+              </div>
               <button
                 type="button"
-                className="text-sm text-gray-500 hover:text-gray-900"
+                onClick={() => {
+                  setFilterTimeFrom("");
+                  setFilterTimeTo("");
+                  setFilterType("");
+                  setFilterPatient("");
+                  setFilterResult("");
+                  setFilterRiskLevel("");
+                }}
+                className="h-9 flex items-center gap-1.5 px-4 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-slate-300 text-sm font-semibold border border-slate-600 hover:border-slate-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                초기화
+              </button>
+            </div>
+          </div>
+
+          {/* 테이블 */}
+          <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden">
+            <table className="w-full text-left">
+              <thead className="bg-slate-900 text-slate-400 uppercase text-sm border-b-2 border-teal-500/30">
+                <tr>
+                  <th className="px-3 py-2 text-teal-400">시간</th>
+                  <th className="px-3 py-2 text-teal-400">ID</th>
+                  <th className="px-3 py-2 text-teal-400">케어 대상</th>
+                  <th className="px-3 py-2 text-teal-400">유형</th>
+                  <th className="px-3 py-2 text-teal-400">통화 시간</th>
+                  <th className="px-3 py-2 text-teal-400">결과</th>
+                  <th className="px-3 py-2 text-teal-400 text-center">
+                    위험도 (점수)
+                  </th>
+                  <th className="px-3 py-2 text-teal-400">관리</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700">
+                {filteredHistory.map((item) => (
+                  <tr
+                    key={item.callId}
+                    className="hover:bg-slate-700/50 transition bg-slate-800/30"
+                  >
+                    <td className="px-3 py-2 text-sm text-slate-300">
+                      {item.startTime}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-slate-300">
+                      {item.callId}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-slate-200">
+                      {item.careTargetName}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-slate-300">
+                      {item.direction}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-slate-300">
+                      {item.duration}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-slate-300">
+                      {item.statusLabel || item.status}
+                    </td>
+                    <td className="px-3 py-2 text-sm">
+                      <div className="flex items-center justify-start gap-2 pl-4">
+                        {getRiskLevelDisplay(item.riskLevel)}
+                        <span className="text-slate-500 text-xs min-w-[45px]">
+                          ({item.riskScore ?? 0}점)
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-sm">
+                      <button
+                        type="button"
+                        className="text-teal-400 hover:text-teal-300 underline text-sm font-medium"
+                        onClick={() => openDetailModal(item.callId)}
+                      >
+                        상세
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredHistory.length === 0 && (
+                  <tr>
+                    <td
+                      className="px-3 py-10 text-center text-sm text-slate-500"
+                      colSpan={8}
+                    >
+                      표시할 통화 기록이 없습니다.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* 페이징 */}
+          {pageData.total > 0 && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePageChange(1)}
+                disabled={!pageData.prev}
+                className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                  !pageData.prev
+                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
+                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                }`}
+              >
+                처음
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!pageData.prev}
+                className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                  !pageData.prev
+                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
+                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                }`}
+              >
+                이전
+              </button>
+              {Array.from(
+                { length: pageData.end - pageData.start + 1 },
+                (_, i) => pageData.start + i,
+              ).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                    pageNum === currentPage
+                      ? "bg-teal-600 text-white border-teal-500"
+                      : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!pageData.next}
+                className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                  !pageData.next
+                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
+                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                }`}
+              >
+                다음
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePageChange(pageData.end)}
+                disabled={!pageData.next}
+                className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                  !pageData.next
+                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
+                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                }`}
+              >
+                마지막
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 상세 모달 */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-slate-600 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-100">
+                통화 상세
+              </h3>
+              <button
+                type="button"
+                className="text-slate-400 hover:text-slate-200 text-sm font-medium"
                 onClick={closeModal}
               >
                 닫기
@@ -411,33 +440,36 @@ const CallHistoryTab = () => {
             </div>
 
             {isDetailLoading ? (
-              <p className="text-sm text-gray-500">
-                상세 정보를 불러오는 중입니다...
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <Loading />
+              </div>
             ) : detailError ? (
-              <p className="text-sm text-red-500">{detailError}</p>
+              <p className="text-sm text-red-400">{detailError}</p>
             ) : (
               detail && (
                 <>
-                  <div className="mb-4 grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div className="mb-4 grid grid-cols-2 gap-4 text-sm text-slate-300">
                     <p>
-                      <strong>케어 대상:</strong> {detail.patientName}
+                      <strong className="text-slate-400">케어 대상:</strong>{" "}
+                      {detail.patientName ?? detail.careTargetName}
                     </p>
                     <p>
-                      <strong>통화 ID:</strong> {detail.callId}
+                      <strong className="text-slate-400">통화 ID:</strong>{" "}
+                      {detail.callId}
                     </p>
                     <p>
-                      <strong>통화 시간:</strong> {detail.startTime}
+                      <strong className="text-slate-400">통화 시간:</strong>{" "}
+                      {detail.startTime}
                     </p>
                     <p>
-                      <strong>상태:</strong>{" "}
+                      <strong className="text-slate-400">상태:</strong>{" "}
                       {detail.statusLabel || detail.status}
                     </p>
                     <p>
-                      <strong>위험도:</strong>{" "}
+                      <strong className="text-slate-400">위험도:</strong>{" "}
                       <span className="inline-flex items-center gap-2">
                         {getRiskLevelDisplay(detail.riskLevel)}
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-slate-500">
                           ({detail.riskScore ?? 0}점)
                         </span>
                       </span>
@@ -445,8 +477,10 @@ const CallHistoryTab = () => {
                   </div>
 
                   <div className="mb-4 space-y-2">
-                    <p className="text-sm font-medium text-gray-700">AI 요약</p>
-                    <p className="rounded border bg-gray-50 px-3 py-2 text-sm text-gray-800">
+                    <p className="text-sm font-medium text-slate-400">
+                      AI 요약
+                    </p>
+                    <p className="rounded border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm text-slate-200">
                       {detail.aiMemo ||
                         detail.summary ||
                         "요약 정보가 없습니다."}
@@ -454,26 +488,26 @@ const CallHistoryTab = () => {
                   </div>
 
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-700">
+                    <p className="text-sm font-medium text-slate-400">
                       통화 전문
                     </p>
-                    <div className="h-52 overflow-y-auto rounded border border-gray-200 bg-white p-3 text-sm leading-relaxed text-gray-800 whitespace-pre-line">
+                    <div className="h-52 overflow-y-auto rounded border border-slate-600 bg-slate-900/50 p-3 text-sm leading-relaxed text-slate-200 whitespace-pre-line">
                       {detail.transcript || "통화 전문이 없습니다."}
                     </div>
                   </div>
 
                   {recordingUrl && (
                     <div className="mb-4">
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-slate-400">
                         녹취 파일
                       </p>
                       <audio
                         controls
                         src={recordingUrl}
-                        className="w-full rounded border border-gray-200"
+                        className="audio-dark w-full rounded border border-slate-600 bg-slate-900"
                       />
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                        <span className="font-medium text-gray-700">
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                        <span className="font-medium text-slate-300">
                           {detail.recordingFileName}
                         </span>
                         <span>{formatFileSize(detail.recordingFileSize)}</span>
@@ -481,6 +515,7 @@ const CallHistoryTab = () => {
                           {detail.recordingContentType ?? "알 수 없는 형식"}
                         </span>
                         <button
+                          type="button"
                           onClick={async () => {
                             try {
                               const response = await fetch(recordingUrl);
@@ -494,12 +529,12 @@ const CallHistoryTab = () => {
                               a.click();
                               window.URL.revokeObjectURL(url);
                               document.body.removeChild(a);
-                            } catch (error) {
-                              console.error("Download failed", error);
+                            } catch (err) {
+                              console.error("Download failed", err);
                               alert("파일 다운로드에 실패했습니다.");
                             }
                           }}
-                          className="rounded border border-[#008080] px-2 py-1 text-[#008080] transition hover:bg-[#008080] hover:text-white"
+                          className="rounded border border-teal-500/50 px-2 py-1 text-teal-400 hover:bg-teal-500/20 transition"
                         >
                           다운로드
                         </button>

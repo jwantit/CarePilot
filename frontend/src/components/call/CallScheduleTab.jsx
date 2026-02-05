@@ -7,6 +7,25 @@ import {
 import ScheduleModal from "./ScheduleModal";
 import { useSelector } from "react-redux";
 
+// 우선순위별 스타일 (위험도와 동일)
+const getPriorityStyle = (priority) => {
+  const p = priority?.toUpperCase();
+  if (p === "URGENT")
+    return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
+  if (p === "HIGH")
+    return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50";
+  if (p === "MEDIUM")
+    return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
+  return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
+};
+const getPriorityDotColor = (priority) => {
+  const p = priority?.toUpperCase();
+  if (p === "URGENT") return "bg-red-500";
+  if (p === "HIGH") return "bg-orange-500";
+  if (p === "MEDIUM") return "bg-yellow-500";
+  return "bg-emerald-500";
+};
+
 const CallScheduleTab = () => {
   const { user } = useSelector((state) => state.auth);
   const organizationId = user?.organizationId ?? null; // 로그인 사용자 업체 ID (없으면 null)
@@ -14,6 +33,7 @@ const CallScheduleTab = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
+  const [scheduleViewOnly, setScheduleViewOnly] = useState(false);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [sortCriterion, setSortCriterion] = useState("TIME");
@@ -76,6 +96,18 @@ const CallScheduleTab = () => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingSchedule(null);
+    setScheduleViewOnly(false);
+  };
+
+  const handleOpenDetail = (schedule) => {
+    setEditingSchedule(schedule);
+    setScheduleViewOnly(true);
+    setIsModalOpen(true);
+  };
+
+  const handleSwitchToEdit = (schedule) => {
+    setEditingSchedule(schedule);
+    setScheduleViewOnly(false);
   };
 
   const formatYMD = (date) => {
@@ -111,6 +143,15 @@ const CallScheduleTab = () => {
       month: "long",
     },
   )}`;
+
+  const calendarMonthValue = `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, "0")}`;
+
+  const handleCalendarMonthChange = (e) => {
+    const v = e.target.value;
+    if (!v) return;
+    const [y, m] = v.split("-").map(Number);
+    setCalendarDate(new Date(y, m - 1, 1));
+  };
 
   const moveMonth = (direction) => {
     setCalendarDate((prev) => {
@@ -202,37 +243,48 @@ const CallScheduleTab = () => {
 
   return (
     <div className="space-y-4">
-      <div className="rounded border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="rounded-sm border border-slate-700 bg-slate-800/50 p-4 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-500">2026년 01월 캘린더</p>
-            <h3 className="text-lg font-semibold">{monthLabel}</h3>
+            {/* <p className="text-sm text-slate-500">캘린더</p> */}
+            <h3 className="text-lg font-semibold text-slate-100">
+              {monthLabel}
+            </h3>
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <button
-              type="button"
-              className="rounded border border-[#008080] px-2 py-1 text-[#008080] hover:bg-[#008080] hover:text-white transition"
-              onClick={() => moveMonth(-1)}
-            >
-              이전
-            </button>
-            <button
-              type="button"
-              className="rounded border border-[#008080] px-2 py-1 text-[#008080] hover:bg-[#008080] hover:text-white transition"
-              onClick={() => moveMonth(1)}
-            >
-              다음
-            </button>
-            <button
-              type="button"
-              className="rounded border border-[#008080] bg-[#008080] px-3 py-1 text-white hover:bg-[#006666] transition"
-              onClick={goToToday}
-            >
-              오늘
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="month"
+              value={calendarMonthValue}
+              onChange={handleCalendarMonthChange}
+              className="h-8 rounded-sm border border-slate-600 bg-slate-900 px-3 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none [color-scheme:dark]"
+              title="연·월을 선택하면 해당 달로 이동합니다"
+            />
+            <div className="flex items-center gap-2 text-sm">
+              <button
+                type="button"
+                className="h-8 rounded-sm border border-teal-500/50 px-3 py-0 text-teal-400 hover:bg-teal-600/30 transition leading-none flex items-center justify-center"
+                onClick={() => moveMonth(-1)}
+              >
+                이전
+              </button>
+              <button
+                type="button"
+                className="h-8 rounded-sm border border-teal-500/50 px-3 py-0 text-teal-400 hover:bg-teal-600/30 transition leading-none flex items-center justify-center"
+                onClick={() => moveMonth(1)}
+              >
+                다음
+              </button>
+              <button
+                type="button"
+                className="h-8 rounded-sm border border-teal-500 bg-teal-600/30 px-3 py-0 text-teal-400 hover:bg-teal-600/50 transition leading-none flex items-center justify-center"
+                onClick={goToToday}
+              >
+                오늘
+              </button>
+            </div>
           </div>
         </div>
-        <div className="mb-2 grid grid-cols-7 gap-2 text-xs font-semibold uppercase text-gray-400">
+        <div className="mb-2 grid grid-cols-7 gap-2 text-xs font-semibold uppercase text-slate-300">
           {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
             <div key={label} className="py-1 text-center">
               {label}
@@ -257,15 +309,14 @@ const CallScheduleTab = () => {
 
             const baseClasses =
               "flex h-24 flex-col items-start justify-start rounded border px-2 py-1 transition relative overflow-hidden";
-            const bgClass = cell.date ? "bg-white" : "bg-gray-50";
+            const bgClass = cell.date ? "bg-slate-800" : "bg-slate-800/50";
             const borderClass = hasSchedule
-              ? "border-[#008080]/30"
-              : "border-gray-200";
+              ? "border-teal-500/30"
+              : "border-slate-700";
             const selectedClass = isSelected
-              ? "border-[#008080] bg-[#008080]/10"
+              ? "border-teal-500 bg-teal-500/10"
               : "";
-            const todayClass = isToday ? "ring-2 ring-[#008080]" : "";
-
+            const todayClass = isToday ? "ring-2 ring-teal-500" : "";
             return (
               <div
                 key={`cell-${index}`}
@@ -280,10 +331,10 @@ const CallScheduleTab = () => {
                   }
                 }}
               >
-                <span className="text-sm font-semibold text-gray-700 mb-1">
+                <span className="text-sm font-semibold text-slate-100 mb-1">
                   {cell.dayNumber ?? ""}
                 </span>
-                <div className="flex flex-col gap-1 w-full overflow-y-auto">
+                <div className="flex flex-col gap-1 w-full overflow-y-auto calendar-cell-scrollbar">
                   {visibleEvents.map((event) => {
                     const targetName =
                       event.careTargetName || event.targetGroupName || "대상";
@@ -295,29 +346,25 @@ const CallScheduleTab = () => {
                       ? `${eventText} - ${event.memo}`
                       : eventText;
 
-                    // 우선순위별 배경색 결정
-                    let bgColor = "bg-gray-500";
-                    if (event.priority === "URGENT") {
-                      bgColor = "bg-red-500";
-                    } else if (event.priority === "HIGH") {
-                      bgColor = "bg-orange-500";
-                    } else if (event.priority === "MEDIUM") {
-                      bgColor = "bg-blue-500";
-                    } else if (event.priority === "LOW") {
-                      bgColor = "bg-gray-500";
-                    }
+                    const dotColor = getPriorityDotColor(event.priority);
 
                     return (
                       <div
                         key={event.scheduleId}
-                        className={`text-[10px] px-1.5 py-0.5 rounded text-white truncate cursor-pointer hover:opacity-90 transition ${bgColor}`}
+                        className="flex items-center gap-1.5 min-w-0 cursor-pointer group hover:opacity-90 transition"
                         title={fullText}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEdit(event);
                         }}
                       >
-                        {eventText}
+                        <span
+                          className={`shrink-0 w-2 h-2 rounded-full ${dotColor} group-hover:ring-2 group-hover:ring-slate-400/50`}
+                          aria-hidden
+                        />
+                        <span className="text-[10px] text-slate-200 truncate min-w-0">
+                          {targetName} / {timeStr || "시간 미정"}
+                        </span>
                       </div>
                     );
                   })}
@@ -328,7 +375,7 @@ const CallScheduleTab = () => {
                         e.stopPropagation();
                         setExpandedDay(isExpanded ? null : dayKey);
                       }}
-                      className="text-[9px] text-[#008080] hover:text-[#006666] font-medium px-1 py-0.5 rounded hover:bg-[#008080]/10 transition"
+                      className="text-[9px] text-teal-400 hover:text-teal-300 font-medium px-1 py-0.5 rounded-none hover:bg-teal-500/10 transition"
                     >
                       +{dayEvents.length - maxVisible}개 더보기
                     </button>
@@ -340,21 +387,21 @@ const CallScheduleTab = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border">
+      <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-sm border border-slate-700">
         <div>
-          <h2 className="text-lg font-bold">통화 예정 일정</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-bold text-slate-100">통화 예정 일정</h2>
+          <p className="text-sm text-slate-500">
             AI가 자동으로 전화를 걸거나 상담원 연결이 예정된 목록입니다.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded bg-white px-2 py-1 shadow-sm">
+          <div className="flex items-center gap-2 rounded-sm bg-slate-800 px-2 py-1 border border-slate-600">
             <button
               type="button"
-              className={`h-8 rounded px-3 text-xs font-medium transition ${
+              className={`h-8 rounded-sm px-3 text-xs font-medium transition ${
                 sortCriterion === "TIME"
-                  ? "bg-[#008080] text-white"
-                  : "bg-transparent text-gray-600 hover:text-[#008080]"
+                  ? "bg-teal-600 text-white border border-teal-500"
+                  : "bg-transparent text-slate-400 hover:text-teal-400 border border-transparent"
               }`}
               onClick={() => setSortCriterion("TIME")}
             >
@@ -362,10 +409,10 @@ const CallScheduleTab = () => {
             </button>
             <button
               type="button"
-              className={`h-8 rounded px-3 text-xs font-medium transition ${
+              className={`h-8 rounded-sm px-3 text-xs font-medium transition ${
                 sortCriterion === "PRIORITY"
-                  ? "bg-[#008080] text-white"
-                  : "bg-transparent text-gray-600 hover:text-[#008080]"
+                  ? "bg-teal-600 text-white border border-teal-500"
+                  : "bg-transparent text-slate-400 hover:text-teal-400 border border-transparent"
               }`}
               onClick={() => setSortCriterion("PRIORITY")}
             >
@@ -374,31 +421,31 @@ const CallScheduleTab = () => {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#008080] text-white px-4 py-2 rounded-md hover:bg-[#006666] transition"
+            className="bg-teal-600 text-white px-4 py-2 rounded-sm border border-teal-500 hover:bg-teal-500 transition"
           >
             + 일정 추가
           </button>
         </div>
       </div>
 
-      <div className="bg-white border rounded-lg overflow-hidden">
+      <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-sm">
+          <thead className="bg-slate-900 text-slate-400 uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
-              <th className="p-3">대상자</th>
-              <th className="p-3">예정 시간</th>
-              <th className="p-3">유형</th>
-              <th className="p-3">우선순위</th>
-              <th className="p-3">상태</th>
-              <th className="p-3">메모</th>
-              <th className="p-3">관리</th>
+              <th className="p-3 text-teal-400">대상자</th>
+              <th className="p-3 text-teal-400">예정 시간</th>
+              <th className="p-3 text-teal-400">유형</th>
+              <th className="p-3 text-teal-400">우선순위</th>
+              <th className="p-3 text-teal-400">상태</th>
+              <th className="p-3 text-teal-400">메모</th>
+              <th className="p-3 text-teal-400">관리</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-700">
             {loading ? (
               <tr>
-                <td colSpan="7" className="p-10 text-center">
-                  데이터 로딩 중...
+                <td colSpan="7" className="p-10 text-center text-slate-400">
+                  로딩 중...
                 </td>
               </tr>
             ) : sortedSchedules.length > 0 ? (
@@ -407,33 +454,27 @@ const CallScheduleTab = () => {
                 return (
                   <tr
                     key={s.scheduleId}
-                    className={`hover:bg-gray-50 transition ${isCancelled ? "bg-gray-100/70" : ""}`}
+                    className={`hover:bg-slate-700/50 transition ${isCancelled ? "bg-slate-800/70" : "bg-slate-800/30"}`}
                   >
-                    <td className="p-3 font-medium">
+                    <td className="p-3 font-medium text-slate-200">
                       {s.targetType === "GROUP"
                         ? `${s.targetGroupName ?? "이름 없음"}`
                         : s.careTargetName}
                     </td>
-                    <td className="p-3 text-gray-600">
+                    <td className="p-3 text-slate-400">
                       {s.nextRunAt || s.scheduledTime}
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-1 bg-gray-200 text-xs rounded-full">
+                      <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded-sm border border-slate-600">
                         {s.typeLabel || s.type}
                       </span>
                     </td>
                     <td className="p-3">
                       <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${
+                        className={`px-2 py-1 text-xs font-semibold rounded-sm border shadow-sm ${
                           s.status === "CANCELLED"
-                            ? "bg-gray-400"
-                            : s.priority === "URGENT"
-                              ? "bg-red-500"
-                              : s.priority === "HIGH"
-                                ? "bg-orange-500"
-                                : s.priority === "MEDIUM"
-                                  ? "bg-blue-500"
-                                  : "bg-gray-500"
+                            ? "bg-slate-500 text-white"
+                            : getPriorityStyle(s.priority)
                         }`}
                       >
                         {s.priorityLabel || s.priority}
@@ -441,45 +482,53 @@ const CallScheduleTab = () => {
                     </td>
                     <td className="p-3">
                       <span
-                        className={`${s.status === "CANCELLED" ? "text-gray-500" : "text-green-600"}`}
+                        className={`${s.status === "CANCELLED" ? "text-slate-500" : "text-emerald-400"}`}
                       >
                         ● {s.statusLabel || s.status}
                       </span>
                     </td>
-                    <td className="p-3 text-sm text-gray-700">
+                    <td className="p-3 text-sm text-slate-300">
                       {s.memo || "-"}
                     </td>
                     <td className="p-3">
-                      {isCancelled ? (
+                      <div className="flex gap-2 flex-wrap">
                         <button
-                          onClick={() => handleRestore(s.scheduleId)}
-                          className="text-[#008080] hover:text-[#006666] underline text-sm font-medium"
+                          onClick={() => handleOpenDetail(s)}
+                          className="text-slate-400 hover:text-slate-200 underline text-sm font-medium"
                         >
-                          복구
+                          상세
                         </button>
-                      ) : (
-                        <div className="flex gap-2">
+                        {isCancelled ? (
                           <button
-                            onClick={() => handleEdit(s)}
-                            className="text-[#008080] hover:text-[#006666] underline text-sm font-medium"
+                            onClick={() => handleRestore(s.scheduleId)}
+                            className="text-emerald-400 hover:text-emerald-300 underline text-sm font-medium"
                           >
-                            수정
+                            복구
                           </button>
-                          <button
-                            onClick={() => handleDelete(s.scheduleId)}
-                            className="text-red-600 hover:text-red-800 underline text-sm font-medium"
-                          >
-                            삭제
-                          </button>
-                        </div>
-                      )}
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleEdit(s)}
+                              className="text-teal-400 hover:text-teal-300 underline text-sm font-medium"
+                            >
+                              수정
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.scheduleId)}
+                              className="text-red-400 hover:text-red-300 underline text-sm font-medium"
+                            >
+                              삭제
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan="7" className="p-10 text-center text-gray-400">
+                <td colSpan="7" className="p-10 text-center text-slate-500">
                   예정된 일정이 없습니다.
                 </td>
               </tr>
@@ -494,6 +543,8 @@ const CallScheduleTab = () => {
         onSaveSuccess={fetchSchedules}
         organizationId={organizationId}
         editingSchedule={editingSchedule}
+        viewOnly={scheduleViewOnly}
+        onSwitchToEdit={handleSwitchToEdit}
       />
     </div>
   );

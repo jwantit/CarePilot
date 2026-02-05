@@ -6,6 +6,7 @@ import NoticeForm from "../../components/notice/NoticeForm";
 import NoticeDetail from "../../components/notice/NoticeDetail";
 import { useAuth } from "../../hooks/useAuth";
 import useCustomMove from "../../hooks/useCustomMove";
+import Breadcrumb from "../../components/common/Breadcrumb";
 
 function NoticePage() {
   const { user } = useAuth();
@@ -85,8 +86,9 @@ function NoticePage() {
       const parentUserName = replyTo.userName || replyTo.writerName || "익명";
       const mentionText = `@${parentUserName}`;
       // 이미 @유저이름이 포함되어 있지 않으면 추가 (공백 포함/미포함 모두 체크)
-      const hasMention = commentContent.trim().startsWith(mentionText + " ") || 
-                         commentContent.trim().startsWith(mentionText);
+      const hasMention =
+        commentContent.trim().startsWith(mentionText + " ") ||
+        commentContent.trim().startsWith(mentionText);
       if (!hasMention) {
         setCommentContent(`${mentionText} `);
       }
@@ -113,9 +115,9 @@ function NoticePage() {
       organizationId: currentOrgId,
       deletedFileIds: editingId ? deletedFileIds : undefined, // 수정 시에만 삭제할 파일 ID 전송
     };
-    
+
     const currentEditingId = editingId; // editingId를 변수에 저장 (null로 설정하기 전에)
-    
+
     try {
       if (currentEditingId) {
         await noticeApi.updateNotice(
@@ -128,17 +130,21 @@ function NoticePage() {
         await noticeApi.createNotice(noticeData, currentUserId, selectedFiles);
       } // 상태 초기화 및 목록 새로고침
 
-          setShowForm(false);
-          setEditingId(null);
-          setTitle("");
-          setContent("");
-          setIsPinned(false);
-          setNoticeType("NORMAL");
-          clearFiles(); // 파일 초기화
+      setShowForm(false);
+      setEditingId(null);
+      setTitle("");
+      setContent("");
+      setIsPinned(false);
+      setNoticeType("NORMAL");
+      clearFiles(); // 파일 초기화
       loadNotices(pageIndex);
-      
+
       // 수정한 게시물이 상세 화면에 열려있다면 업데이트
-      if (currentEditingId && selectedNotice && selectedNotice.noticeId === currentEditingId) {
+      if (
+        currentEditingId &&
+        selectedNotice &&
+        selectedNotice.noticeId === currentEditingId
+      ) {
         try {
           const response = await noticeApi.getNotice(currentEditingId);
           setSelectedNotice(response.data);
@@ -157,7 +163,7 @@ function NoticePage() {
     setTitle(notice.title);
     setContent(notice.content);
     setIsPinned(notice.isPinned || false);
-    
+
     // 기존 파일 목록 로드
     try {
       const response = await noticeApi.getNotice(notice.noticeId);
@@ -168,14 +174,14 @@ function NoticePage() {
       setExistingFiles([]);
       setDeletedFileIds([]);
     }
-    
+
     setShowForm(true);
     window.scrollTo(0, 0);
   };
-  
+
   const handleDeleteExistingFile = (fileId) => {
     setDeletedFileIds([...deletedFileIds, fileId]);
-    setExistingFiles(existingFiles.filter(file => file.fileId !== fileId));
+    setExistingFiles(existingFiles.filter((file) => file.fileId !== fileId));
   };
 
   const handleDelete = async (noticeId) => {
@@ -231,11 +237,11 @@ function NoticePage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4">
-           {" "}
-      <header className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <Breadcrumb items={["공지사항"]} />
+      <header className="flex justify-between items-center">
                {" "}
-        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className="text-4xl font-extrabold text-slate-100 tracking-tight">
                     공지사항        {" "}
         </h1>
                {" "}
@@ -246,7 +252,7 @@ function NoticePage() {
             setTitle("");
             setContent("");
           }}
-          className="bg-teal-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-teal-700 transition shadow-lg text-center flex items-center justify-center"
+          className="bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white px-6 py-2.5 rounded-sm font-bold transition shadow-lg border border-teal-500 text-center flex items-center justify-center"
         >
           {showForm ? "닫기" : "글쓰기"}
         </button>
@@ -254,31 +260,26 @@ function NoticePage() {
       </header>
            {" "}
       {showForm && (
-            <NoticeForm
-              title={title}
-              setTitle={setTitle}
-              content={content}
-              setContent={setContent}
-              isPinned={isPinned}
-              setIsPinned={setIsPinned}
-              noticeType={noticeType}
-              setNoticeType={setNoticeType}
-              handleSubmit={handleSubmit}
-              editingId={editingId}
-              setShowForm={setShowForm}
-              setEditingId={setEditingId}
-              selectedFiles={selectedFiles}
-              handleFileChange={handleFileChange}
-              existingFiles={existingFiles}
-              onDeleteExistingFile={handleDeleteExistingFile}
-            />
+        <NoticeForm
+          title={title}
+          setTitle={setTitle}
+          content={content}
+          setContent={setContent}
+          isPinned={isPinned}
+          setIsPinned={setIsPinned}
+          noticeType={noticeType}
+          setNoticeType={setNoticeType}
+          handleSubmit={handleSubmit}
+          editingId={editingId}
+          setShowForm={setShowForm}
+          setEditingId={setEditingId}
+          selectedFiles={selectedFiles}
+          handleFileChange={handleFileChange}
+          existingFiles={existingFiles}
+          onDeleteExistingFile={handleDeleteExistingFile}
+        />
       )}
-           {" "}
-      <NoticeList
-        notices={notices}
-        onDetail={handleDetail}
-      />
-           {" "}
+            <NoticeList notices={notices} onDetail={handleDetail} />     {" "}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}

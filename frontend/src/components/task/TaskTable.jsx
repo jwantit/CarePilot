@@ -1,11 +1,28 @@
-import React from 'react';
+import React from "react";
 import {
   getPriorityLabel,
-  getPriorityColor,
   getTaskTypeLabel,
   getTaskStatusLabel,
-  getTaskStatusColor,
-} from '../../utils/taskLabel';
+} from "../../utils/taskLabel";
+import { AlertCircle, Calendar, User, Tag, Activity, CheckSquare, Edit, FileText, Play } from "lucide-react";
+
+const getPriorityStyle = (priority) => {
+  switch (priority) {
+    case "URGENT": return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
+    case "HIGH": return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50";
+    case "MEDIUM": return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
+    case "LOW":
+    default: return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
+  }
+};
+const getTaskStatusStyle = (status) => {
+  switch (status) {
+    case "WAITING": return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
+    case "PROGRESS": return "bg-gradient-to-br from-blue-500/20 to-blue-600/20 text-blue-400 border border-blue-500/50";
+    case "DONE": return "bg-gradient-to-br from-slate-500/20 to-slate-600/20 text-slate-400 border border-slate-500/50";
+    default: return "bg-gradient-to-br from-slate-500/20 to-slate-600/20 text-slate-400 border border-slate-500/50";
+  }
+};
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -28,68 +45,92 @@ const TaskTable = ({
 }) => {
   if (!taskList || taskList.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-        <p className="text-gray-500 text-sm">등록된 작업이 없습니다.</p>
+      <div className="bg-slate-800 border border-slate-700 p-12 text-center">
+        <p className="text-slate-400 text-sm">등록된 작업이 없습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-slate-800 border border-slate-700 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed">
-          <thead className="bg-gray-50 border-b border-gray-200">
+        <table className="w-full table-fixed text-sm">
+          {/* 테이블 헤더 - CareTarget 스타일 적용 */}
+          <thead className="bg-slate-900 border-b-2 border-teal-500/30">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[10%]">
-                우선순위
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[10%]">
+                <div className="flex items-center justify-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>우선순위</span>
+                </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[20%]">
-                제목
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[20%]">
+                <div className="flex items-center justify-center gap-1">
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>제목</span>
+                </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
-                케어 대상
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
+                <div className="flex items-center justify-center gap-1">
+                  <User className="w-3.5 h-3.5" />
+                  <span>케어 대상</span>
+                </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
-                유형
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
+                <div className="flex items-center justify-center gap-1">
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>유형</span>
+                </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
-                할당자
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
+                <div className="flex items-center justify-center gap-1">
+                  <User className="w-3.5 h-3.5" />
+                  <span>할당자</span>
+                </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[10%]">
-                마감일
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[10%]">
+                <div className="flex items-center justify-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>마감일</span>
+                </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[8%]">
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[8%]">
                 상태
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[16%]">
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[16%]">
                 관리
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-slate-700/50">
             {taskList.map((task) => (
-              <tr key={task.taskId} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3">
+              <tr key={task.taskId} className="hover:bg-slate-700/30 transition-colors">
+                {/* 우선순위 */}
+                <td className="px-4 py-3 text-center">
                   <span
-                    className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${getPriorityColor(
+                    className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${getPriorityStyle(
                       task.priority
                     )}`}
                   >
                     {getPriorityLabel(task.priority)}
                   </span>
                 </td>
+                {/* 제목 */}
                 <td className="px-4 py-3">
-                  <div className="text-sm font-medium text-gray-900 truncate" title={task.title}>
+                  <div className="text-slate-200 font-medium truncate pl-2" title={task.title}>
                     {task.title || '-'}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600 truncate">
+                {/* 케어 대상 */}
+                <td className="px-4 py-3 text-center text-slate-400 truncate">
                   {task.careTargetName || '-'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
+                {/* 유형 */}
+                <td className="px-4 py-3 text-center text-slate-400">
                   {getTaskTypeLabel(task.type)}
                 </td>
-                <td className="px-4 py-3">
+                {/* 할당자 Select */}
+                <td className="px-4 py-3 text-center">
                   <select
                     value={task.assignedToUserId ?? ''}
                     onChange={(e) => {
@@ -97,7 +138,7 @@ const TaskTable = ({
                       onAssignChange &&
                         onAssignChange(task.taskId, v === '' ? null : Number(v));
                     }}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm w-full max-w-[120px] focus:ring-1 focus:ring-[#008080] focus:border-[#008080] outline-none"
+                    className="bg-slate-900 border border-slate-600 text-slate-300 text-xs rounded px-2 py-1 w-full max-w-[120px] focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
                   >
                     <option value="">미할당</option>
                     {Array.isArray(staffList) &&
@@ -108,55 +149,62 @@ const TaskTable = ({
                       ))}
                   </select>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                {/* 마감일 */}
+                <td className="px-4 py-3 text-center text-slate-400 whitespace-nowrap text-xs">
                   {formatDate(task.dueDate)}
                 </td>
-                <td className="px-4 py-3">
+                {/* 상태 */}
+                <td className="px-4 py-3 text-center">
                   <span
-                    className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${getTaskStatusColor(
+                    className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${getTaskStatusStyle(
                       task.status
                     )}`}
                   >
                     {getTaskStatusLabel(task.status)}
                   </span>
                 </td>
+                {/* 관리 버튼 그룹 */}
                 <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex justify-center gap-1.5">
                     {task.status === 'WAITING' && (
                       <button
                         type="button"
                         onClick={() => onStart && onStart(task)}
-                        className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        className="p-1.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all"
+                        title="시작"
                       >
-                        시작
+                        <Play size={14} />
                       </button>
                     )}
                     {task.status === 'PROGRESS' && (
                       <button
                         type="button"
                         onClick={() => onComplete && onComplete(task.taskId)}
-                        className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-700 hover:bg-green-200"
+                        className="p-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all"
+                        title="완료"
                       >
-                        완료
+                        <CheckSquare size={14} />
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => onDetail && onDetail(task)}
-                      className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      className="p-1.5 rounded bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-all"
+                      title="상세"
                     >
-                      상세
+                      <FileText size={14} />
                     </button>
                     {task.status !== 'DONE' && (
                       <button
                         type="button"
                         onClick={() => onEdit && onEdit(task)}
-                        className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        className="p-1.5 rounded bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-white transition-all"
+                        title="수정"
                       >
-                        수정
+                        <Edit size={14} />
                       </button>
                     )}
-                    {task.status === 'DONE' && <span className="text-gray-400 text-xs">-</span>}
+                    {task.status === 'DONE' && <span className="text-slate-600 text-xs px-2">-</span>}
                   </div>
                 </td>
               </tr>
