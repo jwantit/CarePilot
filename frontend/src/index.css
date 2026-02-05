@@ -115,3 +115,77 @@
 .modal-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #64748b !important; /* slate-500 */
 }
+
+/* 달력 셀 스크롤바 - 얇고 살짝 보이게 */
+.calendar-cell-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #64748b #334155 !important; /* thumb: slate-500, track: slate-700 */
+}
+.calendar-cell-scrollbar::-webkit-scrollbar {
+  width: 4px !important;
+}
+.calendar-cell-scrollbar::-webkit-scrollbar-track {
+  background: #334155 !important; /* slate-700 */
+  border-radius: 2px;
+}
+.calendar-cell-scrollbar::-webkit-scrollbar-thumb {
+  background: #64748b !important; /* slate-500 - 살짝 보이게 */
+  border-radius: 2px;
+}
+.calendar-cell-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important; /* slate-400 */
+}
+
+/* 통화 상세 모달 - 녹취 파일 오디오 플레이어 다크 테마 */
+.audio-dark {
+  background: #1e293b !important; /* slate-800 */
+  border-radius: 0.125rem;
+  color: #ffffff !important;
+  -webkit-font-smoothing: antialiased;
+}
+.audio-dark::-webkit-media-controls-panel {
+  background: #1e293b !important;
+  color: #ffffff !important;
+}
+.audio-dark::-webkit-media-controls-enclosure {
+  background: #1e293b !important;
+  border-radius: 0.125rem;
+}
+/* 재생 버튼 - 흰색 */
+.audio-dark::-webkit-media-controls-play-button {
+  filter: invert(1) brightness(1.1);
+  opacity: 1;
+}
+/* 재생 시간 텍스트 - 선명한 흰색, 번짐 방지 */
+.audio-dark::-webkit-media-controls-current-time-display,
+.audio-dark::-webkit-media-controls-time-remaining-display {
+  color: #ffffff !important;
+  text-shadow: none !important;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 500;
+  opacity: 1;
+}
+/* 재생 바 - 배경 없음, 재생 바(진행 표시)만 흰색 */
+.audio-dark::-webkit-media-controls-timeline {
+  background: transparent !important;
+  border-radius: 4px;
+  height: 6px;
+}
+.audio-dark {
+  accent-color: #ffffff; /* 재생 바만 흰색 */
+}
+/* 음소거/음량 - 흰색 */
+.audio-dark::-webkit-media-controls-mute-button,
+.audio-dark::-webkit-media-controls-volume-slider-container,
+.audio-dark::-webkit-media-controls-volume-slider {
+  filter: invert(1) brightness(1.1);
+  opacity: 1;
+}
+/* 우측 설정(⋮) 오버플로우 버튼 - 흰색 */
+.audio-dark::-webkit-media-controls-overflow-button {
+  filter: invert(1) brightness(1.1);
+  opacity: 1;
+}
+.audio-dark::-webkit-media-controls-enclosure {
+  color: #ffffff !important;
+}

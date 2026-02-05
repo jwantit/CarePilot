@@ -30,7 +30,7 @@ function StatCard({
         </div>
         <span className={`text-2xl font-bold ${valueColor} drop-shadow-sm`}>{value}</span>
       </div>
-      <p className="text-xs text-slate-400 uppercase tracking-wider">{label}</p>
+      <p className="text-xs text-slate-200 uppercase tracking-wider">{label}</p>
     </div>
   );
 }
