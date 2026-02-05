@@ -124,7 +124,6 @@ const TaskListTab = () => {
 
   return (
     <>
-      <StatCardGrid cards={statCards} columns={4} />
       <TaskFilters
         filters={filters}
         updateFilter={updateFilter}

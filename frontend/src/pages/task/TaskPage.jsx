@@ -10,39 +10,36 @@ const TaskPage = () => {
     <div className="space-y-6">
       <Breadcrumb items={["작업 관리"]} />
 
-      {/* CareTargetPage의 테이블 컨테이너 스타일 적용 (bg-slate-800 border border-slate-700) */}
-      <div className="bg-slate-800 border border-slate-700 overflow-hidden shadow-lg">
-        {/* 탭 헤더 영역 - CareTargetPage의 테이블 헤더 스타일(bg-slate-900 + border-teal-500/30) 적용 */}
-        <div className="flex bg-slate-900 border-b-2 border-teal-500/30 px-2">
-          <button
-            type="button"
-            className={`px-6 py-3.5 font-semibold text-sm transition-all relative ${
-              activeTab === "task"
-                ? "text-teal-400 border-b-2 border-teal-400"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-            }`}
-            onClick={() => setActiveTab("task")}
-          >
-            할 일 목록
-          </button>
-          <button
-            type="button"
-            className={`px-6 py-3.5 font-semibold text-sm transition-all relative ${
-              activeTab === "ai"
-                ? "text-teal-400 border-b-2 border-teal-400"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-            }`}
-            onClick={() => setActiveTab("ai")}
-          >
-            AI 처리 내역
-          </button>
-        </div>
+      {/* 탭 메뉴 - CallPage와 동일한 스타일 적용 */}
+      <div className="flex border-b border-slate-700 mb-4">
+        <button
+          type="button"
+          className={`px-4 py-2 font-medium text-sm transition-colors ${
+            activeTab === "task"
+              ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+              : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
+          }`}
+          onClick={() => setActiveTab("task")}
+        >
+          할 일 목록
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 font-medium text-sm transition-colors ${
+            activeTab === "ai"
+              ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+              : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
+          }`}
+          onClick={() => setActiveTab("ai")}
+        >
+          AI 처리 내역
+        </button>
+      </div>
 
-        {/* 컨텐츠 영역 */}
-        <div className="p-6">
-          {activeTab === "task" && <TaskListTab />}
-          {activeTab === "ai" && <AITaskListTab />}
-        </div>
+      {/* 컨텐츠 영역 - 불필요한 외곽 박스 제거 */}
+      <div>
+        {activeTab === "task" && <TaskListTab />}
+        {activeTab === "ai" && <AITaskListTab />}
       </div>
     </div>
   );

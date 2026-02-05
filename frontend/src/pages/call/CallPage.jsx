@@ -41,7 +41,7 @@ const CallPage = () => {
       </div>
 
       {/* 컨텐츠 영역 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-lg p-4">
+      <div>
         {activeTab === "history" && <CallHistoryTab />}
         {activeTab === "schedule" && <CallScheduleTab />}
       </div>

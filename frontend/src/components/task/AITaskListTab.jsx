@@ -41,7 +41,6 @@ const AITaskListTab = () => {
 
   return (
     <>
-      <StatCardGrid cards={statCards} columns={4} />
       <AITaskFilters filters={filters} updateFilter={updateFilter} />
       <AITaskTable
         aiTaskList={aiTaskList}
