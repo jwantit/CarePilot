@@ -185,13 +185,15 @@ function Menu() {
                     >
                       개인정보 수정
                     </Link>
-                    <Link
-                      to="/user-management"
-                      className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 hover:text-teal-400 transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      직원 관리
-                    </Link>
+                    {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
+                      <Link
+                        to="/user-management"
+                        className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 hover:text-teal-400 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        직원 관리
+                      </Link>
+                    )}
                     <hr className="my-2 border-slate-700" />
                     <button
                       onClick={() => {

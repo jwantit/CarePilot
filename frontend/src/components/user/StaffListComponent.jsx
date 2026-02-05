@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, PauseCircle, PlayCircle, Edit2, X, Check } from 'lucide-react';
+import { CheckCircle2, XCircle, PauseCircle, PlayCircle, Edit2, X, Check, Users } from 'lucide-react';
 
 const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
   const [editingRole, setEditingRole] = useState({});
@@ -18,12 +18,12 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
   // 상태 색상 (기존 프로젝트 스타일에 맞춤)
   const getStatusColor = (status) => {
     const colorMap = {
-      ACTIVE: 'bg-green-100 text-green-700 border-green-300',
-      WAITING: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-      DENIED: 'bg-red-100 text-red-700 border-red-300',
-      DISABLED: 'bg-gray-100 text-gray-700 border-gray-300'
+      ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+      WAITING: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+      DENIED: 'bg-red-500/10 text-red-400 border-red-500/30',
+      DISABLED: 'bg-slate-700/50 text-slate-400 border-slate-600'
     };
-    return colorMap[status] || 'bg-gray-100 text-gray-700 border-gray-300';
+    return colorMap[status] || 'bg-slate-700 text-slate-300 border-slate-600';
   };
 
   // 권한 한글 변환
@@ -86,73 +86,71 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
 
   if (!staff || staff.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-none p-12 text-center">
-        <div className="text-gray-400 mb-2">
-          <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
+      <div className="bg-slate-800 border border-slate-700 rounded-sm p-20 text-center shadow-lg">
+        <div className="text-slate-600 mb-4 flex justify-center">
+          <Users size={64} className="opacity-20" />
         </div>
-        <p className="text-gray-500 text-sm">등록된 직원이 없습니다.</p>
+        <p className="text-slate-400 text-lg font-bold">등록된 직원이 없습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-none shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full table-fixed">
-          <thead className="bg-gray-50 border-b border-gray-200">
+    <div className="bg-slate-800 border border-slate-700 rounded-sm shadow-xl overflow-hidden animate-in fade-in duration-500">
+      <div className="overflow-x-auto max-h-[70vh] overflow-y-auto modal-scrollbar">
+        <table className="w-full table-fixed border-separate border-spacing-0">
+          <thead className="bg-slate-900 border-b-2 border-teal-500/30 sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[10%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[10%] bg-slate-900 border-b-2 border-teal-500/30">
                 이름
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[18%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[18%] bg-slate-900 border-b-2 border-teal-500/30">
                 이메일
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-slate-900 border-b-2 border-teal-500/30">
                 연락처
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-slate-900 border-b-2 border-teal-500/30">
                 권한
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[8%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[8%] bg-slate-900 border-b-2 border-teal-500/30">
                 상태
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[15%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-slate-900 border-b-2 border-teal-500/30">
                 신청일
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[15%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-slate-900 border-b-2 border-teal-500/30">
                 처리일
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-[12%]">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-slate-900 border-b-2 border-teal-500/30">
                 관리
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-slate-700">
             {staff.map((member) => (
               <tr 
                 key={member.userId} 
-                className="hover:bg-gray-50 transition-colors"
+                className="hover:bg-slate-700/30 transition-colors bg-slate-800/30"
               >
-                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
-                  <div className="text-sm font-medium text-gray-900 truncate">
+                <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
+                  <div className="text-sm font-bold text-slate-100 truncate">
                     {member.name}
                   </div>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
-                  <div className="text-sm text-gray-600 truncate" title={member.email}>
+                <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
+                  <div className="text-sm text-slate-400 truncate font-mono" title={member.email}>
                     {member.email}
                   </div>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
-                  <div className="text-sm text-gray-600 truncate">
+                <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
+                  <div className="text-sm text-slate-300 truncate font-mono">
                     {member.phone || '-'}
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4 text-center">
                   {editingRole[member.userId] ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <select
                         defaultValue={member.role}
                         onChange={(e) => {
@@ -163,7 +161,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                             cancelRoleEdit(member.userId);
                           }
                         }}
-                        className="border border-gray-300 rounded-none px-2 py-1 text-sm focus:ring-2 focus:ring-[#008080] focus:border-[#008080] outline-none"
+                        className="bg-slate-900 border border-slate-600 rounded-sm px-2 py-1 text-xs text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                         autoFocus
                         onBlur={() => cancelRoleEdit(member.userId)}
                       >
@@ -172,19 +170,19 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                       </select>
                       <button
                         onClick={() => cancelRoleEdit(member.userId)}
-                        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                        className="text-slate-500 hover:text-slate-300 transition-colors"
                         title="취소"
                       >
-                        <X size={16} />
+                        <X size={14} />
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-700 whitespace-nowrap">{getRoleLabel(member.role)}</span>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-sm text-slate-300 font-bold whitespace-nowrap">{getRoleLabel(member.role)}</span>
                       {member.role !== 'ADMIN' && (
                         <button
                           onClick={() => setEditingRole({ ...editingRole, [member.userId]: true })}
-                          className="text-[#008080] hover:text-[#006666] transition-colors p-1 rounded hover:bg-[#008080]/10 flex-shrink-0"
+                          className="text-teal-400 hover:text-teal-300 transition-colors p-1 rounded hover:bg-teal-500/10 flex-shrink-0"
                           title="권한 변경"
                         >
                           <Edit2 size={14} />
@@ -193,28 +191,28 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${getStatusColor(member.status)} whitespace-nowrap`}>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <span className={`inline-block px-2.5 py-1 rounded-sm text-[11px] font-black border ${getStatusColor(member.status)} whitespace-nowrap`}>
                     {getStatusLabel(member.status)}
                   </span>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
-                  <div className="text-sm text-gray-600 truncate">
+                <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
+                  <div className="text-xs text-slate-500 truncate font-mono">
                     {formatDateTime(member.approvalRequestedAt)}
                   </div>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
-                  <div className="text-sm text-gray-600 truncate">
+                <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
+                  <div className="text-xs text-slate-500 truncate font-mono">
                     {formatDateTime(member.approvalProcessedAt)}
                   </div>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-2 flex-wrap">
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <div className="flex items-center justify-center gap-2">
                     {member.status === 'WAITING' && (
                       <>
                         <button
                           onClick={() => handleStatusClick(member.userId, member.status)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-[#008080] hover:bg-[#006666] text-white text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-black rounded-sm border border-teal-500 transition-all shadow-md active:scale-95"
                           title="승인"
                         >
                           <CheckCircle2 size={14} />
@@ -222,7 +220,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                         </button>
                         <button
                           onClick={() => handleDenyClick(member.userId)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-red-400 text-xs font-bold rounded-sm border border-red-500/30 hover:border-red-500 transition-all shadow-md active:scale-95"
                           title="거부"
                         >
                           <XCircle size={14} />
@@ -233,7 +231,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {member.status === 'ACTIVE' && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-orange-300 text-orange-600 hover:bg-orange-50 text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-amber-400 text-xs font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
                         title="중지"
                       >
                         <PauseCircle size={14} />
@@ -243,7 +241,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {(member.status === 'DENIED' || member.status === 'DISABLED') && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-[#008080] hover:bg-[#006666] text-white text-xs font-medium rounded-none transition-colors shadow-sm min-w-[70px] justify-center"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-black rounded-sm border border-teal-500 transition-all shadow-md active:scale-95"
                         title="활성화"
                       >
                         <PlayCircle size={14} />
