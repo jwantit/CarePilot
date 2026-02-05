@@ -232,7 +232,7 @@ function CareTargetPage() {
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <Breadcrumb items={['케어 대상자']} />
         <div className="mb-8">
           {selectedIds.length > 0 && (
@@ -311,7 +311,7 @@ function CareTargetPage() {
         isOpen={isInsertModalOpen} onClose={() => setIsInsertModalOpen(false)}
         organizationId={organizationId} onInsert={handleInsert} isUploading={isUploading}
       />
-    </>
+    </div>
   );
 }
 

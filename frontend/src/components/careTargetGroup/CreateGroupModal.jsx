@@ -6,6 +6,7 @@ import { fetchCareTargets } from '../../store/slices/careTargetSlice';
 //------------------------------
 import { getScenarioList, createCareGroup } from '../../api/caretarget/careTargetGroupApi';
 import { useAuth } from '../../hooks/useAuth';
+import { getRiskLevelLabel } from '../../utils/riskLevelStyles';
 
 const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
   const { user } = useAuth();
@@ -202,7 +203,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
               {isDataLoading ? (
                 <div className="py-10 flex flex-col items-center text-slate-400 gap-2">
                   <Loader2 size={24} className="animate-spin text-teal-400" />
-                  <p className="text-xs font-semibold">데이터를 불러오는 중...</p>
+                  <p className="text-xs font-semibold">로딩 중...</p>
                 </div>
               ) : filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => {
@@ -235,7 +236,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                         <p className="text-[11px] text-slate-400 font-medium truncate pr-2">{patient.disease || '-'}</p>
                         <div className="flex items-center">
                           <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${riskBadgeClasses}`}>
-                            {patient.riskLevel || 'NORMAL'} 
+                            {getRiskLevelLabel(patient.riskLevel) || '보통'}
                           </span>
                         </div>
                       </div>

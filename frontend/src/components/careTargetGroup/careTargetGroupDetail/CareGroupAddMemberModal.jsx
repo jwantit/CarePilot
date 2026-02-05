@@ -4,6 +4,7 @@ import { X, Search, CheckCircle2, UserPlus, Loader2, User, Activity } from 'luci
 import { useSelector, useDispatch } from 'react-redux';
 import { useAuth } from '../../../hooks/useAuth';
 import { fetchCareTargets } from '../../../store/slices/careTargetSlice';
+import { getRiskLevelLabel, getRiskLevelStyle } from '../../../utils/riskLevelStyles';
 
 // existingMemberIds: 이미 이 그룹에 속해있는 멤버들의 ID 배열을 추가로 받습니다.
 const CareGroupAddMemberModal = ({ isOpen, onClose, selectedIds, setSelectedIds, onSave, existingMemberIds = [] }) => {
@@ -97,20 +98,12 @@ const CareGroupAddMemberModal = ({ isOpen, onClose, selectedIds, setSelectedIds,
           {loading ? (
             <div className="h-full flex flex-col items-center justify-center gap-3">
               <Loader2 className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full" size={32} />
-              <p className="text-xs font-semibold text-slate-400">데이터를 불러오는 중...</p>
+              <p className="text-xs font-semibold text-slate-400">로딩 중...</p>
             </div>
           ) : filteredPatients.length > 0 ? (
             <div className="p-2 space-y-1">
               {filteredPatients.map((p) => {
                 const isSelected = selectedIds.includes(p.careTargetId);
-                const getRiskStyle = (level) => {
-                  if (!level) return 'bg-gradient-to-br from-slate-500/20 to-slate-600/20 text-slate-400 border border-slate-500/50';
-                  const l = String(level).toUpperCase();
-                  if (l === 'CRITICAL' || l === 'HIGH') return 'bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50';
-                  if (l === 'MEDIUM') return 'bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50';
-                  if (l === 'LOW' || l === 'NORMAL') return 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50';
-                  return 'bg-gradient-to-br from-slate-500/20 to-slate-600/20 text-slate-400 border border-slate-500/50';
-                };
                 return (
                   <div 
                     key={p.careTargetId}
@@ -126,8 +119,8 @@ const CareGroupAddMemberModal = ({ isOpen, onClose, selectedIds, setSelectedIds,
                           <span className={`text-sm font-bold ${isSelected ? 'text-teal-400' : 'text-slate-200'}`}>
                             {p.name}
                           </span>
-                          <span className={`px-1.5 py-0.5 rounded-sm text-[8px] font-black shadow-sm ${getRiskStyle(p.riskLevel)}`}>
-                            {p.riskLevel || 'NORMAL'}
+                          <span className={`px-1.5 py-0.5 rounded-sm text-[8px] font-black shadow-sm ${getRiskLevelStyle(p.riskLevel)}`}>
+                            {getRiskLevelLabel(p.riskLevel) || '보통'}
                           </span>
                         </div>
                         <div className="flex items-center text-xs font-medium text-slate-400 gap-1.5 mt-0.5">

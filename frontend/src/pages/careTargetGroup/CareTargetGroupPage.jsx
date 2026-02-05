@@ -61,7 +61,7 @@ const CareTargetGroupPage = () => {
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <Breadcrumb items={['케어 그룹']} />
 
       <GroupActionHeader
@@ -77,7 +77,7 @@ const CareTargetGroupPage = () => {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center h-80 text-slate-400">
           <Loader2 className="animate-spin mb-4 border-4 border-slate-700 border-t-teal-400 rounded-full" size={48} />
-          <p className="font-medium text-slate-500 font-mono">// Loading group data...</p>
+          <p className="font-medium text-slate-500 font-mono">로딩 중...</p>
         </div>
       ) : filteredGroups.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -100,7 +100,7 @@ const CareTargetGroupPage = () => {
           organizationId={organizationId}
         />
       )}
-    </>
+    </div>
   );
 };
 

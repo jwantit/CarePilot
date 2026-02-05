@@ -50,7 +50,7 @@ function CareTarget({
     return (
       <div className="flex flex-col items-center justify-center p-20 gap-4 bg-slate-800">
         <div className="w-12 h-12 border-4 border-slate-700 border-t-teal-400 rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm font-mono">// Loading patient data...</p>
+        <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
       </div>
     );
   }

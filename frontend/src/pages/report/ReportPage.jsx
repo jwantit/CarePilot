@@ -3,6 +3,7 @@ import { getStatistics, getDiseaseList } from "../../api/reportApi";
 import { getCareGroupList } from "../../api/caretarget/careTargetGroupApi";
 import { useAuth } from "../../hooks/useAuth";
 import html2pdf from "html2pdf.js";
+import Breadcrumb from "../../components/common/Breadcrumb";
 import OverviewTab from "../../components/report/OverviewTab";
 import RiskAnalysisTab from "../../components/report/RiskAnalysisTab";
 import CallAnalysisTab from "../../components/report/CallAnalysisTab";
@@ -146,9 +147,10 @@ function ReportPage() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">로딩 중...</div>
+      <div className="p-6 max-w-7xl mx-auto min-h-screen">
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <div className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full w-12 h-12" />
+          <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
         </div>
       </div>
     );
@@ -156,8 +158,8 @@ function ReportPage() {
 
   if (error) {
     return (
-      <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+      <div className="p-6 max-w-7xl mx-auto min-h-screen">
+        <div className="bg-red-500/10 border border-red-500/50 rounded-sm p-4 text-red-400">
           {error}
         </div>
       </div>
@@ -190,62 +192,61 @@ function ReportPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50">
-      {/* 헤더 */}
+    <div className="space-y-6">
+      <Breadcrumb items={["통계"]} />
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">통계</h1>
-            <p className="text-gray-500">
+            <h1 className="text-3xl font-bold text-slate-100 mb-2">통계</h1>
+            <p className="text-slate-400">
               시스템 운영 현황과 데이터 분석을 확인하세요.
             </p>
           </div>
           <button
             onClick={handleExportPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-[#008080] text-white rounded-lg hover:bg-[#006666] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-sm border border-teal-500 hover:bg-teal-500 transition-colors"
           >
             <Download size={18} />
             PDF 내보내기
           </button>
         </div>
 
-        {/* 기간 선택 */}
         <div className="mt-4 flex items-center gap-2">
           <button
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${
               dateRange === "today"
-                ? "bg-[#008080] text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                ? "bg-teal-600 text-white border border-teal-500"
+                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
             }`}
             onClick={() => setDateRange("today")}
           >
             오늘
           </button>
           <button
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${
               dateRange === "week"
-                ? "bg-[#008080] text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                ? "bg-teal-600 text-white border border-teal-500"
+                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
             }`}
             onClick={() => setDateRange("week")}
           >
             이번 주
           </button>
           <button
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${
               dateRange === "month"
-                ? "bg-[#008080] text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                ? "bg-teal-600 text-white border border-teal-500"
+                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
             }`}
             onClick={() => setDateRange("month")}
           >
             이번 달
           </button>
           <button
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${
               dateRange === "custom"
-                ? "bg-[#008080] text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                ? "bg-teal-600 text-white border border-teal-500"
+                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
             }`}
             onClick={() => setDateRange("custom")}
           >
@@ -257,26 +258,25 @@ function ReportPage() {
           <div className="mt-4 flex items-center gap-2">
             <input
               type="date"
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="px-4 py-2 border border-slate-600 rounded-sm bg-slate-800 text-slate-200"
               value={startDate ? startDate.toISOString().split("T")[0] : ""}
               onChange={(e) => setStartDate(new Date(e.target.value))}
             />
-            <span className="text-gray-500">~</span>
+            <span className="text-slate-500">~</span>
             <input
               type="date"
-              className="px-4 py-2 border border-gray-300 rounded-lg"
+              className="px-4 py-2 border border-slate-600 rounded-sm bg-slate-800 text-slate-200"
               value={endDate ? endDate.toISOString().split("T")[0] : ""}
               onChange={(e) => setEndDate(new Date(e.target.value))}
             />
           </div>
         )}
 
-        {/* 필터 선택 */}
         <div className="mt-4 flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">그룹:</label>
+            <label className="text-sm font-medium text-slate-400">그룹:</label>
             <select
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700"
+              className="px-4 py-2 border border-slate-600 rounded-sm bg-slate-800 text-slate-200"
               value={selectedGroupId || ""}
               onChange={(e) =>
                 setSelectedGroupId(
@@ -294,9 +294,9 @@ function ReportPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">질환:</label>
+            <label className="text-sm font-medium text-slate-400">질환:</label>
             <select
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700"
+              className="px-4 py-2 border border-slate-600 rounded-sm bg-slate-800 text-slate-200"
               value={selectedDisease}
               onChange={(e) => setSelectedDisease(e.target.value)}
             >
@@ -310,15 +310,14 @@ function ReportPage() {
           </div>
         </div>
 
-        {/* 탭 네비게이션 */}
-        <div className="mt-6 border-b border-gray-200">
+        <div className="mt-6 border-b border-slate-700">
           <nav className="flex gap-4">
             <button
               onClick={() => setActiveTab("overview")}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "overview"
-                  ? "border-[#008080] text-[#008080]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-teal-500 text-teal-400"
+                  : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
               개요
@@ -327,8 +326,8 @@ function ReportPage() {
               onClick={() => setActiveTab("risk")}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "risk"
-                  ? "border-[#008080] text-[#008080]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-teal-500 text-teal-400"
+                  : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
               위험도 분석
@@ -337,8 +336,8 @@ function ReportPage() {
               onClick={() => setActiveTab("call")}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "call"
-                  ? "border-[#008080] text-[#008080]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-teal-500 text-teal-400"
+                  : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
               통화 분석
@@ -347,8 +346,8 @@ function ReportPage() {
               onClick={() => setActiveTab("ai")}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === "ai"
-                  ? "border-[#008080] text-[#008080]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-teal-500 text-teal-400"
+                  : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
               AI 자동화

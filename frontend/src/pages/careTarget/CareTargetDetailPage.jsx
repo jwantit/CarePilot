@@ -110,7 +110,7 @@ function CareTargetDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
         <Loader2 className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full" size={48} />
-        <p className="text-slate-400 text-sm font-mono">// Loading patient data...</p>
+        <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
       </div>
     );
   }
@@ -128,11 +128,9 @@ function CareTargetDetailPage() {
   }
 
   return (
-    <>      
-      <div className="mb-8">
-      </div>
-
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow">
+    <div className="space-y-6">
+      <Breadcrumb items={["케어 대상자", data?.name || "상세"]} />
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/care-target')} 
@@ -204,7 +202,7 @@ function CareTargetDetailPage() {
       </div>
       <CallHistoryTable history={data.callHistoryDTOS || []} />
       <PrescriptionHistoryTable list={data.prescriptionHistoryDTOS || []} />
-    </>
+    </div>
   );
 }
 
