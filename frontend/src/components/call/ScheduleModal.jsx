@@ -190,12 +190,14 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
     }
     try {
       const payload = {
+        organizationId: orgId,
         careTargetId: formData.careTargetId,
         scenarioId: formData.scenarioId || null,
         scheduledTime: formData.scheduledTime,
         type: formData.type,
         priority: formData.priority,
-        recurrence: formData.type === "RECURRING" ? formData.recurrence || null : null,
+        recurrence:
+          formData.type === "RECURRING" ? formData.recurrence || null : null,
         recurrenceEndDate:
           formData.type === "RECURRING" && formData.recurrenceEndDate
             ? formData.recurrenceEndDate
