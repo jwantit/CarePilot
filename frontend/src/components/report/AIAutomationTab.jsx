@@ -99,8 +99,8 @@ function AIAutomationTab({ statistics, formatNumber, formatPercent }) {
         {/* 통계 그리드 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* AI vs USER 작업 분포 */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">AI vs 사용자 작업 분포</h2>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
+            <h2 className="text-xl font-bold text-slate-100 mb-4">AI vs 사용자 작업 분포</h2>
             {sourceTypeLabels.length > 0 ? (
               <DoughnutChart
                 data={sourceTypeValues}
@@ -108,15 +108,15 @@ function AIAutomationTab({ statistics, formatNumber, formatPercent }) {
                 colors={sourceTypeColors}
               />
             ) : (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-slate-500 py-8">
                 작업 데이터가 없습니다.
               </div>
             )}
           </div>
 
           {/* AI 작업 상태별 분포 */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">AI 작업 상태별 분포</h2>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
+            <h2 className="text-xl font-bold text-slate-100 mb-4">AI 작업 상태별 분포</h2>
             {aiTaskStatusLabels.length > 0 ? (
               <DoughnutChart
                 data={aiTaskStatusValues}
@@ -124,7 +124,7 @@ function AIAutomationTab({ statistics, formatNumber, formatPercent }) {
                 colors={aiTaskStatusColors}
               />
             ) : (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-slate-500 py-8">
                 AI 작업 데이터가 없습니다.
               </div>
             )}
@@ -133,8 +133,8 @@ function AIAutomationTab({ statistics, formatNumber, formatPercent }) {
 
         {/* AI 작업 타입별 분포 */}
         {aiTaskTypeLabels.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">AI 작업 타입별 분포</h2>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
+            <h2 className="text-xl font-bold text-slate-100 mb-4">AI 작업 타입별 분포</h2>
             <BarChart
               title="AI 작업 타입"
               data={aiTaskTypeValues}

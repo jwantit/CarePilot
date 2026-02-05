@@ -53,7 +53,7 @@ function BulkUploadModal({
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:bg-gray-200 transition-colors"
+            className="p-1 rounded-none text-gray-400 hover:bg-gray-200 transition-colors"
           >
             <X size={24} />
           </button>
@@ -66,7 +66,7 @@ function BulkUploadModal({
 
           {optionSlot}
 
-          <div className="mb-6 text-center p-8 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+          <div className="mb-6 text-center p-8 border-2 border-dashed border-gray-200 rounded-none bg-gray-50">
             <input
               type="file"
               ref={fileInputRef}
@@ -77,7 +77,7 @@ function BulkUploadModal({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 mx-auto bg-white border border-gray-300 px-5 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-gray-100 transition-all shadow-sm"
+              className="flex items-center gap-2 mx-auto bg-white border border-gray-300 px-5 py-2.5 rounded-none font-semibold text-gray-700 hover:bg-gray-100 transition-all shadow-sm"
             >
               <Upload size={18} className="text-[#008080]" />
               파일 선택
@@ -107,7 +107,7 @@ function BulkUploadModal({
                 selectedFiles.map((file, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-lg border border-blue-100"
+                    className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-none border border-blue-100"
                   >
                     <FileText size={20} className="text-[#008080]" />
                     <span className="text-sm font-medium text-gray-700 truncate flex-1">
@@ -126,7 +126,7 @@ function BulkUploadModal({
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-400 text-sm border border-gray-100 rounded-lg bg-white">
+                <div className="text-center py-8 text-gray-400 text-sm border border-gray-100 rounded-none bg-white">
                   파일을 선택해주세요.
                 </div>
               )}
@@ -136,14 +136,14 @@ function BulkUploadModal({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200"
+              className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-none font-bold hover:bg-gray-200"
             >
               취소
             </button>
             <button
               onClick={onUpload}
               disabled={selectedFiles.length === 0 || isUploading}
-              className="flex-1 py-3 bg-[#008080] text-white rounded-xl font-bold hover:bg-[#006666] disabled:bg-gray-300 transition-colors"
+              className="flex-1 py-3 bg-[#008080] text-white rounded-none font-bold hover:bg-[#006666] disabled:bg-gray-300 transition-colors"
             >
               {isUploading ? "업로드 중..." : "업로드"}
             </button>
