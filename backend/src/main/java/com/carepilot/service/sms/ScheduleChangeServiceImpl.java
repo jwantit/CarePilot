@@ -133,11 +133,11 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
             // 단발 변경(기본): next_run_at만 변경. 주기 변경: scheduled_time + next_run_at 모두 변경
             boolean recurringChange = isRecurringChangeRequest(inboundSms.getBody());
             if (recurringChange) {
-                nearest.applyUpdates(careTarget, newDateTime, null, null, null, null, null);
+                nearest.applyUpdates(careTarget, null, newDateTime, null, null, null, null, null);
                 nearest.rescheduleNextRunAt(newDateTime);
                 log.info("[ScheduleChange] 주기 변경 scheduleId={}, newDateTime={}", nearest.getScheduleId(), newDateTime);
             } else {
-                nearest.applyUpdates(careTarget, null, null, null, null, null, null);
+                nearest.applyUpdates(careTarget, null, null, null, null, null, null, null);
                 nearest.rescheduleNextRunAt(newDateTime);
                 log.info("[ScheduleChange] 단발 변경 scheduleId={}, newDateTime={}", nearest.getScheduleId(), newDateTime);
             }
@@ -195,10 +195,10 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
             boolean recurringChange = isRecurringChangeRequest(inboundSms.getBody());
             if (recurringChange) {
-                nearest.applyUpdates(careTarget, newDateTime, null, null, null, null, null);
+                nearest.applyUpdates(careTarget, null, newDateTime, null, null, null, null, null);
                 nearest.rescheduleNextRunAt(newDateTime);
             } else {
-                nearest.applyUpdates(careTarget, null, null, null, null, null, null);
+                nearest.applyUpdates(careTarget, null, null, null, null, null, null, null);
                 nearest.rescheduleNextRunAt(newDateTime);
             }
             callScheduleRepository.save(nearest);

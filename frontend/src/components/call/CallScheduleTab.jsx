@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getUpcomingSchedules, deleteSchedule, restoreSchedule } from "../../api/callApi";
+import {
+  getUpcomingSchedules,
+  deleteSchedule,
+  restoreSchedule,
+} from "../../api/callApi";
 import ScheduleModal from "./ScheduleModal";
 import { useSelector } from "react-redux";
 
@@ -101,9 +105,12 @@ const CallScheduleTab = () => {
     });
   }, [calendarDate]);
 
-  const monthLabel = `${calendarDate.getFullYear()}년 ${calendarDate.toLocaleString("ko-KR", {
-    month: "long",
-  })}`;
+  const monthLabel = `${calendarDate.getFullYear()}년 ${calendarDate.toLocaleString(
+    "ko-KR",
+    {
+      month: "long",
+    },
+  )}`;
 
   const moveMonth = (direction) => {
     setCalendarDate((prev) => {
@@ -128,14 +135,15 @@ const CallScheduleTab = () => {
 
   const sortedSchedules = useMemo(() => {
     const rows = [...schedules];
-    
+
     // 취소된 항목과 활성 항목 분리
     const activeRows = rows.filter((r) => r.status !== "CANCELLED");
     const cancelledRows = rows.filter((r) => r.status === "CANCELLED");
-    
+
     // nextRunAt 또는 scheduledTime을 가져오는 헬퍼 함수
-    const getDisplayTime = (schedule) => schedule.nextRunAt || schedule.scheduledTime;
-    
+    const getDisplayTime = (schedule) =>
+      schedule.nextRunAt || schedule.scheduledTime;
+
     // 활성 항목 정렬
     if (sortCriterion === "PRIORITY") {
       const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
@@ -154,7 +162,7 @@ const CallScheduleTab = () => {
         return aTime - bTime;
       });
     }
-    
+
     // 취소된 항목도 시간순으로 정렬
     cancelledRows.sort((a, b) => {
       const aTimeStr = getDisplayTime(a);
@@ -164,7 +172,7 @@ const CallScheduleTab = () => {
       const bTime = new Date(bTimeStr).getTime();
       return aTime - bTime;
     });
-    
+
     // 활성 항목 먼저, 취소된 항목은 아래로
     return [...activeRows, ...cancelledRows];
   }, [schedules, sortCriterion]);
@@ -187,7 +195,10 @@ const CallScheduleTab = () => {
     return map;
   }, [sortedSchedules]);
 
-  const scheduleDays = useMemo(() => new Set(Object.keys(scheduleByDay)), [scheduleByDay]);
+  const scheduleDays = useMemo(
+    () => new Set(Object.keys(scheduleByDay)),
+    [scheduleByDay],
+  );
 
   return (
     <div className="space-y-4">
@@ -230,8 +241,12 @@ const CallScheduleTab = () => {
         </div>
         <div className="grid grid-cols-7 gap-2 text-sm">
           {calendarCells.map((cell, index) => {
-            const isToday = cell.date ? isSameDay(cell.date, new Date()) : false;
-            const isSelected = cell.date ? isSameDay(cell.date, selectedDate) : false;
+            const isToday = cell.date
+              ? isSameDay(cell.date, new Date())
+              : false;
+            const isSelected = cell.date
+              ? isSameDay(cell.date, selectedDate)
+              : false;
             const dayKey = cell.date ? formatYMD(cell.date) : null;
             const dayEvents = dayKey ? scheduleByDay[dayKey] || [] : [];
             const hasSchedule = dayEvents.length > 0;
@@ -243,8 +258,12 @@ const CallScheduleTab = () => {
             const baseClasses =
               "flex h-24 flex-col items-start justify-start rounded border px-2 py-1 transition relative overflow-hidden";
             const bgClass = cell.date ? "bg-white" : "bg-gray-50";
-            const borderClass = hasSchedule ? "border-[#008080]/30" : "border-gray-200";
-            const selectedClass = isSelected ? "border-[#008080] bg-[#008080]/10" : "";
+            const borderClass = hasSchedule
+              ? "border-[#008080]/30"
+              : "border-gray-200";
+            const selectedClass = isSelected
+              ? "border-[#008080] bg-[#008080]/10"
+              : "";
             const todayClass = isToday ? "ring-2 ring-[#008080]" : "";
 
             return (
@@ -266,7 +285,8 @@ const CallScheduleTab = () => {
                 </span>
                 <div className="flex flex-col gap-1 w-full overflow-y-auto">
                   {visibleEvents.map((event) => {
-                    const targetName = event.careTargetName || event.targetGroupName || "대상";
+                    const targetName =
+                      event.careTargetName || event.targetGroupName || "대상";
                     // nextRunAt 우선 사용, 없으면 scheduledTime 사용
                     const displayTime = event.nextRunAt || event.scheduledTime;
                     const timeStr = displayTime ? displayTime.slice(-5) : "";
@@ -391,10 +411,12 @@ const CallScheduleTab = () => {
                   >
                     <td className="p-3 font-medium">
                       {s.targetType === "GROUP"
-                        ? `그룹: ${s.targetGroupName ?? "이름 없음"}`
+                        ? `${s.targetGroupName ?? "이름 없음"}`
                         : s.careTargetName}
                     </td>
-                    <td className="p-3 text-gray-600">{s.nextRunAt || s.scheduledTime}</td>
+                    <td className="p-3 text-gray-600">
+                      {s.nextRunAt || s.scheduledTime}
+                    </td>
                     <td className="p-3">
                       <span className="px-2 py-1 bg-gray-200 text-xs rounded-full">
                         {s.typeLabel || s.type}
@@ -406,19 +428,21 @@ const CallScheduleTab = () => {
                           s.status === "CANCELLED"
                             ? "bg-gray-400"
                             : s.priority === "URGENT"
-                            ? "bg-red-500"
-                            : s.priority === "HIGH"
-                            ? "bg-orange-500"
-                            : s.priority === "MEDIUM"
-                            ? "bg-blue-500"
-                            : "bg-gray-500"
+                              ? "bg-red-500"
+                              : s.priority === "HIGH"
+                                ? "bg-orange-500"
+                                : s.priority === "MEDIUM"
+                                  ? "bg-blue-500"
+                                  : "bg-gray-500"
                         }`}
                       >
                         {s.priorityLabel || s.priority}
                       </span>
                     </td>
                     <td className="p-3">
-                      <span className={`${s.status === "CANCELLED" ? "text-gray-500" : "text-green-600"}`}>
+                      <span
+                        className={`${s.status === "CANCELLED" ? "text-gray-500" : "text-green-600"}`}
+                      >
                         ● {s.statusLabel || s.status}
                       </span>
                     </td>

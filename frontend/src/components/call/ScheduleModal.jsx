@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { createSchedule, updateSchedule } from "../../api/callApi";
 import { getCareTargetAllList } from "../../api/caretarget/careTargetApi";
-import { getScenarioList } from "../../api/caretarget/careTargetGroupApi";
+import { getScenarioList, getCareGroupList } from "../../api/caretarget/careTargetGroupApi";
 
 const DEBOUNCE_MS = 300;
 
@@ -11,6 +11,7 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
   const [formData, setFormData] = useState({
     organizationId: orgId,
     careTargetId: "",
+    groupId: null,
     scenarioId: null,
     scheduledTime: "",
     type: "ONE_TIME",
@@ -20,14 +21,21 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
     recurrenceEndDate: "",
   });
 
+  const [targetType, setTargetType] = useState("CARE_TARGET"); // "CARE_TARGET" 또는 "GROUP"
   const [careTargetSearch, setCareTargetSearch] = useState("");
   const [careTargetList, setCareTargetList] = useState([]);
   const [showCareTargetDropdown, setShowCareTargetDropdown] = useState(false);
   const [selectedCareTargetDisplay, setSelectedCareTargetDisplay] = useState(""); // "홍길동 (123)"
+  const [groupSearch, setGroupSearch] = useState("");
+  const [groupList, setGroupList] = useState([]);
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+  const [selectedGroupDisplay, setSelectedGroupDisplay] = useState("");
   const [scenarios, setScenarios] = useState([]);
   const [loadingCareTargets, setLoadingCareTargets] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const debounceRef = useRef(null);
   const dropdownRef = useRef(null);
+  const groupDropdownRef = useRef(null);
 
   const fetchCareTargets = useCallback(
     async (keyword) => {
@@ -57,27 +65,91 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
     }
   }, [orgId]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    fetchScenarios();
-    setCareTargetSearch("");
-    setCareTargetList([]);
-    setShowCareTargetDropdown(false);
-    if (!editingSchedule) {
-      setSelectedCareTargetDisplay("");
-      fetchCareTargets("");
+  const fetchGroups = useCallback(async () => {
+    if (!orgId) return [];
+    setLoadingGroups(true);
+    try {
+      const data = await getCareGroupList(orgId);
+      const groups = Array.isArray(data) ? data : [];
+      setGroupList(groups);
+      return groups;
+    } catch (e) {
+      console.error("그룹 목록 조회 실패:", e);
+      setGroupList([]);
+      return [];
+    } finally {
+      setLoadingGroups(false);
     }
-  }, [isOpen, editingSchedule, fetchScenarios, fetchCareTargets]);
+  }, [orgId]);
 
   useEffect(() => {
     if (!isOpen) return;
-    if (editingSchedule) {
+    fetchScenarios();
+    fetchGroups();
+    setCareTargetSearch("");
+    setGroupSearch("");
+    setCareTargetList([]);
+    setGroupList([]);
+    setShowCareTargetDropdown(false);
+    setShowGroupDropdown(false);
+    if (!editingSchedule) {
+      setSelectedCareTargetDisplay("");
+      setSelectedGroupDisplay("");
+      setTargetType("CARE_TARGET");
+      fetchCareTargets("");
+    }
+  }, [isOpen, editingSchedule, fetchScenarios, fetchCareTargets, fetchGroups]);
+
+  useEffect(() => {
+    if (!isOpen || !editingSchedule) return;
+    
+    // editingSchedule에서 targetType 확인 (targetType이 GROUP이거나 targetGroupName이 있으면 GROUP)
+    const isGroupSchedule = editingSchedule.targetType === "GROUP" || editingSchedule.targetGroupName;
+    
+    if (isGroupSchedule) {
+      setTargetType("GROUP");
+      setSelectedGroupDisplay(editingSchedule.targetGroupName || editingSchedule.careTargetName || "");
+      setGroupSearch("");
+      setSelectedCareTargetDisplay("");
+      setCareTargetSearch("");
+      
+      // 그룹 목록을 먼저 로드한 후 groupId를 찾아서 설정
+      fetchGroups().then((groups) => {
+        if (editingSchedule.groupId && groups) {
+          // groupId가 있으면 바로 설정
+          setFormData((prev) => ({ ...prev, groupId: editingSchedule.groupId }));
+        } else if (editingSchedule.targetGroupName && groups) {
+          // groupId가 없고 targetGroupName이 있으면 그룹 목록에서 찾아서 설정
+          const foundGroup = groups.find((g) => g.groupName === editingSchedule.targetGroupName);
+          if (foundGroup) {
+            setFormData((prev) => ({ ...prev, groupId: foundGroup.groupId }));
+          }
+        }
+      });
+    } else {
+      setTargetType("CARE_TARGET");
       const name = editingSchedule.careTargetName || "대상자";
       const id = editingSchedule.careTargetId;
       setSelectedCareTargetDisplay(id != null ? `${name} (${id})` : name);
       setCareTargetSearch("");
+      setSelectedGroupDisplay("");
+      setGroupSearch("");
     }
-  }, [isOpen, editingSchedule]);
+  }, [isOpen, editingSchedule, fetchGroups]);
+
+  // targetType 변경 시 초기화 (editingSchedule이 있을 때는 실행하지 않음)
+  useEffect(() => {
+    if (!isOpen || editingSchedule) return; // editingSchedule이 있으면 초기화하지 않음
+    if (targetType === "CARE_TARGET") {
+      setFormData((prev) => ({ ...prev, careTargetId: "", groupId: null }));
+      setSelectedGroupDisplay("");
+      setGroupSearch("");
+    } else {
+      setFormData((prev) => ({ ...prev, careTargetId: "", groupId: null }));
+      setSelectedCareTargetDisplay("");
+      setCareTargetSearch("");
+    }
+  }, [targetType, isOpen, editingSchedule]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -104,6 +176,7 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
     setFormData({
       organizationId: orgId,
       careTargetId: editingSchedule.careTargetId ?? "",
+      groupId: editingSchedule.groupId ?? null,
       scenarioId: editingSchedule.scenarioId ?? null,
       scheduledTime: scheduledTimeStr,
       type: editingSchedule.type || "ONE_TIME",
@@ -119,6 +192,7 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
     setFormData({
       organizationId: orgId,
       careTargetId: "",
+      groupId: null,
       scenarioId: null,
       scheduledTime: "",
       type: "ONE_TIME",
@@ -133,6 +207,9 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowCareTargetDropdown(false);
+      }
+      if (groupDropdownRef.current && !groupDropdownRef.current.contains(e.target)) {
+        setShowGroupDropdown(false);
       }
     };
     if (isOpen) document.addEventListener("mousedown", handleClickOutside);
@@ -184,14 +261,22 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
       alert("업체 정보가 없습니다. 로그인 상태를 확인해주세요.");
       return;
     }
-    if (!formData.careTargetId) {
+    
+    // 개인 또는 그룹 중 하나는 반드시 선택되어야 함
+    if (targetType === "CARE_TARGET" && !formData.careTargetId) {
       alert("전화할 케어대상을 선택해주세요.");
       return;
     }
+    if (targetType === "GROUP" && !formData.groupId) {
+      alert("전화할 그룹을 선택해주세요.");
+      return;
+    }
+    
     try {
       const payload = {
         organizationId: orgId,
-        careTargetId: formData.careTargetId,
+        careTargetId: targetType === "CARE_TARGET" ? formData.careTargetId : null,
+        groupId: targetType === "GROUP" ? formData.groupId : null,
         scenarioId: formData.scenarioId || null,
         scheduledTime: formData.scheduledTime,
         type: formData.type,
@@ -247,39 +332,128 @@ const ScheduleModal = ({ isOpen, onClose, onSaveSuccess, organizationId, editing
               업체 정보가 없습니다. 로그인 상태를 확인해주세요.
             </p>
           )}
-          {/* 케어대상 검색 드롭다운: 이름 (ID) 표시, 동명이인 구분 */}
-          <div ref={dropdownRef} className="relative">
-            <label className="block text-sm font-medium text-gray-700">전화할 케어대상</label>
-            <input
-              type="text"
-              value={displayValue}
-              onChange={handleCareTargetInputChange}
-              onFocus={handleCareTargetInputFocus}
-              placeholder="이름으로 검색 (예: 홍길동)"
-              className="mt-1 block w-full border rounded-md p-2 pr-8"
-              autoComplete="off"
-            />
-            {showCareTargetDropdown && (
-              <ul className="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-lg max-h-52 overflow-y-auto">
-                {loadingCareTargets ? (
-                  <li className="p-3 text-sm text-gray-500">검색 중...</li>
-                ) : filteredList.length === 0 ? (
-                  <li className="p-3 text-sm text-gray-500">검색 결과가 없습니다.</li>
-                ) : (
-                  filteredList.map((item) => (
-                    <li
-                      key={item.careTargetId}
-                      role="button"
-                      onClick={() => handleCareTargetSelect(item)}
-                      className="px-3 py-2 text-sm hover:bg-teal-50 cursor-pointer border-b border-gray-100 last:border-0"
-                    >
-                      {item.name} ({item.careTargetId})
-                    </li>
-                  ))
-                )}
-              </ul>
-            )}
+          
+          {/* 대상자 타입 선택 (개인/그룹) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">대상자 타입</label>
+            <div className="flex space-x-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="targetType"
+                  value="CARE_TARGET"
+                  checked={targetType === "CARE_TARGET"}
+                  onChange={(e) => setTargetType(e.target.value)}
+                  className="text-[#008080]"
+                />
+                <span className="text-sm text-gray-700">개인 대상자</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="targetType"
+                  value="GROUP"
+                  checked={targetType === "GROUP"}
+                  onChange={(e) => setTargetType(e.target.value)}
+                  className="text-[#008080]"
+                />
+                <span className="text-sm text-gray-700">그룹</span>
+              </label>
+            </div>
           </div>
+
+          {/* 개인 대상자 선택 (targetType이 CARE_TARGET일 때만 표시) */}
+          {targetType === "CARE_TARGET" && (
+            <div ref={dropdownRef} className="relative">
+              <label className="block text-sm font-medium text-gray-700">전화할 케어대상</label>
+              <input
+                type="text"
+                value={displayValue}
+                onChange={handleCareTargetInputChange}
+                onFocus={handleCareTargetInputFocus}
+                placeholder="이름으로 검색 (예: 홍길동)"
+                className="mt-1 block w-full border rounded-md p-2 pr-8"
+                autoComplete="off"
+              />
+              {showCareTargetDropdown && (
+                <ul className="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-lg max-h-52 overflow-y-auto">
+                  {loadingCareTargets ? (
+                    <li className="p-3 text-sm text-gray-500">검색 중...</li>
+                  ) : filteredList.length === 0 ? (
+                    <li className="p-3 text-sm text-gray-500">검색 결과가 없습니다.</li>
+                  ) : (
+                    filteredList.map((item) => (
+                      <li
+                        key={item.careTargetId}
+                        role="button"
+                        onClick={() => handleCareTargetSelect(item)}
+                        className="px-3 py-2 text-sm hover:bg-teal-50 cursor-pointer border-b border-gray-100 last:border-0"
+                      >
+                        {item.name} ({item.careTargetId})
+                      </li>
+                    ))
+                  )}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* 그룹 선택 (targetType이 GROUP일 때만 표시) */}
+          {targetType === "GROUP" && (
+            <div ref={groupDropdownRef} className="relative">
+              <label className="block text-sm font-medium text-gray-700">전화할 그룹</label>
+              <input
+                type="text"
+                value={selectedGroupDisplay || groupSearch}
+                onChange={(e) => {
+                  setGroupSearch(e.target.value);
+                  setShowGroupDropdown(true);
+                  if (!e.target.value) {
+                    setFormData((prev) => ({ ...prev, groupId: null }));
+                    setSelectedGroupDisplay("");
+                  }
+                }}
+                onFocus={() => {
+                  setShowGroupDropdown(true);
+                  if (!groupList.length && !loadingGroups) fetchGroups();
+                }}
+                placeholder="그룹 이름으로 검색"
+                className="mt-1 block w-full border rounded-md p-2 pr-8"
+                autoComplete="off"
+              />
+              {showGroupDropdown && (
+                <ul className="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-lg max-h-52 overflow-y-auto">
+                  {loadingGroups ? (
+                    <li className="p-3 text-sm text-gray-500">검색 중...</li>
+                  ) : groupList.length === 0 ? (
+                    <li className="p-3 text-sm text-gray-500">검색 결과가 없습니다.</li>
+                  ) : (
+                    groupList
+                      .filter((item) => {
+                        const name = (item.groupName || "").toLowerCase();
+                        const keyword = (groupSearch || "").toLowerCase();
+                        return !keyword || name.startsWith(keyword) || name.includes(keyword);
+                      })
+                      .map((item) => (
+                        <li
+                          key={item.groupId}
+                          role="button"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, groupId: item.groupId }));
+                            setSelectedGroupDisplay(item.groupName);
+                            setGroupSearch("");
+                            setShowGroupDropdown(false);
+                          }}
+                          className="px-3 py-2 text-sm hover:bg-teal-50 cursor-pointer border-b border-gray-100 last:border-0"
+                        >
+                          {item.groupName}
+                        </li>
+                      ))
+                  )}
+                </ul>
+              )}
+            </div>
+          )}
 
           {/* 해당 업체 시나리오 선택 */}
           <div>

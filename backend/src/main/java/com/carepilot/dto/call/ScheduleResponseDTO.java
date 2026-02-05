@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 public class ScheduleResponseDTO {
     private Long scheduleId;
     private Long careTargetId;
+    private Long groupId;        // 그룹 ID (그룹 스케줄인 경우)
     private String scheduledTime;
     private String nextRunAt;  // 다음 실행 시각 (캘린더 표시용)
     private String careTargetName;
@@ -48,13 +49,21 @@ public class ScheduleResponseDTO {
             nextRunAtValue = schedule.getScheduledTime();
         }
 
+        // careTargetName: 개인 대상자면 이름, 그룹이면 그룹 이름
+        String careTargetNameValue = null;
+        if (schedule.getCareTarget() != null) {
+            careTargetNameValue = schedule.getCareTarget().getName();
+        } else if (group != null) {
+            careTargetNameValue = group.getGroupName();
+        }
+
         return ScheduleResponseDTO.builder()
                 .scheduleId(schedule.getScheduleId())
                 .careTargetId(schedule.getCareTarget() != null ? schedule.getCareTarget().getCareTargetId() : null)
+                .groupId(group != null ? group.getGroupId() : null)
                 .scheduledTime(schedule.getScheduledTime() != null ? schedule.getScheduledTime().format(formatter) : null)
                 .nextRunAt(nextRunAtValue != null ? nextRunAtValue.format(formatter) : null)
-                .careTargetName(
-                        schedule.getCareTarget() != null ? schedule.getCareTarget().getName() : "그룹대상")
+                .careTargetName(careTargetNameValue)
                 .targetType(targetType != null ? targetType.name() : null)
                 .targetTypeLabel(mapTargetTypeLabel(targetType))
                 .targetGroupName(group != null ? group.getGroupName() : null)

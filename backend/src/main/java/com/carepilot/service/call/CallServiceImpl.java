@@ -7,6 +7,7 @@ import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.call.ScheduleStatus;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.config.Scenario;
+import com.carepilot.domain.user.User;
 import com.carepilot.dto.call.CallDetailResponseDTO;
 import com.carepilot.dto.call.CallResponseDTO;
 import com.carepilot.dto.call.ScheduleCreateRequestDTO;
@@ -37,9 +38,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.caretarget.CareTargetGroup;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.repository.call.RiskScoreRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
+import com.carepilot.repository.caretarget.CareTargetGroupRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import java.time.LocalDateTime;
 
@@ -55,6 +58,7 @@ public class CallServiceImpl implements CallService {
     private final RiskScoreRepository riskScoreRepository;
     private final OrganizationRepository organizationRepository;
     private final CareTargetRepository careTargetRepository;
+    private final CareTargetGroupRepository careTargetGroupRepository;
     private final ScenarioRepository scenarioRepository;
     private final ScheduleNotificationService scheduleNotificationService;
     private final RiskConfigService riskConfigService;
@@ -163,16 +167,35 @@ public class CallServiceImpl implements CallService {
             throw new IllegalArgumentException("Organization ID mismatch");
         }
 
-        CareTarget careTarget = careTargetRepository.findById(dto.getCareTargetId())
-                .orElseThrow(() -> new EntityNotFoundException("CareTarget not found"));
+        // 개인 대상자 또는 그룹 중 하나만 선택되어야 함
+        if (dto.getCareTargetId() != null && dto.getGroupId() != null) {
+            throw new IllegalArgumentException("CareTargetId and GroupId cannot be set at the same time");
+        }
+        if (dto.getCareTargetId() == null && dto.getGroupId() == null) {
+            throw new IllegalArgumentException("Either CareTargetId or GroupId must be set");
+        }
+
+        CareTarget careTarget = null;
+        CareTargetGroup group = null;
+        
+        if (dto.getCareTargetId() != null) {
+            careTarget = careTargetRepository.findById(dto.getCareTargetId())
+                    .orElseThrow(() -> new EntityNotFoundException("CareTarget not found"));
+        } else {
+            group = careTargetGroupRepository.findById(dto.getGroupId())
+                    .orElseThrow(() -> new EntityNotFoundException("CareTargetGroup not found"));
+        }
 
         Scenario scenario = null;
         if (dto.getScenarioId() != null) {
             scenario = scenarioRepository.findById(dto.getScenarioId()).orElse(null);
         }
 
+        // User 정보는 SecurityContext에서 가져오거나 null로 설정
+        User user = null; // 필요시 SecurityContext에서 가져오기
+
         // 2. DTO -> Entity 변환
-        CallSchedule schedule = dto.toEntity(organization, careTarget, null, scenario);
+        CallSchedule schedule = dto.toEntity(organization, careTarget, group, user, scenario);
         schedule = callScheduleRepository.save(schedule);
 
         // 3. 예약확인 문자 발송
@@ -225,10 +248,18 @@ public class CallServiceImpl implements CallService {
             throw new EntityNotFoundException("Schedule not found for this organization");
         }
 
+        // 개인 대상자 또는 그룹 업데이트
         CareTarget careTarget = existing.getCareTarget();
+        CareTargetGroup group = existing.getGroup();
+        
         if (dto.getCareTargetId() != null) {
             careTarget = careTargetRepository.findById(dto.getCareTargetId())
                     .orElseThrow(() -> new EntityNotFoundException("CareTarget not found"));
+            group = null; // 개인 대상자로 변경 시 그룹 제거
+        } else if (dto.getGroupId() != null) {
+            group = careTargetGroupRepository.findById(dto.getGroupId())
+                    .orElseThrow(() -> new EntityNotFoundException("CareTargetGroup not found"));
+            careTarget = null; // 그룹으로 변경 시 개인 대상자 제거
         }
 
         ScheduleType type = dto.getType() != null ? ScheduleType.valueOf(dto.getType()) : null;
@@ -240,6 +271,7 @@ public class CallServiceImpl implements CallService {
 
         existing.applyUpdates(
                 careTarget,
+                group,
                 dto.getScheduledTime(),
                 type,
                 recurrence,

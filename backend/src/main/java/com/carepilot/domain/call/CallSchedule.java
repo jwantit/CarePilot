@@ -127,6 +127,7 @@ public class CallSchedule extends BaseEntity {
     }
 
     public void applyUpdates(CareTarget careTarget,
+                             CareTargetGroup group,
                              LocalDateTime scheduledTime,
                              ScheduleType type,
                              ScheduleRecurrence recurrence,
@@ -135,6 +136,13 @@ public class CallSchedule extends BaseEntity {
                              String memo) {
         if (careTarget != null) {
             this.careTarget = careTarget;
+            this.group = null;  // 개인 대상자로 변경 시 그룹 제거
+            this.targetType = ScheduleTargetType.CARE_TARGET;
+        }
+        if (group != null) {
+            this.group = group;
+            this.careTarget = null;  // 그룹으로 변경 시 개인 대상자 제거
+            this.targetType = ScheduleTargetType.GROUP;
         }
         if (scheduledTime != null) {
             this.scheduledTime = scheduledTime;
