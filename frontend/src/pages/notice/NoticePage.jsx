@@ -5,11 +5,15 @@ import NoticeList from "../../components/notice/NoticeList";
 import NoticeForm from "../../components/notice/NoticeForm";
 import NoticeDetail from "../../components/notice/NoticeDetail";
 import { useAuth } from "../../hooks/useAuth";
+import useCustomMove from "../../hooks/useCustomMove";
 
 function NoticePage() {
   const { user } = useAuth();
   const currentUserId = user?.userId || null;
   const currentOrgId = user?.organizationId || null;
+
+  // useCustomMove 훅 사용 (projectId와 filter는 null로 전달)
+  const { moveToList, page, size, refresh } = useCustomMove(null, null);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -32,9 +36,12 @@ function NoticePage() {
   const [existingFiles, setExistingFiles] = useState([]); // 기존 파일 목록
   const [deletedFileIds, setDeletedFileIds] = useState([]); // 삭제할 파일 ID 목록
 
-  const loadNotices = async (page = 0) => {
+  // useCustomMove는 1-based 페이지를 사용하므로 0-based로 변환
+  const pageIndex = page - 1;
+
+  const loadNotices = async (pageNum = 0) => {
     try {
-      const response = await noticeApi.getNotices(page);
+      const response = await noticeApi.getNotices(pageNum, size);
       const { content, totalPages, number } = response.data;
 
       setNotices(Array.isArray(content) ? content : []);
@@ -44,6 +51,14 @@ function NoticePage() {
       console.error("데이터 로딩 실패:", error);
       setNotices([]);
     }
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    // newPage는 0-based이므로 1-based로 변환하여 moveToList 호출
+    // URL 업데이트와 동시에 데이터도 즉시 로드
+    moveToList({ page: newPage + 1, size });
+    loadNotices(newPage);
   };
 
   const handleFileChange = (e) => {
@@ -58,9 +73,11 @@ function NoticePage() {
     setDeletedFileIds([]);
   };
 
+  // 초기 로드 및 URL 파라미터 변경 시 데이터 로드
   useEffect(() => {
-    loadNotices();
-  }, []);
+    loadNotices(pageIndex);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   // 답글 작성 시 자동으로 "@유저이름 " 추가
   useEffect(() => {
@@ -118,7 +135,7 @@ function NoticePage() {
           setIsPinned(false);
           setNoticeType("NORMAL");
           clearFiles(); // 파일 초기화
-      loadNotices(currentPage);
+      loadNotices(pageIndex);
       
       // 수정한 게시물이 상세 화면에 열려있다면 업데이트
       if (currentEditingId && selectedNotice && selectedNotice.noticeId === currentEditingId) {
@@ -166,7 +183,7 @@ function NoticePage() {
     try {
       // 삭제 시 권한 확인을 위해 userId 전달
       await noticeApi.deleteNotice(noticeId, currentUserId);
-      loadNotices(currentPage);
+      loadNotices(pageIndex);
     } catch (error) {
       alert("삭제 권한이 없거나 오류가 발생했습니다.");
     }
@@ -265,7 +282,7 @@ function NoticePage() {
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        onPageChange={loadNotices}
+        onPageChange={handlePageChange}
       />
            {" "}
       <NoticeDetail
