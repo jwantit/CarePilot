@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional; // 1. 임포트
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -137,37 +138,52 @@ public class CareServiceImpl implements CareService {
     }
     //END-------------------------------------------------------------------------------------------
 
-
+    //전체조회 리스트-----------------------------------------------------------------------------------
     @Override
     public List<CareTargetListResponseDTO> getCareTargetList(Long organizationId, String keyword) {
 
-
         List<CareTarget> careTargets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(organizationId, keyword);
+        List<Long> careTargetIds = careTargets.stream()
+                .map(CareTarget::getCareTargetId)
+                .toList();
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
 
-        log.info("케어 대상자 조회 진입");
+        List<Call> latestCalls = callRepository.findLatestCallsByCareTargetIds(careTargetIds);
+        Map<Long, Call> latestCallsMap = latestCalls.stream()
+                .collect(Collectors.toMap(
+                        call -> call.getCareTarget().getCareTargetId(),
+                        call -> call,
+                        (existing, replacement) -> existing // 중복 시 기존 값 유지
+                ));
+        
+        List<RiskScore> latestRiskScores = riskScoreRepository.findLatestRiskScoresByCareTargetIds(careTargetIds);
+        Map<Long, RiskScore> latestRiskScoresMap = latestRiskScores.stream()
+                .collect(Collectors.toMap(
+                        rs -> rs.getCareTarget().getCareTargetId(),
+                        rs -> rs,
+                        (existing, replacement) -> existing // 중복 시 기존 값 유지
+                ));
 
         List<CareTargetListResponseDTO> result = new ArrayList<>();
-        for (CareTarget ct : careTargets){
-
-            log.info("순회 진입");
-
-            Optional<Call> lastCallOpt = callRepository.findTopByCareTargetId(ct.getCareTargetId());
-            String lastCallDate = lastCallOpt
-                    .map(call -> call.getStartTime().format(formatter))
-                    .orElse(null);
-
-            RiskLevel latestLevel = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId())
-                    .map(rs -> riskConfigService.resolveLevel(rs.getRiskScore(), riskConfig))
-                    .orElse(RiskLevel.LOW);
-
+        
+        for (CareTarget ct : careTargets) {
+            Call lastCall = latestCallsMap.get(ct.getCareTargetId());
+            String lastCallDate = lastCall != null 
+                ? lastCall.getStartTime().format(formatter) 
+                : null;
+            
+            RiskScore latestRiskScore = latestRiskScoresMap.get(ct.getCareTargetId());
+            RiskLevel latestLevel = latestRiskScore != null
+                ? riskConfigService.resolveLevel(latestRiskScore.getRiskScore(), riskConfig)
+                : RiskLevel.LOW;
+            
             List<UploadFileResponseDTO> tempfiles = uploadFileService.careTargetFiles(organizationId, ct.getCareTargetId());
             List<UploadFileResponseDTO> filesScores = (tempfiles != null && !tempfiles.isEmpty())
                     ? tempfiles
                     : null;
-
-            log.info("도메인 전부 가져오기 성공");
+            
             CareTargetListResponseDTO dto = CareTargetListResponseDTO.builder()
                     .careTargetId(ct.getCareTargetId())
                     .thumbnailStoragePath(filesScores != null ? filesScores.getFirst().getThumbnailUrl() : null)
@@ -181,6 +197,7 @@ public class CareServiceImpl implements CareService {
                     .build();
             result.add(dto);
         }
+
         return result;
     }
 
@@ -416,6 +433,12 @@ public class CareServiceImpl implements CareService {
                 careTargetId,
                 String.join(", ", changeDetails)
         );
+    }
+
+    public CareTarget getCareTarget(Long id){
+        CareTarget ct = careTargetRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대상자"));
+        return ct;
     }
 
     //위험 데이타 툴---------------------------------------------------------------------------

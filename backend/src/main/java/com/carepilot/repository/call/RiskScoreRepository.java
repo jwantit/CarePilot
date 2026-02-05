@@ -20,6 +20,16 @@ public interface RiskScoreRepository extends JpaRepository<RiskScore, Long> {
             "ORDER BY rs.calculatedAt DESC LIMIT 1")
     Optional<RiskScore> findLatestByCareTargetId(@Param("careTargetId") Long careTargetId);
 
+    //케어 대상자 리스트 배치 조회 - 여러 대상자의 최신 RiskScore 한 번에 조회
+    @Query("SELECT rs FROM RiskScore rs " +
+           "WHERE rs.careTarget.careTargetId IN :careTargetIds " +
+           "AND rs.id IN (" +
+           "   SELECT MAX(rs2.id) FROM RiskScore rs2 " +
+           "   WHERE rs2.careTarget.careTargetId IN :careTargetIds " +
+           "   GROUP BY rs2.careTarget.careTargetId" +
+           ")")
+    List<RiskScore> findLatestRiskScoresByCareTargetIds(@Param("careTargetIds") List<Long> careTargetIds);
+
 
     //케어 대상자 상세보기 위험 추이
     @Query("SELECT rs FROM RiskScore rs " +

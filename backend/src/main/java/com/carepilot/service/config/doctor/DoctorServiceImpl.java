@@ -4,6 +4,7 @@ import com.carepilot.domain.config.Doctor;
 import com.carepilot.domain.config.DoctorRole;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.dto.config.DoctorDTO;
+import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.DoctorRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final OrganizationRepository organizationRepository;
+    private final CareTargetRepository careTargetRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -152,6 +154,8 @@ public class DoctorServiceImpl implements DoctorService {
     public void deleteDoctor(Long doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        careTargetRepository.clearCareTargetDoctor(doctorId);
         doctorRepository.delete(doctor);
     }
 

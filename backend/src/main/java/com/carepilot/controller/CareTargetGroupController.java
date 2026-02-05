@@ -39,15 +39,6 @@ public class CareTargetGroupController {
 
         return ResponseEntity.ok(result);
     }
-    //케데 인서트시 대상자 목록---------------------------------------------------------
-    @GetMapping("/target/list")
-    public ResponseEntity<List<CareTargetListResponseDTO>> getCareTargetList(
-            @RequestParam("organizationId") Long organizationId
-    ) {
-        List<CareTargetListResponseDTO> result = careGroupService.getCareTargetList(organizationId);
-
-        return ResponseEntity.ok(result);
-    }
 
     //케그 인서트시 시나리오 목록---------------------------------------------------------
     @GetMapping("/scenario/list")
@@ -60,20 +51,6 @@ public class CareTargetGroupController {
         log.info("시나리오 조회 성공 ");
         return ResponseEntity.ok(result);
     }
-    //insert end----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //케데그룹 조회 리스트------------------------------------------
     @GetMapping("/list")

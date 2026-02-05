@@ -3,6 +3,7 @@ package com.carepilot.repository.caretarget;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -60,6 +61,12 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
 
     @Query("SELECT c.name FROM CareTarget c WHERE c.careTargetId = :careTargetId AND c.deletedAt IS NULL")
     String findNameByCareTargetId(@Param("careTargetId") Long careTargetId);
+
+
+    @Modifying
+    @Query("UPDATE CareTarget ct SET ct.doctor = NULL WHERE ct.doctor.doctorId = :doctorId")
+    void clearCareTargetDoctor(@Param("doctorId") Long doctorId);
+
 
 }
 

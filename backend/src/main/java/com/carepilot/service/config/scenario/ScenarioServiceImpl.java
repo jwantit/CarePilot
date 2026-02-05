@@ -8,18 +8,21 @@ import com.carepilot.domain.user.User;
 import com.carepilot.dto.config.scenario.ScenarioDTO;
 import com.carepilot.dto.config.scenario.ScenarioQuestionDTO;
 import com.carepilot.repository.call.CallScheduleRepository;
+import com.carepilot.repository.caretarget.CareTargetGroupRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.repository.user.UserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,6 +34,7 @@ public class ScenarioServiceImpl implements ScenarioService {
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
+    private final CareTargetGroupRepository careTargetGroupRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -167,10 +171,11 @@ public class ScenarioServiceImpl implements ScenarioService {
     public void deleteScenario(Long scenarioId) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new RuntimeException("Scenario not found"));
-
+         log.info("시나리오 삭제 접근");
         // 1. 관련 CallSchedule의 scenario를 NULL로 설정
         callScheduleRepository.clearScenarioByScenarioId(scenarioId);
-
+        //그룹 시나리오 null
+        careTargetGroupRepository.clearScenarioByScenarioId(scenarioId);
         // 2. 질문들 삭제
         scenarioQuestionRepository.deleteByScenario(scenario);
 

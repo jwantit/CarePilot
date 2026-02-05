@@ -23,9 +23,17 @@ public interface CallRepository extends JpaRepository<Call, Long> {
     // 조직별 통화 이력 페이징 조회
     Page<Call> findByOrganizationOrganizationIdOrderByStartTimeDesc(Long organizationId, Pageable pageable);
 
-    //케어 대상자 리스트 조회 가장 최근 값 하나
-    @Query("SELECT c FROM Call c WHERE c.careTarget.careTargetId = :careTargetId ORDER BY c.startTime DESC LIMIT 1")
-    Optional<Call> findTopByCareTargetId(@Param("careTargetId") Long careTargetId);
+
+
+    //케어 대상자 리스트 배치 조회 - 여러 대상자의 최신 Call 한 번에 조회
+    @Query("SELECT c FROM Call c " +
+           "WHERE c.careTarget.careTargetId IN :careTargetIds " +
+           "AND c.id IN (" +
+           "   SELECT MAX(c2.id) FROM Call c2 " +
+           "   WHERE c2.careTarget.careTargetId IN :careTargetIds " +
+           "   GROUP BY c2.careTarget.careTargetId" +
+           ")")
+    List<Call> findLatestCallsByCareTargetIds(@Param("careTargetIds") List<Long> careTargetIds);
 
     //케어 대상자 상세보기 통화기록
     List<Call> findAllByCareTargetCareTargetIdOrderByStartTimeDesc(Long careTargetId);

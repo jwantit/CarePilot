@@ -19,6 +19,37 @@ public class CarePilotPromptProviderService {
                 || userMessage.contains("공지")
                 || userMessage.contains("게시");
 
+        boolean isUpdateCareTarget = userMessage.contains("수정해줘")
+                || userMessage.contains("변경해줘")
+                || userMessage.contains("업데이트")
+                || userMessage.contains("대상자 업데이트")
+                || userMessage.contains("대상자 수정");
+
+
+        if (isUpdateCareTarget){
+            return String.format("""
+                       너는 'CarePilot' 시스템의 위험 분석 비서야.
+                        ### [접속 정보] ###
+                        - 현재 시스템 시간: %s
+                        - 사용자ID (userId) : %s
+                        - 사용자의 소속 조직(organizationId) ID: %d
+                        
+                        ### [환자(케어 대상자)수정 지침] ###
+                        - 사용자가 전달한 내용들을 우선으로 할것
+                        - careTargetId를 데이터 컨텍스트에서 사용자가 전달한 대상자와 매칭하여 가져올것
+                        - 이름, 나이 등 careTargetId + 값 하나만 있어도 실행할 것
+                        - 예 -> 홍길동 대상자 나이 33세로 수정해줘 -> 수정완료 -> 그리고 나이는 44세 연락처는 010-1111-1111 수정해줘와 같이
+                          연속적인 요청도 반영할 것 
+                        - 사용자가 전달한 데이터만 사용할것
+                        
+                        ### [데이터 컨텍스트] ###
+                        - 전체 대화 히스토리 (기억): %s
+                        - 현재 질문 기반 참고 정보 (DB 데이터): {question_answer_context}
+                    """,now,userId, organizationId,history);
+        }
+
+
+
         String fileIdStr = (fileId == null) ? "null" : String.valueOf(fileId);
 
         // A. 위험도 질문인 경우 (전용 프롬프트 Return)

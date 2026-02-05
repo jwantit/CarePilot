@@ -122,6 +122,19 @@ public class CarePilotToolsService {
                 .guardianRelationship(relationship)
                 .build();
 
+
+        CareTarget careTarget = careServiceImpl.getCareTarget(Long.parseLong(careTargetId));
+
+        String finalName = (name != null) ? name : careTarget.getName();
+        String finalAge = (age != null) ? age : String.valueOf(careTarget.getAge());
+        String finalGender = (gender != null) ? gender : careTarget.getGender();
+        String finalPhone = (phone != null) ? phone : careTarget.getTargetPhone();
+        String finalDisease = (disease != null) ? disease : careTarget.getDisease();
+        String finalGuardianName = (guardianName != null) ? guardianName : careTarget.getGuardianName();
+        String finalGuardianPhone = (guardianPhone != null) ? guardianPhone : careTarget.getGuardianPhone();
+        String finalRelationship = (relationship != null) ? relationship : careTarget.getGuardianRelationship();
+
+
         String description = String.format("케어 대상 정보 수정 요청\n\n" +
                 "케어 대상 ID: %s\n" +
                 "수정 항목:\n" +
@@ -133,13 +146,13 @@ public class CarePilotToolsService {
                 "- 보호자명: %s\n" +
                 "- 보호자연락처: %s\n" +
                 "- 보호자관계: %s",
-                careTargetId, name, age, gender, phone, disease, guardianName, guardianPhone, relationship);
+                careTargetId, finalName, finalAge, finalGender, finalPhone, finalDisease, finalGuardianName, finalGuardianPhone, finalRelationship);
 
         if (!isChatbotAutomationEnabled) {
             // OFF: Task 생성 (USER, WAITING)
             createChatbotTask(organizationId, userId, TaskType.CARETARGET_UPDATE,
                     "AI 케어 대상 정보 수정 요청 확인", description, null);
-            return "케어 대상 정보 수정 요청이 할일 목록에 추가되었습니다. 확인 후 처리해 주세요.";
+            return "사용자에게 작업 페이지에서 내용을 확인하고하만 안내하고 이제 이 대화를 종료해 ";
         }
 
         // ON: 자동 실행
@@ -187,7 +200,7 @@ public class CarePilotToolsService {
 
         try {
             // 1. 입력 파라미터 전체 로그 (AI 전달값 확인)
-            log.info("📅 [예약 툴 호출] 환자: {}, 시간: {}, 유형: {}, 주기: {}, 시나리오: {}",
+            log.info("[예약 툴 호출] 환자: {}, 시간: {}, 유형: {}, 주기: {}, 시나리오: {}",
                     careTargetId, scheduledTime, type, recurrence, scenarioId);
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -389,7 +402,6 @@ public class CarePilotToolsService {
     /**
      * 챗봇 자동화 Task 생성 헬퍼 메서드
      */
-    @Transactional
     private void createChatbotTask(Long organizationId, Long userId, TaskType taskType,
                                    String title, String description, String result) {
         try {
