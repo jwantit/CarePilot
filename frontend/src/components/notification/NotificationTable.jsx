@@ -73,7 +73,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     const severityBadge = getSeverityBadge(rowData.severity);
     return (
       <div className="px-4 py-3 whitespace-nowrap h-full flex items-center">
-        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${severityBadge.color}`}>
+        <span className={`inline-block px-2 py-1 rounded-sm text-[11px] font-black border ${severityBadge.color}`}>
           {severityBadge.label}
         </span>
       </div>
@@ -83,7 +83,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const titleCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm font-medium text-slate-100 whitespace-nowrap truncate h-full flex items-center">
+      <div className="px-4 py-3 text-sm font-bold text-slate-100 whitespace-nowrap truncate h-full flex items-center">
         {rowData.title || '-'}
       </div>
     );
@@ -101,7 +101,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const careTargetCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-bold h-full flex items-center">
         {rowData.careTarget?.name || '-'}
       </div>
     );
@@ -110,7 +110,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const typeCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-bold h-full flex items-center">
         {getTypeLabel(rowData.type)}
       </div>
     );
@@ -119,7 +119,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const occurredAtCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-400 whitespace-nowrap h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-slate-400 whitespace-nowrap font-mono h-full flex items-center">
         {formatDateTime(rowData.occurredAt)}
       </div>
     );
@@ -130,10 +130,10 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     const isUnread = rowData.status === 'ACTIVE';
     return (
       <div className="px-4 py-3 text-sm whitespace-nowrap h-full flex items-center">
-        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+        <span className={`inline-block px-2.5 py-1 rounded-sm text-[11px] font-black border ${
           isUnread 
-            ? 'bg-blue-100 text-blue-700'
-            : 'bg-green-100 text-green-700'
+            ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
         }`}>
           {getStatusLabel(rowData.status)}
         </span>
@@ -152,14 +152,14 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               e.stopPropagation();
               handleConfirm(e, rowData.notificationId);
             }}
-            className="px-3 py-1.5 bg-teal-500 text-white text-xs font-bold rounded hover:bg-teal-600 transition-colors shadow-sm"
+            className="px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 text-white text-xs font-black rounded-sm border border-teal-500 hover:from-teal-500 hover:to-teal-600 transition-all shadow-md active:scale-95"
           >
             확인
           </button>
         ) : (
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-slate-500">확인완료</span>
-            <span className="text-xs text-slate-400 font-medium">{rowData.resolvedBy?.name || '시스템'}</span>
+            <span className="text-[10px] text-slate-500 font-bold">확인완료</span>
+            <span className="text-xs text-teal-500 font-black">{rowData.resolvedBy?.name || '시스템'}</span>
           </div>
         )}
       </div>
@@ -170,12 +170,12 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     if (index < 0 || index >= notifications.length) return '';
     const notification = notifications[index];
     const isUnread = notification?.status === 'ACTIVE';
-    return `hover:bg-slate-800/50 transition-colors cursor-pointer ${isUnread ? 'bg-teal-500/10' : ''}`;
+    return `hover:bg-slate-700/30 border-b border-slate-700/50 transition-colors cursor-pointer ${isUnread ? 'bg-teal-500/5' : 'bg-slate-800/30'}`;
   };
 
-  const headerRenderer = ({ label, columnData }) => {
+  const headerRenderer = ({ label }) => {
     return (
-      <div className="px-4 py-3 text-xs font-semibold text-slate-300 uppercase bg-slate-800/50 border-b border-slate-700 h-full flex items-center">
+      <div className="flex items-center justify-center w-full h-full text-[11px] font-black text-teal-400 uppercase tracking-widest">
         {label}
       </div>
     );
@@ -183,13 +183,13 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
   // 동적 row height 계산 (내용에 따라)
   const getRowHeight = ({ index }) => {
-    return 60; // 고정 높이
+    return 64; // 고정 높이 약간 증가
   };
 
   if (notifications.length === 0) {
     return (
-      <div className="bg-slate-800 rounded-none border border-slate-700 overflow-hidden shadow-sm">
-        <div className="px-4 py-8 text-center text-slate-500">
+      <div className="bg-slate-800 rounded-sm border border-slate-700 overflow-hidden shadow-lg">
+        <div className="px-4 py-20 text-center text-slate-500 bg-slate-800/30">
           알림이 없습니다.
         </div>
       </div>
@@ -197,21 +197,54 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   }
 
   return (
-    <div className="bg-slate-800 rounded-none border border-slate-700 overflow-hidden shadow-sm">
-      <div style={{ height: '600px', width: '100%' }}>
+    <div className="bg-slate-800 rounded-sm border border-slate-700 overflow-hidden shadow-lg flex-1 flex flex-col">
+      <style>
+        {`
+          .ReactVirtualized__Table__headerRow {
+            background-color: #0f172a !important;
+            border-bottom: 2px solid rgba(20, 184, 166, 0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            text-transform: uppercase !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+          }
+          .ReactVirtualized__Table__headerColumn {
+            background-color: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            outline: none !important;
+          }
+          .ReactVirtualized__Table__headerColumn:focus {
+            outline: none !important;
+          }
+        `}
+      </style>
+      <div className="flex-1" style={{ minHeight: '600px', width: '100%' }}>
         <AutoSizer>
           {({ height, width }) => (
             <Table
               width={width}
               height={height}
               headerHeight={48}
+              headerStyle={{ 
+                backgroundColor: '#0f172a', 
+                borderBottom: '2px solid rgba(20, 184, 166, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                margin: 0,
+                padding: 0
+              }}
               rowHeight={getRowHeight}
               rowCount={notifications.length}
               rowGetter={getRow}
               rowClassName={rowClassName}
               onRowClick={({ rowData }) => handleRowClick(rowData)}
-              overscanRowCount={5}
+              overscanRowCount={10}
               gridStyle={{ outline: 'none' }}
+              className="modal-scrollbar"
             >
               <Column
                 label="심각도"
@@ -268,11 +301,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
                 dataKey="action"
                 width={120}
                 cellRenderer={actionCellRenderer}
-                headerRenderer={({ label }) => (
-                  <div className="px-4 py-3 text-xs font-semibold text-slate-300 uppercase bg-slate-800/50 border-b border-slate-700 h-full flex items-center justify-center">
-                    {label}
-                  </div>
-                )}
+                headerRenderer={headerRenderer}
               />
             </Table>
           )}

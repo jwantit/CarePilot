@@ -12,6 +12,16 @@ import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import Breadcrumb from "../../components/common/Breadcrumb";
 
+function getSeverityBadge(severity) {
+  const map = {
+    LOW: { label: "낮음", color: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
+    MEDIUM: { label: "보통", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" },
+    HIGH: { label: "위험", color: "bg-orange-500/10 text-orange-400 border-orange-500/30" },
+    CRITICAL: { label: "긴급", color: "bg-red-500/10 text-red-400 border-red-500/30" },
+  };
+  return map[severity] || { label: severity, color: "bg-slate-700 text-slate-300 border-slate-600" };
+}
+
 function NotificationPage() {
   const auth = useSelector((state) => state.auth);
   const currentUserId = auth.user?.userId;
@@ -226,53 +236,52 @@ function NotificationPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={["알림 관리"]} />
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-100">알림 관리</h1>
-        <div className="flex gap-2">
+      
+      {/* 탭 메뉴 */}
+      <div className="flex justify-between items-end border-b border-slate-700 pb-px mb-4">
+        <div className="flex">
           <button
-            onClick={() => setFilter("active")}
-            className={`px-4 py-2 rounded-sm font-semibold transition-colors ${
+            className={`px-4 py-2 font-medium text-sm transition-colors ${
               filter === "active"
-                ? "bg-teal-600 text-white border border-teal-500"
-                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
+                ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
             }`}
+            onClick={() => setFilter("active")}
           >
             활성 알림
           </button>
           <button
-            onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-sm font-semibold transition-colors ${
+            className={`px-4 py-2 font-medium text-sm transition-colors ${
               filter === "all"
-                ? "bg-teal-600 text-white border border-teal-500"
-                : "bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 hover:border-slate-500"
+                ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
             }`}
+            onClick={() => setFilter("all")}
           >
-            전체
+            전체 알림
           </button>
+        </div>
+        
+        <div className="flex gap-2 mb-2">
           <button
             onClick={handleCreateTestNotification}
-            className="px-4 py-2 bg-teal-600 text-white rounded-sm hover:bg-teal-500 border border-teal-500 font-semibold transition-colors"
+            className="px-4 py-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             테스트 알림 생성
           </button>
           <button
             onClick={handleTestRiskDetection}
-            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 font-semibold"
+            className="px-4 py-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-orange-400 text-sm font-semibold transition-all border border-orange-500/50 hover:border-orange-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             위험 감지 알림 테스트
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-slate-200 mb-2">
-              활성 알림 목록
-            </h2>
-          </div>
+      <div className="grid grid-cols-3 gap-6 items-stretch">
+        <div className="col-span-2 flex flex-col">
           {loading ? (
-            <div className="flex justify-center items-center py-12 bg-slate-800 rounded-sm border border-slate-700">
+            <div className="flex-1 flex justify-center items-center py-12 bg-slate-800 rounded-sm border border-slate-700">
               <div className="text-slate-400">로딩 중...</div>
             </div>
           ) : (
@@ -285,7 +294,7 @@ function NotificationPage() {
         </div>
 
         {/* 오른쪽: 통계 + 최근 해결된 알림 */}
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-sm border border-slate-700 p-4 shadow-lg">
             <h2 className="text-xl font-semibold text-slate-200 mb-4">
               알림 통계 요약
@@ -312,7 +321,7 @@ function NotificationPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-sm border border-slate-700 p-4 shadow-lg">
+          <div className="flex-1 bg-gradient-to-br from-slate-800 to-slate-900 rounded-sm border border-slate-700 p-4 shadow-lg overflow-hidden flex flex-col">
             <h2 className="text-xl font-semibold text-slate-200 mb-4">
               최근 해결된 알림
             </h2>
@@ -321,7 +330,7 @@ function NotificationPage() {
                 해결된 알림이 없습니다.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-y-auto pr-1 flex-1 modal-scrollbar">
                 {resolvedNotifications.map((notification) => (
                   <div
                     key={notification.notificationId}
