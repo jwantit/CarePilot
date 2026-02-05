@@ -108,10 +108,12 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
                 .build();
         riskScoreRepository.save(riskScore);
 
-        log.info("Analysis completed for callId={}, riskScore={}", callId, riskResult.getRiskScore());
+        log.info("Analysis completed for callId={}, riskScore={}, riskLevel={}", 
+                callId, riskResult.getRiskScore(), riskLevel);
 
-        // 위험 감지 알림 생성 (HIGH 또는 CRITICAL일 때만)
-        if (riskLevel == RiskLevel.HIGH || riskLevel == RiskLevel.CRITICAL) {
+        // 위험도에 따라 알림 생성
+        if (riskLevel == RiskLevel.HIGH) {
+            // HIGH: 위험 감지 알림 생성
             try {
                 // 같은 Call에 대해 이미 위험 감지 알림이 생성되었는지 확인
                 List<Notification> existingNotifications =
@@ -132,6 +134,40 @@ public class CallAnalysisServiceImpl implements CallAnalysisService {
                 }
             } catch (Exception e) {
                 log.error("위험 감지 알림 생성 실패: callId={}, error={}", callId, e.getMessage(), e);
+            }
+        } else if (riskLevel == RiskLevel.CRITICAL) {
+            // CRITICAL: 긴급 상황 알림 생성
+            try {
+                // 같은 Call에 대해 이미 긴급 상황 알림이 생성되었는지 확인
+                List<Notification> existingEmergencyNotifications =
+                        notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.EMERGENCY);
+                
+                if (existingEmergencyNotifications.isEmpty()) {
+                    String careTargetName = call.getCareTarget() != null ? 
+                            call.getCareTarget().getName() : "알 수 없음";
+                    String title = String.format("긴급 상황 발생: %s", careTargetName);
+                    String description = String.format(
+                            "케어대상자 '%s'의 통화 분석 결과 위험도가 %d점(CRITICAL)으로 감지되었습니다.\n\n" +
+                            "위험 수준: CRITICAL\n" +
+                            "즉시 의료진 연락이 필요합니다.",
+                            careTargetName, riskResult.getRiskScore());
+                    
+                    notificationService.createOrganizationNotification(
+                            call.getOrganization().getOrganizationId(),
+                            NotificationType.EMERGENCY,
+                            title,
+                            description,
+                            RiskLevel.CRITICAL,
+                            call,
+                            call.getCareTarget()
+                    );
+                    log.info("긴급 상황 알림 생성 완료 (위험도 CRITICAL): callId={}, riskScore={}",
+                            callId, riskResult.getRiskScore());
+                } else {
+                    log.info("이미 긴급 상황 알림이 존재하여 중복 방지: callId={}", callId);
+                }
+            } catch (Exception e) {
+                log.error("긴급 상황 알림 생성 실패: callId={}, error={}", callId, e.getMessage(), e);
             }
         }
 

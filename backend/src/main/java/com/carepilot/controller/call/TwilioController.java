@@ -6,13 +6,19 @@ import com.carepilot.domain.call.CallRecording;
 import com.carepilot.domain.call.CallStatus;
 import com.carepilot.domain.call.CallType;
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.file.UploadFileType;
 import com.carepilot.domain.file.UploadTargetType;
+import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.domain.sms.SmsType;
+import com.carepilot.domain.task.Task;
+import com.carepilot.domain.task.TaskSourceType;
+import com.carepilot.domain.task.TaskStatus;
+import com.carepilot.domain.task.TaskType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
@@ -21,6 +27,7 @@ import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.domain.sms.InboundSms;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.sms.InboundSmsRepository;
+import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.service.call.emergency.EmergencyDetectionService;
 import com.carepilot.service.call.emergency.EmergencyDetectionResult;
@@ -35,11 +42,14 @@ import com.carepilot.domain.user.User;
 import com.carepilot.domain.user.UserRole;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.repository.notification.NotificationRepository;
+
 import java.util.ArrayList;
+
 import com.carepilot.service.sms.ScheduleChangeService;
 import com.carepilot.service.prescription.PrescriptionService;
 import com.carepilot.service.config.ai.AiConfigService;
 import com.carepilot.service.sms.SmsTypeService;
+import com.carepilot.service.task.TaskService;
 import com.carepilot.service.upload.UploadFileService;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Gather;
@@ -53,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -103,6 +114,8 @@ public class TwilioController {
     private final PrescriptionService prescriptionService;
     private final AiConfigService aiConfigService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final TaskService taskService;
+    private final TaskRepository taskRepository;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -133,24 +146,24 @@ public class TwilioController {
             if (callOpt.isPresent()) {
                 Call call = callOpt.get();
                 Scenario scenario = null;
-                
+
                 // CallSchedule을 통해 Scenario 찾기
                 if (call.getCallSchedule() != null) {
                     scenario = call.getCallSchedule().getScenario();
                 }
-                
+
                 // 인사말 먼저 말하기 (시나리오 있든 없든)
                 rb.say(new Say.Builder("안녕하세요, 케어파일럿입니다.")
                         .language(Say.Language.KO_KR)
                         .voice(Say.Voice.POLLY_SEOYEON)
                         .build());
-                
+
                 // Scenario가 있으면 시나리오 기반 질문 시작
                 if (scenario != null) {
                     // 시나리오의 첫 번째 질문 가져오기
                     List<ScenarioQuestion> questions = scenarioQuestionRepository
                             .findByScenarioOrderByQuestionOrderAsc(scenario);
-                    
+
                     if (questions.isEmpty()) {
                         rb.say(new Say.Builder("질문이 설정되지 않았습니다.")
                                 .language(Say.Language.KO_KR)
@@ -164,7 +177,7 @@ public class TwilioController {
 
                         // 첫 번째 질문은 시나리오 텍스트 그대로 사용 (동적 생성 스킵)
                         String contextualQuestion = originalQuestion;
-                        
+
                         // 질문을 transcript에 저장
                         updateTranscriptWithQuestion(callSid, contextualQuestion);
 
@@ -245,7 +258,7 @@ public class TwilioController {
         VoiceResponse.Builder rb = new VoiceResponse.Builder();
 
         log.info("handleConversation 호출: callSid={}, questionIdx={}, speechResult={}",
-            callSid, questionIdx, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
+                callSid, questionIdx, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
 
         try {
             // 1. CallSid로 Call 찾기
@@ -266,7 +279,7 @@ public class TwilioController {
             if (call.getCallSchedule() != null) {
                 scenario = call.getCallSchedule().getScenario();
             }
-            
+
             if (scenario == null) {
                 // 시나리오가 없으면 기존 방식(단순 STT)으로 진행
                 log.info("시나리오가 없어 기존 방식으로 진행: callId={}", call.getCallId());
@@ -300,7 +313,7 @@ public class TwilioController {
             // 4. 이전 답변이 있다면 처리
             String previousContextualQuestion = null; // 이전에 실제로 물어본 변형된 질문
             log.info("답변 처리 시작: speechResult={}, questionIdx={}",
-                speechResult != null && !speechResult.trim().isEmpty() ? "있음" : "없음", questionIdx);
+                    speechResult != null && !speechResult.trim().isEmpty() ? "있음" : "없음", questionIdx);
 
             if (speechResult != null && !speechResult.trim().isEmpty() && questionIdx > 0) {
                 // 이전 질문 텍스트 가져오기
@@ -317,7 +330,7 @@ public class TwilioController {
                 // 4-1. 긴급 상황 감지
                 String scenarioPurpose = scenario.getDescription() != null ? scenario.getDescription() : "";
                 EmergencyDetectionResult emergencyResult = emergencyDetectionService.detectEmergency(
-                    speechResult, scenarioPurpose);
+                        speechResult, scenarioPurpose);
 
                 if (emergencyResult.isEmergency()) {
                     // 긴급 상황: 시나리오 중단 및 대응 멘트 송출
@@ -333,7 +346,7 @@ public class TwilioController {
                     sendEmergencyNotification(call, careTarget, speechResult, emergencyResult.getEmergencyMessage());
 
                     log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}",
-                        callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
+                            callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
 
                     // 통화 종료
                     return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
@@ -346,14 +359,14 @@ public class TwilioController {
                 // 벡터 저장 시에는 원래 질문 사용 (메타데이터용)
                 if (careTarget != null) {
                     callVectorStoreService.saveAnswerVector(
-                        careTarget.getCareTargetId(),
-                        previousQuestion.getQuestionText(), // 원래 질문 (메타데이터용)
-                        speechResult,
-                        null, // embedding은 VectorStore가 자동 생성
-                        java.time.LocalDateTime.now()
+                            careTarget.getCareTargetId(),
+                            previousQuestion.getQuestionText(), // 원래 질문 (메타데이터용)
+                            speechResult,
+                            null, // embedding은 VectorStore가 자동 생성
+                            java.time.LocalDateTime.now()
                     );
                     log.debug("벡터 저장 완료: careTargetId={}, questionIdx={}",
-                        careTarget.getCareTargetId(), questionIdx);
+                            careTarget.getCareTargetId(), questionIdx);
                 }
             }
 
@@ -371,9 +384,9 @@ public class TwilioController {
 
                 // 6-1. 동적 질문 생성 (과거 기록 참고)
                 String contextualQuestion = questionGenerationService.generateContextualQuestion(
-                    originalQuestion,
-                    careTarget,
-                    questionIdx > 0 && speechResult != null ? speechResult : null
+                        originalQuestion,
+                        careTarget,
+                        questionIdx > 0 && speechResult != null ? speechResult : null
                 );
 
                 log.info("변형된 질문 생성 완료: questionIdx={}, contextualQuestion={}", questionIdx, contextualQuestion);
@@ -384,7 +397,7 @@ public class TwilioController {
                 // 6-3. 변형된 질문으로 음성 송출
                 String nextActionUrl = ngrokBaseUrl + "/api/twilio/voice/conversation?questionIdx=" + (questionIdx + 1);
                 log.info("다음 질문 송출: questionIdx={}, nextQuestionIdx={}, actionUrl={}",
-                    questionIdx, questionIdx + 1, nextActionUrl);
+                        questionIdx, questionIdx + 1, nextActionUrl);
 
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
@@ -404,7 +417,7 @@ public class TwilioController {
                         .language(Say.Language.KO_KR)
                         .voice(Say.Voice.POLLY_SEOYEON)
                         .build());
-                
+
                 rb.gather(new Gather.Builder()
                         .inputs(Collections.singletonList(Gather.Input.SPEECH))
                         .language(Gather.Language.KO_KR)
@@ -466,7 +479,7 @@ public class TwilioController {
                 .language(Say.Language.KO_KR)
                 .voice(Say.Voice.POLLY_SEOYEON)
                 .build());
-        
+
         rb.gather(new Gather.Builder()
                 .inputs(Collections.singletonList(Gather.Input.SPEECH))
                 .language(Gather.Language.KO_KR)
@@ -499,7 +512,7 @@ public class TwilioController {
                 if (callOpt.isPresent()) {
                     Call call = callOpt.get();
                     Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
-                    
+
                     if (recordingOpt.isPresent()) {
                         CallRecording recording = recordingOpt.get();
                         String existingTranscript = recording.getTranscript() != null ? recording.getTranscript() : "";
@@ -543,21 +556,21 @@ public class TwilioController {
             @RequestParam(value = "CallSid") String callSid,
             @RequestParam(value = "CallStatus") String callStatus,
             @RequestParam(value = "CallDuration", required = false) String callDurationStr) {
-        
-        log.info("Twilio 통화 상태 업데이트: callSid={}, callStatus={}, duration={}", 
+
+        log.info("Twilio 통화 상태 업데이트: callSid={}, callStatus={}, duration={}",
                 callSid, callStatus, callDurationStr);
-        
+
         Optional<Call> callOpt = callRepository.findByCallSid(callSid);
         if (callOpt.isPresent()) {
             Call call = callOpt.get();
-            
+
             // 통화 상태 맵핑
             CallStatus newStatus = null;
             if ("completed".equals(callStatus)) {
                 // completed인 경우 실제 응답 여부 확인
                 boolean hasRealResponse = checkIfHasRealResponse(call, callDurationStr);
                 newStatus = hasRealResponse ? CallStatus.SUCCESS : CallStatus.NO_ANSWER;
-                log.info("통화 completed 상태 판단: callId={}, hasRealResponse={}, newStatus={}, 현재상태={}", 
+                log.info("통화 completed 상태 판단: callId={}, hasRealResponse={}, newStatus={}, 현재상태={}",
                         call.getCallId(), hasRealResponse, newStatus, call.getStatus());
             } else if ("failed".equals(callStatus)) {
                 newStatus = CallStatus.FAILED;
@@ -566,29 +579,29 @@ public class TwilioController {
             } else if ("busy".equals(callStatus) || "canceled".equals(callStatus)) {
                 newStatus = CallStatus.CANCELLED;
             }
-            
+
             // 상태 업데이트 필요 여부 확인
             boolean statusChanged = (newStatus != null && newStatus != call.getStatus());
-            log.info("통화 상태 변경 확인: callId={}, newStatus={}, 현재상태={}, 변경필요={}", 
+            log.info("통화 상태 변경 확인: callId={}, newStatus={}, 현재상태={}, 변경필요={}",
                     call.getCallId(), newStatus, call.getStatus(), statusChanged);
-            
+
             if (statusChanged) {
                 call.updateStatus(newStatus);
                 callRepository.save(call);
                 log.info("통화 상태 업데이트 완료: callId={}, newStatus={}", call.getCallId(), newStatus);
             }
-            
+
             // 통화 실패 알림 생성 (상태 변경 여부와 관계없이 실패/무응답/취소 상태면 확인)
             // 주의: 상태가 변경되지 않았어도 이미 NO_ANSWER로 저장된 경우 알림이 없을 수 있으므로 확인 필요
             if (newStatus == CallStatus.FAILED || newStatus == CallStatus.NO_ANSWER || newStatus == CallStatus.CANCELLED) {
                 try {
                     // 중복 생성 방지
-                    List<com.carepilot.domain.notification.Notification> existing = 
+                    List<com.carepilot.domain.notification.Notification> existing =
                             notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.CALL);
-                    
-                    log.info("통화 실패 알림 생성 확인: callId={}, status={}, 기존알림개수={}", 
+
+                    log.info("통화 실패 알림 생성 확인: callId={}, status={}, 기존알림개수={}",
                             call.getCallId(), newStatus, existing.size());
-                    
+
                     if (existing.isEmpty()) {
                         notificationService.createCallFailureNotification(
                                 call.getOrganization().getOrganizationId(),
@@ -598,16 +611,16 @@ public class TwilioController {
                         );
                         log.info("통화 실패 알림 생성 완료: callId={}, status={}", call.getCallId(), newStatus);
                     } else {
-                        log.info("이미 통화 실패 알림이 존재하여 생성하지 않음: callId={}, 기존알림개수={}", 
+                        log.info("이미 통화 실패 알림이 존재하여 생성하지 않음: callId={}, 기존알림개수={}",
                                 call.getCallId(), existing.size());
                     }
                 } catch (Exception e) {
-                    log.error("통화 실패 알림 생성 중 오류: callId={}, error={}", 
+                    log.error("통화 실패 알림 생성 중 오류: callId={}, error={}",
                             call.getCallId(), e.getMessage(), e);
                 }
             }
         }
-        
+
         return ResponseEntity.ok().build();
     }
 
@@ -662,7 +675,7 @@ public class TwilioController {
             );
 
             Optional<CallRecording> existingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
-            
+
             CallRecording callRecording;
             if (existingOpt.isPresent()) {
                 // 기존 CallRecording이 있으면 file만 업데이트하고 transcript는 유지
@@ -828,7 +841,9 @@ public class TwilioController {
         return ResponseEntity.noContent().build();
     }
 
-    /** From 번호로 CareTarget 매칭 (Twilio 형식 +8210... → 010... 비교) */
+    /**
+     * From 번호로 CareTarget 매칭 (Twilio 형식 +8210... → 010... 비교)
+     */
     private CareTarget findCareTargetByFromNumber(String fromNumber) {
         if (fromNumber == null || fromNumber.isBlank()) {
             return null;
@@ -999,10 +1014,10 @@ public class TwilioController {
             }
 
             Call call = callOpt.get();
-            
+
             // CallRecording이 있으면 질문 추가, 없으면 생성
             Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
-            
+
             if (recordingOpt.isPresent()) {
                 CallRecording recording = recordingOpt.get();
                 String existingTranscript = recording.getTranscript() != null ? recording.getTranscript() : "";
@@ -1074,18 +1089,18 @@ public class TwilioController {
             }
 
             Call call = callOpt.get();
-            
+
             // CallRecording이 있으면 transcript에 추가, 없으면 생성
             Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
-            
+
             // 대화 형식으로 저장: "AI: 질문\n케어대상: 답변"
             String conversationEntry = String.format("AI: %s\n케어대상: %s", questionText, answer);
-            
+
             if (recordingOpt.isPresent()) {
                 CallRecording recording = recordingOpt.get();
                 // 기존 transcript에 추가
                 String existingTranscript = recording.getTranscript() != null ? recording.getTranscript() : "";
-                
+
                 // 기존 transcript가 "AI: 질문" 형식으로 끝나면 답변만 추가, 아니면 전체 대화 추가
                 String newTranscript;
                 if (existingTranscript.endsWith(questionText) || existingTranscript.contains("AI: " + questionText)) {
@@ -1093,7 +1108,7 @@ public class TwilioController {
                     newTranscript = existingTranscript + "\n케어대상: " + answer;
                 } else {
                     // 질문이 없으면 전체 대화 추가
-                    newTranscript = existingTranscript.isEmpty() 
+                    newTranscript = existingTranscript.isEmpty()
                             ? conversationEntry
                             : existingTranscript + "\n\n" + conversationEntry;
                 }
@@ -1108,7 +1123,7 @@ public class TwilioController {
                         .build();
                 callRecordingRepository.save(recording);
             }
-            
+
             log.info("답변 저장 완료: callSid={}, question={}, answer={}", callSid, questionText, answer);
         } catch (Exception e) {
             log.error("답변 저장 실패: callSid={}, question={}, error={}", callSid, questionText, e.getMessage(), e);
@@ -1121,7 +1136,7 @@ public class TwilioController {
      * 조직별 WebSocket 토픽(/topic/org/{organizationId})으로 브로드캐스트
      */
     private void sendEmergencyNotification(Call call, CareTarget careTarget,
-                                          String emergencyAnswer, String emergencyMessage) {
+                                           String emergencyAnswer, String emergencyMessage) {
         try {
             Organization organization = call.getOrganization();
             if (organization == null) {
@@ -1131,11 +1146,11 @@ public class TwilioController {
 
             // 같은 Call에 대해 이미 긴급 알림이 생성되었는지 확인
             List<com.carepilot.domain.notification.Notification> existingNotifications =
-                notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.EMERGENCY);
+                    notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.EMERGENCY);
 
             if (!existingNotifications.isEmpty()) {
                 log.info("이미 긴급 알림이 생성되어 중복 방지: callId={}, 기존 알림 개수={}",
-                    call.getCallId(), existingNotifications.size());
+                        call.getCallId(), existingNotifications.size());
                 return;
             }
 
@@ -1143,27 +1158,84 @@ public class TwilioController {
             String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
             String title = String.format("긴급 상황 발생: %s", careTargetName);
             String description = String.format("케어대상자 '%s'의 통화 중 긴급 상황이 감지되었습니다.\n\n" +
-                    "감지된 답변: %s\n" +
-                    "대응 메시지: %s",
+                            "감지된 답변: %s\n" +
+                            "대응 메시지: %s",
                     careTargetName, emergencyAnswer, emergencyMessage);
 
             // 조직 공유 알림 생성 (user_id = null, 하나만 생성)
             // WebSocket은 조직별 토픽으로 브로드캐스트
-            notificationService.createOrganizationNotification(
-                organization.getOrganizationId(),
-                NotificationType.EMERGENCY,
-                title,
-                description,
-                RiskLevel.CRITICAL,
-                call,
-                careTarget
-            );
+            Notification notification =
+                    notificationService.createOrganizationNotification(
+                            organization.getOrganizationId(),
+                            NotificationType.EMERGENCY,
+                            title,
+                            description,
+                            RiskLevel.CRITICAL,
+                            call,
+                            careTarget
+                    );
 
             log.info("긴급 알림 생성 완료: organizationId={}, careTargetName={}",
-                organization.getOrganizationId(), careTargetName);
+                    organization.getOrganizationId(), careTargetName);
+
+            // 의료진 호출 작업(Task) 생성
+            try {
+                // 같은 Call에 대해 이미 Task가 생성되었는지 확인
+                List<Task> existingTasks = taskRepository.findByCall_CallId(call.getCallId());
+
+                boolean hasEmergencyTask = existingTasks.stream()
+                        .anyMatch(task -> task.getType() == TaskType.RISK_FOLLOWUP);
+
+                if (!hasEmergencyTask) {
+                    // 담당 의료진 정보 가져오기
+                    String doctorInfo = "담당 의료진 정보 없음";
+                    if (careTarget != null && careTarget.getDoctor() != null) {
+                        com.carepilot.domain.config.Doctor doctor = careTarget.getDoctor();
+                        doctorInfo = String.format(
+                                "담당 의료진: %s\n" +
+                                        "전화번호: %s\n" +
+                                        "전문과목: %s",
+                                doctor.getName() != null ? doctor.getName() : "이름 없음",
+                                doctor.getPhone() != null ? doctor.getPhone() : "번호 없음",
+                                doctor.getSpecialty() != null ? doctor.getSpecialty() : "과목 없음"
+                        );
+                    }
+
+                    Task emergencyTask = Task.builder()
+                            .organization(organization)
+                            .sourceType(TaskSourceType.USER)  // 사용자가 처리해야 하는 작업
+                            .careTarget(careTarget)
+                            .title(String.format("의료진 호출: %s", careTargetName))
+                            .description(String.format(
+                                    "케어대상자 '%s'의 긴급 상황으로 인한 의료진 호출이 필요합니다.\n\n" +
+                                            "긴급 상황 내용:\n%s\n\n" +
+                                            "대응 메시지: %s\n\n" +
+                                            "=== 담당 의료진 호출 정보 ===\n%s",
+                                    careTargetName, emergencyAnswer, emergencyMessage, doctorInfo))
+                            .type(TaskType.RISK_FOLLOWUP)  // 위험 후속조치로 설정
+                            .priority(Priority.HIGH)  // 긴급 상황이므로 HIGH 우선순위
+                            .status(TaskStatus.WAITING)
+                            .createdBy(null)  // 시스템이 생성
+                            .assignedTo(null)  // 할당되지 않음 (나중에 할당 가능)
+                            .call(call)
+                            .notification(notification)  // 알림과 연결
+                            .build();
+
+                    taskRepository.save(emergencyTask);
+                    log.info("긴급 상황 위험 후속조치 작업 생성 완료: taskId={}, callId={}, careTargetId={}",
+                            emergencyTask.getTaskId(), call.getCallId(),
+                            careTarget != null ? careTarget.getCareTargetId() : null);
+                } else {
+                    log.info("이미 위험 후속조치 작업이 존재하여 생성하지 않음: callId={}", call.getCallId());
+                }
+            } catch (Exception e) {
+                log.error("긴급 상황 위험 후속조치 작업 생성 실패: callId={}, error={}",
+                        call.getCallId(), e.getMessage(), e);
+                // 작업 생성 실패해도 알림은 이미 생성되었으므로 계속 진행
+            }
         } catch (Exception e) {
             log.error("긴급 알림 전송 중 오류 발생: callId={}, error={}",
-                call.getCallId(), e.getMessage(), e);
+                    call.getCallId(), e.getMessage(), e);
         }
     }
 
@@ -1178,27 +1250,27 @@ public class TwilioController {
             if (callDurationStr != null && !callDurationStr.isEmpty()) {
                 int duration = Integer.parseInt(callDurationStr);
                 if (duration <= 10) {  // 10초 이하면 TwiML만 재생되고 종료된 것으로 판단
-                    log.info("통화 duration이 너무 짧아 무응답으로 판단: callId={}, duration={}초", 
+                    log.info("통화 duration이 너무 짧아 무응답으로 판단: callId={}, duration={}초",
                             call.getCallId(), duration);
                     return false;
                 }
             }
-            
+
             // 2. CallRecording의 transcript 확인
             Optional<CallRecording> recordingOpt = callRecordingRepository.findByCall_CallId(call.getCallId());
             if (recordingOpt.isPresent()) {
                 CallRecording recording = recordingOpt.get();
                 String transcript = recording.getTranscript();
-                
+
                 // transcript가 비어있거나 "AI: 질문"만 있고 답변이 없으면 무응답
                 if (transcript == null || transcript.isBlank()) {
                     log.info("transcript가 비어있어 무응답으로 판단: callId={}", call.getCallId());
                     return false;
                 }
-                
+
                 // "케어대상:" 또는 실제 답변 내용이 있는지 확인
                 if (!transcript.contains("케어대상:") && !transcript.contains("케어대상자:")) {
-                    log.info("transcript에 실제 답변이 없어 무응답으로 판단: callId={}, transcript={}", 
+                    log.info("transcript에 실제 답변이 없어 무응답으로 판단: callId={}, transcript={}",
                             call.getCallId(), transcript.length() > 50 ? transcript.substring(0, 50) + "..." : transcript);
                     return false;
                 }
@@ -1207,10 +1279,10 @@ public class TwilioController {
                 log.info("CallRecording이 없어 무응답으로 판단: callId={}", call.getCallId());
                 return false;
             }
-            
+
             return true;
         } catch (Exception e) {
-            log.error("실제 응답 여부 확인 중 오류: callId={}, error={}", 
+            log.error("실제 응답 여부 확인 중 오류: callId={}, error={}",
                     call.getCallId(), e.getMessage(), e);
             // 오류 발생 시 기본적으로 SUCCESS로 처리 (기존 동작 유지)
             return true;

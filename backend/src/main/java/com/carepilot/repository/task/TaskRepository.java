@@ -18,6 +18,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Optional<Task> findByTaskId(Long taskId);
 
+    List<Task> findByCall_CallId(Long callId);
+
     @Query("SELECT t FROM Task t WHERE t.organization.organizationId = :orgId " +
             "AND (:sourceType IS NULL OR t.sourceType = :sourceType) " +
             "AND (:status IS NULL OR t.status = :status) " +
