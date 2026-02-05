@@ -35,9 +35,14 @@ public class CallResponseDTO {
         int totalSeconds = call.getDuration() != null ? call.getDuration() : 0;
         String durationStr = String.format("%d분 %d초", totalSeconds / 60, totalSeconds % 60);
 
+        // startTime null 체크 추가
+        String startTimeStr = call.getStartTime() != null 
+                ? call.getStartTime().format(formatter) 
+                : null;
+
         return CallResponseDTO.builder()
                 .callId(call.getCallId())
-                .startTime(call.getStartTime().format(formatter))
+                .startTime(startTimeStr)
                 .careTargetName(call.getCareTarget().getName())
                 .direction(call.getDirection() == CallDirection.INBOUND ? "수신" : "발신")
                 .callType(call.getCallType() != null ? call.getCallType().name() : "-")

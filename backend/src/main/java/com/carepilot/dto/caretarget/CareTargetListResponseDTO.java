@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -22,6 +24,7 @@ public class CareTargetListResponseDTO {
     private RiskLevel riskLevel; //리스크 레벨
     private String recentCall; //최근통화 기록
     private Boolean careStatus;
+    private LocalDateTime riskCalculatedAt; //위험도 계산 시간
 
 
     public CareTargetListResponseDTO(Long careTargetId, String name, int age, String gender, String disease, RiskLevel riskLevel) {

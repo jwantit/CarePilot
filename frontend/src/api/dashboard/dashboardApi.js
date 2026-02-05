@@ -66,3 +66,49 @@ export const getInProgressTasks = async (organizationId) => {
   return res.data;
 };
 
+/**
+ * 최근 알림 목록 조회 (긴급이 아닌 알림)
+ * @param {number} organizationId 조직 ID
+ * @param {number} userId 사용자 ID (선택적)
+ * @returns {Promise<Array>} 최근 알림 목록
+ */
+export const getRecentNotifications = async (organizationId, userId) => {
+  const params = userId ? { userId } : {};
+  const res = await apiClient.get(`${host}/${organizationId}/recent-notifications`, { params });
+  return res.data;
+};
+
+/**
+ * 최근 작업 목록 조회 (긴급이 아니고 완료되지 않은 작업)
+ * @param {number} organizationId 조직 ID
+ * @returns {Promise<Array>} 최근 작업 목록
+ */
+export const getRecentTasks = async (organizationId) => {
+  const res = await apiClient.get(`${host}/${organizationId}/recent-tasks`);
+  return res.data;
+};
+
+/**
+ * 즉시 조치 필요 항목 통합 조회 (환자+작업+알림, 시간 정렬, 최대 5개)
+ * @param {number} organizationId 조직 ID
+ * @param {number} userId 사용자 ID (선택적)
+ * @returns {Promise<Array>} 즉시 조치 필요 항목 목록
+ */
+export const getUrgentItems = async (organizationId, userId) => {
+  const params = userId ? { userId } : {};
+  const res = await apiClient.get(`${host}/${organizationId}/urgent-items`, { params });
+  return res.data;
+};
+
+/**
+ * 최근 활동 통합 조회 (알림+작업, 각 종류 최소 1개씩, 최대 5개)
+ * @param {number} organizationId 조직 ID
+ * @param {number} userId 사용자 ID (선택적)
+ * @returns {Promise<Array>} 최근 활동 목록
+ */
+export const getRecentItems = async (organizationId, userId) => {
+  const params = userId ? { userId } : {};
+  const res = await apiClient.get(`${host}/${organizationId}/recent-items`, { params });
+  return res.data;
+};
+

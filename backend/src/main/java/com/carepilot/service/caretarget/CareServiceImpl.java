@@ -179,6 +179,14 @@ public class CareServiceImpl implements CareService {
                 ? riskConfigService.resolveLevel(latestRiskScore.getRiskScore(), riskConfig)
                 : RiskLevel.LOW;
             
+            // 위험도 점수 및 계산 시간
+            int riskScoreValue = latestRiskScore != null && latestRiskScore.getRiskScore() != null
+                ? latestRiskScore.getRiskScore()
+                : 0;
+            LocalDateTime riskCalculatedAt = latestRiskScore != null
+                ? latestRiskScore.getCalculatedAt()
+                : null;
+            
             List<UploadFileResponseDTO> tempfiles = uploadFileService.careTargetFiles(organizationId, ct.getCareTargetId());
             List<UploadFileResponseDTO> filesScores = (tempfiles != null && !tempfiles.isEmpty())
                     ? tempfiles
@@ -192,8 +200,10 @@ public class CareServiceImpl implements CareService {
                     .gender(ct.getGender())
                     .careTargetPhone(ct.getTargetPhone())
                     .disease(ct.getDisease())
+                    .riskScore(riskScoreValue)
                     .riskLevel(latestLevel)
                     .recentCall(lastCallDate)
+                    .riskCalculatedAt(riskCalculatedAt)
                     .build();
             result.add(dto);
         }
