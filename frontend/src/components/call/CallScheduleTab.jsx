@@ -6,6 +6,7 @@ import {
 } from "../../api/callApi";
 import ScheduleModal from "./ScheduleModal";
 import { useSelector } from "react-redux";
+import CustomMonthPicker from "../common/CustomMonthPicker";
 
 // 우선순위별 스타일 (위험도와 동일)
 const getPriorityStyle = (priority) => {
@@ -146,10 +147,9 @@ const CallScheduleTab = () => {
 
   const calendarMonthValue = `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, "0")}`;
 
-  const handleCalendarMonthChange = (e) => {
-    const v = e.target.value;
-    if (!v) return;
-    const [y, m] = v.split("-").map(Number);
+  const handleCalendarMonthChange = (val) => {
+    if (!val) return;
+    const [y, m] = val.split("-").map(Number);
     setCalendarDate(new Date(y, m - 1, 1));
   };
 
@@ -252,31 +252,28 @@ const CallScheduleTab = () => {
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="month"
+            <CustomMonthPicker
               value={calendarMonthValue}
               onChange={handleCalendarMonthChange}
-              className="h-8 rounded-sm border border-slate-600 bg-slate-900 px-3 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none [color-scheme:dark]"
-              title="연·월을 선택하면 해당 달로 이동합니다"
             />
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-1 text-sm ml-1">
               <button
                 type="button"
-                className="h-8 rounded-sm border border-teal-500/50 px-3 py-0 text-teal-400 hover:bg-teal-600/30 transition leading-none flex items-center justify-center"
+                className="h-9 rounded-sm border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 px-4 text-slate-400 font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md"
                 onClick={() => moveMonth(-1)}
               >
                 이전
               </button>
               <button
                 type="button"
-                className="h-8 rounded-sm border border-teal-500/50 px-3 py-0 text-teal-400 hover:bg-teal-600/30 transition leading-none flex items-center justify-center"
+                className="h-9 rounded-sm border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 px-4 text-slate-400 font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md"
                 onClick={() => moveMonth(1)}
               >
                 다음
               </button>
               <button
                 type="button"
-                className="h-8 rounded-sm border border-teal-500 bg-teal-600/30 px-3 py-0 text-teal-400 hover:bg-teal-600/50 transition leading-none flex items-center justify-center"
+                className="h-9 rounded-sm border border-teal-500/50 bg-gradient-to-br from-teal-600/20 to-teal-700/20 px-4 text-teal-400 font-bold hover:from-teal-600/30 hover:to-teal-700/30 hover:border-teal-500 transition-all shadow-md ml-1"
                 onClick={goToToday}
               >
                 오늘

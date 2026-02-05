@@ -732,7 +732,7 @@ const ScheduleModal = ({
               required
               value={formData.scheduledTime}
               onChange={handleChange}
-              className={inputClass}
+              className={`${inputClass} [color-scheme:dark]`}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -808,7 +808,7 @@ const ScheduleModal = ({
                     name="recurrenceEndDate"
                     value={formData.recurrenceEndDate}
                     onChange={handleChange}
-                    className={inputClass}
+                    className={`${inputClass} [color-scheme:dark]`}
                     min={formData.scheduledTime || undefined}
                   />
                   <p className="mt-1 text-xs text-slate-500">

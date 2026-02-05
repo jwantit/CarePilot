@@ -95,7 +95,7 @@ const CareGroupAddScheduleModal = ({ isOpen, onClose, onSubmit, initialData }) =
 
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-slate-200 mb-1.5">예약 시작 일시 *</label>
-            <input type="datetime-local" required className="w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all"
+            <input type="datetime-local" required className="w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all [color-scheme:dark]"
               value={form.scheduledTime} onChange={(e) => setForm({...form, scheduledTime: e.target.value})} />
           </div>
 
@@ -112,7 +112,7 @@ const CareGroupAddScheduleModal = ({ isOpen, onClose, onSubmit, initialData }) =
               </div>
               <div className="space-y-2 text-left">
                 <label className="block text-sm font-semibold text-slate-200 mb-1.5">종료일 (선택)</label>
-                <input type="datetime-local" className="w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all"
+                <input type="datetime-local" className="w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all [color-scheme:dark]"
                   value={form.recurrenceEndDate} onChange={(e) => setForm({...form, recurrenceEndDate: e.target.value})} />
               </div>
             </div>

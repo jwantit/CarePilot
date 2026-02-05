@@ -282,7 +282,7 @@ function ReportPage() {
                     <span className="text-[10px] font-bold text-teal-400 uppercase">시작일</span>
                     <input
                       type="date"
-                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full"
+                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full [color-scheme:dark]"
                       value={tempStartDate ? tempStartDate.toISOString().split("T")[0] : ""}
                       onChange={(e) => setTempStartDate(new Date(e.target.value))}
                     />
@@ -291,7 +291,7 @@ function ReportPage() {
                     <span className="text-[10px] font-bold text-teal-400 uppercase">종료일</span>
                     <input
                       type="date"
-                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full"
+                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full [color-scheme:dark]"
                       value={tempEndDate ? tempEndDate.toISOString().split("T")[0] : ""}
                       onChange={(e) => setTempEndDate(new Date(e.target.value))}
                     />

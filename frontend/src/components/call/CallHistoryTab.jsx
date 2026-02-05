@@ -138,7 +138,12 @@ const CallHistoryTab = () => {
 
   const filteredHistory = useMemo(() => {
     const from = parseDateTime(filterTimeFrom);
-    const to = parseDateTime(filterTimeTo);
+    let to = parseDateTime(filterTimeTo);
+
+    // YYYY-MM-DD 형식일 경우 해당 날짜의 23:59:59까지 포함하도록 설정
+    if (to && filterTimeTo.length === 10) {
+      to = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+    }
 
     return history.filter((item) => {
       const callDateTime = parseDateTime(item.startTime);
@@ -188,14 +193,14 @@ const CallHistoryTab = () => {
                 </span>
                 <div className="flex gap-2">
                   <input
-                    type="datetime-local"
-                    className="h-9 w-[200px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    type="date"
+                    className="h-9 w-[150px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none [color-scheme:dark]"
                     value={filterTimeFrom}
                     onChange={(e) => setFilterTimeFrom(e.target.value)}
                   />
                   <input
-                    type="datetime-local"
-                    className="h-9 w-[200px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    type="date"
+                    className="h-9 w-[150px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none [color-scheme:dark]"
                     value={filterTimeTo}
                     onChange={(e) => setFilterTimeTo(e.target.value)}
                   />
