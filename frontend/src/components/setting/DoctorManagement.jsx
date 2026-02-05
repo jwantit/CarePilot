@@ -9,6 +9,13 @@ import {
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import BulkUploadModal from "../../components/common/BulkUploadModal";
+import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle } from "lucide-react";
+
+const inputClass =
+  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+const labelClass = "block text-sm font-semibold text-slate-200 mb-1.5";
+const selectClass =
+  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
 
 function DoctorManagement() {
   const auth = useSelector((state) => state.auth);
@@ -227,7 +234,7 @@ function DoctorManagement() {
             <select
               value={filters.role}
               onChange={(e) => handleFilterChange("role", e.target.value)}
-              className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="">전체</option>
               <option value="ADMIN">관리자</option>
@@ -244,7 +251,7 @@ function DoctorManagement() {
             <select
               value={filters.isActive}
               onChange={(e) => handleFilterChange("isActive", e.target.value)}
-              className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="">전체</option>
               <option value="true">활성</option>
@@ -357,136 +364,168 @@ function DoctorManagement() {
 
       {/* 모달 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-bold mb-4 text-slate-100">
-              {editingDoctor ? "의료진 수정" : "의료진 등록"}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  이름
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+            {/* 헤더 */}
+            <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
+              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                {editingDoctor ? (
+                  <FileText size={24} className="text-teal-400" />
+                ) : (
+                  <PlusCircle size={24} className="text-teal-400" />
+                )}
+                {editingDoctor ? "의료진 정보 수정" : "신규 의료진 등록"}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
+              <div className="grid grid-cols-2 gap-5">
+                {/* 섹션 1: 의료진 기본 정보 */}
+                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                  <User size={16} /> 의료진 기본 정보
+                </div>
+
+                <div>
+                  <label className={labelClass}>이름</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      required
+                      placeholder="이름을 입력하세요"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>전문과</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.specialty}
+                      onChange={(e) =>
+                        setFormData({ ...formData, specialty: e.target.value })
+                      }
+                      placeholder="예: 내과, 신경과"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>이메일</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                      placeholder="example@email.com"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>전화번호</label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      placeholder="010-0000-0000"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                {/* 섹션 2: 권한 및 상태 정보 */}
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                  <Briefcase size={16} /> 권한 및 상태 설정
+                </div>
+
+                <div>
+                  <label className={labelClass}>역할</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
+                    required
+                    className={selectClass}
+                  >
+                    <option value="ADMIN" className="bg-slate-900">관리자</option>
+                    <option value="DOCTOR" className="bg-slate-900">의사</option>
+                    <option value="NURSE" className="bg-slate-900">간호사</option>
+                    <option value="OPERATOR" className="bg-slate-900">운영자</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelClass}>활성 상태</label>
+                  <div className="flex gap-2">
+                    {[
+                      { label: "활성", value: true },
+                      { label: "비활성", value: false },
+                    ].map((status) => (
+                      <button
+                        key={status.label}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, isActive: status.value })}
+                        className={`flex-1 py-2.5 rounded-sm font-medium border transition-all shadow-md ${
+                          formData.isActive === status.value
+                            ? "bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 hover:from-teal-500 hover:to-teal-600"
+                            : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-300 border-slate-600 hover:border-slate-500"
+                        }`}
+                      >
+                        {status.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>메모</label>
+                  <textarea
+                    value={formData.memo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, memo: e.target.value })
+                    }
+                    rows="3"
+                    placeholder="추가 정보를 입력하세요 (선택 사항)"
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  이메일
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  전화번호
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  전문과
-                </label>
-                <input
-                  type="text"
-                  value={formData.specialty}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specialty: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  역할
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  required
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                >
-                  <option value="ADMIN">관리자</option>
-                  <option value="DOCTOR">의사</option>
-                  <option value="NURSE">간호사</option>
-                  <option value="OPERATOR">운영자</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  상태
-                </label>
-                <select
-                  value={formData.isActive ? "true" : "false"}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      isActive: e.target.value === "true",
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                >
-                  <option value="true">활성</option>
-                  <option value="false">비활성</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  메모
-                </label>
-                <textarea
-                  value={formData.memo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, memo: e.target.value })
-                  }
-                  rows="3"
-                  className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex gap-3 mt-10">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-slate-600 rounded-sm text-slate-300 hover:bg-slate-700/50"
+                  className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold disabled:opacity-50"
+                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:from-slate-700 disabled:to-slate-800 disabled:border-slate-600 disabled:text-slate-400 transition-all shadow-md"
                 >
-                  {loading ? "저장 중..." : "저장"}
+                  {loading ? "저장 중..." : (editingDoctor ? "저장 완료" : "의료진 등록 완료")}
                 </button>
               </div>
             </form>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, FileText, PlusCircle } from "lucide-react";
+import { X, FileText, PlusCircle, ClipboardList, UserCheck, Calendar } from "lucide-react";
 import { TASK_TYPE_OPTIONS, PRIORITY_OPTIONS } from "../../utils/taskLabel";
 
 const toDateTimeLocal = (dateString) => {
@@ -23,10 +23,10 @@ const toISODateTime = (dateTimeLocal) => {
 };
 
 const inputClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-slate-900 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
 const labelClass = "block text-sm font-semibold text-slate-200 mb-1.5";
 const selectClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-slate-900 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer";
+  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
 
 const TaskFormModal = ({
   open,
@@ -89,7 +89,8 @@ const TaskFormModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+        {/* 헤더 */}
         <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
           <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
             {mode === "edit" ? (
@@ -97,7 +98,7 @@ const TaskFormModal = ({
             ) : (
               <PlusCircle size={24} className="text-teal-400" />
             )}
-            {mode === "edit" ? "작업 수정" : "작업 추가"}
+            {mode === "edit" ? "작업 정보 수정" : "신규 작업 등록"}
           </h3>
           <button
             type="button"
@@ -108,121 +109,164 @@ const TaskFormModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-4">
-          <div>
-            <label className={labelClass}>제목</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className={inputClass}
-              placeholder="제목"
-            />
-          </div>
-          <div>
-            <label className={labelClass}>설명</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              className={`${inputClass} resize-none`}
-              placeholder="설명 (선택)"
-            />
-          </div>
-          <div>
-            <label className={labelClass}>유형</label>
-            <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
-              {typeOptions.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-slate-900">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>우선순위</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className={selectClass}>
-              {priorityOptions.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-slate-900">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>케어 대상</label>
-            <select
-              value={careTargetId ?? ""}
-              onChange={(e) =>
-                setCareTargetId(e.target.value === "" ? null : Number(e.target.value))
-              }
-              className={selectClass}
-            >
-              <option value="" className="bg-slate-900">선택 안 함</option>
-              {careTargetList.map((c) => (
-                <option key={c.careTargetId} value={c.careTargetId} className="bg-slate-900">
-                  {c.name ?? c.careTargetId}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>할당자</label>
-            <select
-              value={assignedToUserId ?? ""}
-              onChange={(e) =>
-                setAssignedToUserId(e.target.value === "" ? null : Number(e.target.value))
-              }
-              className={selectClass}
-            >
-              <option value="" className="bg-slate-900">미할당</option>
-              {staffList.map((s) => (
-                <option key={s.userId} value={s.userId} className="bg-slate-900">
-                  {s.name ?? s.email}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>마감일</label>
-            <input
-              type="datetime-local"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className={inputClass}
-            />
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
+          <div className="grid grid-cols-2 gap-5">
+            {/* 섹션 1: 작업 기본 정보 */}
+            <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+              <ClipboardList size={16} /> 작업 기본 정보
+            </div>
+
+            <div className="col-span-2">
+              <label className={labelClass}>제목</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={inputClass}
+                placeholder="작업 제목을 입력하세요"
+                required
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>유형</label>
+              <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
+                {typeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-slate-900">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={labelClass}>우선순위</label>
+              <select value={priority} onChange={(e) => setPriority(e.target.value)} className={selectClass}>
+                {priorityOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-slate-900">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 섹션 2: 할당 및 대상 정보 */}
+            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+              <UserCheck size={16} /> 할당 및 대상 정보
+            </div>
+
+            <div>
+              <label className={labelClass}>케어 대상</label>
+              <select
+                value={careTargetId ?? ""}
+                onChange={(e) =>
+                  setCareTargetId(e.target.value === "" ? null : Number(e.target.value))
+                }
+                className={selectClass}
+              >
+                <option value="" className="bg-slate-900">대상자 미지정</option>
+                {careTargetList.map((c) => (
+                  <option key={c.careTargetId} value={c.careTargetId} className="bg-slate-900">
+                    {c.name ?? c.careTargetId}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={labelClass}>담당 직원</label>
+              <select
+                value={assignedToUserId ?? ""}
+                onChange={(e) =>
+                  setAssignedToUserId(e.target.value === "" ? null : Number(e.target.value))
+                }
+                className={selectClass}
+              >
+                <option value="" className="bg-slate-900">직원 미할당</option>
+                {staffList.map((s) => (
+                  <option key={s.userId} value={s.userId} className="bg-slate-900">
+                    {s.name ?? s.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className={`${labelClass} flex items-center gap-1`}>
+                <Calendar size={14} className="text-teal-400" /> 마감 기한
+              </label>
+              <input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className={`${inputClass} [color-scheme:dark]`}
+              />
+            </div>
+
+            {/* 섹션 3: 상세 설명 */}
+            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+              <FileText size={16} /> 상세 설명
+            </div>
+
+            <div className="col-span-2">
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className={`${inputClass} resize-none`}
+                placeholder="작업에 대한 상세 내용을 입력하세요 (선택)"
+              />
+            </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            {mode === "edit" && onDelete && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm("정말 삭제하시겠습니까?")) {
-                    onDelete(initialTask?.taskId);
-                    onClose();
-                  }
-                }}
-                className="px-4 py-3 rounded-sm font-semibold text-sm border border-red-500/50 text-red-400 hover:bg-red-500/20 transition-all"
-              >
-                삭제
-              </button>
+          <div className="flex gap-3 mt-10">
+            {mode === "edit" && onDelete ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("정말 삭제하시겠습니까?")) {
+                      onDelete(initialTask?.taskId);
+                      onClose();
+                    }
+                  }}
+                  className="px-6 py-3 border border-red-500/50 text-red-400 rounded-sm font-semibold hover:bg-red-500/10 transition-all shadow-md"
+                >
+                  삭제
+                </button>
+                <div className="flex gap-3 flex-1">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 transition-all shadow-md"
+                  >
+                    저장 완료
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  작업 등록 완료
+                </button>
+              </>
             )}
-            <div className="flex gap-3 flex-1 justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 max-w-[140px] py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
-              >
-                취소
-              </button>
-              <button
-                type="submit"
-                className="flex-1 max-w-[140px] py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 transition-all shadow-md"
-              >
-                {mode === "edit" ? "저장" : "등록"}
-              </button>
-            </div>
           </div>
         </form>
       </div>

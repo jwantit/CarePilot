@@ -16,8 +16,6 @@ function NotificationSetting() {
     riskDetectionEnabled: true,
     callFailureEnabled: true,
     emergencyEventEnabled: true,
-    nightRestrictionStart: null,
-    nightRestrictionEnd: null,
   });
 
   useEffect(() => {
@@ -29,17 +27,7 @@ function NotificationSetting() {
     try {
       setLoading(true);
       const config = await getNotificationConfig(userId);
-      // LocalTime을 HH:mm 형식으로 변환
-      const formattedConfig = {
-        ...config,
-        nightRestrictionStart: config.nightRestrictionStart
-          ? config.nightRestrictionStart.substring(0, 5)
-          : null,
-        nightRestrictionEnd: config.nightRestrictionEnd
-          ? config.nightRestrictionEnd.substring(0, 5)
-          : null,
-      };
-      setNotificationConfig(formattedConfig);
+      setNotificationConfig(config);
     } catch (error) {
       console.error("알림 설정 조회 실패:", error);
       toast.error("설정을 불러오는데 실패했습니다.");
@@ -58,17 +46,7 @@ function NotificationSetting() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      // 시간 형식을 LocalTime 형식으로 변환 (HH:mm -> HH:mm:ss)
-      const configToSave = {
-        ...notificationConfig,
-        nightRestrictionStart: notificationConfig.nightRestrictionStart
-          ? `${notificationConfig.nightRestrictionStart}:00`
-          : null,
-        nightRestrictionEnd: notificationConfig.nightRestrictionEnd
-          ? `${notificationConfig.nightRestrictionEnd}:00`
-          : null,
-      };
-      await updateNotificationConfig(userId, configToSave);
+      await updateNotificationConfig(userId, notificationConfig);
       // 설정 저장 후 이벤트 발송 (WebSocketContext에서 구독)
       window.dispatchEvent(new CustomEvent("notification-config-updated"));
       toast.success("설정이 저장되었습니다.");
@@ -151,47 +129,6 @@ function NotificationSetting() {
             }
             label="긴급 상황 알림"
           />
-        </div>
-
-        {/* 구분선 */}
-        <div className="border-t border-slate-700"></div>
-
-        {/* 알림 제한 시간 섹션 */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-slate-100 mb-4">
-            알림 제한 시간
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-400 mb-2">
-                시작 시간
-              </label>
-              <input
-                type="time"
-                value={notificationConfig.nightRestrictionStart || ""}
-                onChange={(e) =>
-                  handleConfigChange("nightRestrictionStart", e.target.value)
-                }
-                className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-400 mb-2">
-                종료 시간
-              </label>
-              <input
-                type="time"
-                value={notificationConfig.nightRestrictionEnd || ""}
-                onChange={(e) =>
-                  handleConfigChange("nightRestrictionEnd", e.target.value)
-                }
-                className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-              />
-            </div>
-          </div>
-          <p className="text-sm text-slate-500">
-            설정한 시간 동안 알림이 제한됩니다.
-          </p>
         </div>
 
         <div className="pt-4 border-t border-slate-700">
