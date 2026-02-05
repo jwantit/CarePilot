@@ -316,46 +316,57 @@ public class TaskServiceImpl implements TaskService {
     /**
      * 공지사항 작성 자동화
      */
-    private void processNoticeCreateAutomation(Task task, String description, Long userId, Long organizationId) {
-        // description 파싱: "공지사항 작성 요청\n\n제목: %s\n본문: %s\n파일 ID: %s"
-        String title = extractValue(description, "제목:");
-        String content = extractValue(description, "본문:");
-        String fileIdStr = extractValue(description, "파일 ID:");
+   private void processNoticeCreateAutomation(Task task, String description, Long userId, Long organizationId) {
+    String title = extractValue(description, "제목:");
 
-        if (title == null || content == null) {
-            throw new ApiException(ErrorCode.BAD_REQUEST, "공지사항 제목 또는 본문을 찾을 수 없습니다.");
+    String content = null;
+    int contentStart = description.indexOf("본문:");
+    if (contentStart != -1) {
+        contentStart += "본문:".length();
+        int contentEnd = description.indexOf("\n파일 ID:", contentStart);
+        if (contentEnd == -1) {
+            // "파일 ID:"가 없으면 끝까지
+            contentEnd = description.length();
         }
-
-        Long fileId = null;
-        if (fileIdStr != null && !fileIdStr.equals("없음") && !fileIdStr.trim().isEmpty()) {
-            try {
-                fileId = Long.parseLong(fileIdStr.trim());
-            } catch (NumberFormatException e) {
-                log.warn("파일 ID 파싱 실패: {}", fileIdStr);
-            }
-        }
-
-        List<MultipartFile> files = new ArrayList<>();
-        if (fileId != null && fileId > 0) {
-            MultipartFile file = uploadFileService.temporaryfind(fileId);
-            if (file != null) {
-                files = List.of(file);
-            }
-        }
-
-        NoticeSaveRequest notice = new NoticeSaveRequest();
-        notice.setTitle(title);
-        notice.setContent(content);
-        notice.setIsPinned(false);
-
-        noticeServiceImpl.saveNotice(notice, userId, organizationId, files);
-
-        if (fileId != null && fileId > 0) {
-            uploadFileService.temporaryDelFile(fileId);
-        }
-
-        log.info("[챗봇 자동화] 공지사항 작성 완료: title={}", title);
+        content = description.substring(contentStart, contentEnd).trim();
     }
+    
+    String fileIdStr = extractValue(description, "파일 ID:");
+
+    if (title == null || content == null) {
+        throw new ApiException(ErrorCode.BAD_REQUEST, "공지사항 제목 또는 본문을 찾을 수 없습니다.");
+    }
+
+    Long fileId = null;
+    if (fileIdStr != null && !fileIdStr.equals("없음") && !fileIdStr.trim().isEmpty()) {
+        try {
+            fileId = Long.parseLong(fileIdStr.trim());
+        } catch (NumberFormatException e) {
+            log.warn("파일 ID 파싱 실패: {}", fileIdStr);
+        }
+    }
+
+    List<MultipartFile> files = new ArrayList<>();
+    if (fileId != null && fileId > 0) {
+        MultipartFile file = uploadFileService.temporaryfind(fileId);
+        if (file != null) {
+            files = List.of(file);
+        }
+    }
+
+    NoticeSaveRequest notice = new NoticeSaveRequest();
+    notice.setTitle(title);
+    notice.setContent(content);
+    notice.setIsPinned(false);
+
+    noticeServiceImpl.saveNotice(notice, userId, organizationId, files);
+
+    if (fileId != null && fileId > 0) {
+        uploadFileService.temporaryDelFile(fileId);
+    }
+
+    log.info("[챗봇 자동화] 공지사항 작성 완료: title={}", title);
+}
 
     /**
      * 케어 대상 수정 자동화
