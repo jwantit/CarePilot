@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigation } from "../../hooks/useNavigation";
 import Breadcrumb from "../../components/common/Breadcrumb";
@@ -8,6 +8,7 @@ import {
   getUrgentItems,
   getRecentItems,
 } from "../../api/dashboard/dashboardApi";
+import { getCareGroupList } from "../../api/caretarget/careTargetGroupApi";
 
 function DashboardPage() {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ function DashboardPage() {
     navigateToTask,
     navigateToNotification,
     navigateToCareTargetDetail,
+    navigateToCareTargetGroup,
   } = useNavigation();
 
   const currentOrgId = user?.organizationId;
@@ -28,6 +30,7 @@ function DashboardPage() {
   const [urgentItems, setUrgentItems] = useState([]);
   const [todaySchedules, setTodaySchedules] = useState([]);
   const [recentItems, setRecentItems] = useState([]);
+  const [careGroups, setCareGroups] = useState([]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -61,6 +64,11 @@ function DashboardPage() {
         );
         console.log("최근 활동:", recentItemsList);
         setRecentItems(recentItemsList || []);
+
+        // 그룹 현황 조회
+        const groupsList = await getCareGroupList(currentOrgId);
+        console.log("그룹 현황:", groupsList);
+        setCareGroups(groupsList || []);
       } catch (error) {
         console.error("대시보드 데이터 로드 실패:", error);
         console.error("에러 상세:", error.response?.data || error.message);
@@ -129,33 +137,28 @@ function DashboardPage() {
         (bannerStats.riskPatients || 0) > 0 ||
         (bannerStats.urgentAlerts || 0) > 0) && (
         <div className="bg-gradient-to-br from-red-900/80 to-red-950 border border-red-500/50 text-red-100 rounded-sm p-6 mb-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              {(bannerStats.urgentAlerts || 0) > 0 && (
-                <div>
-                  <span className="text-lg font-bold">
-                    긴급 알림 {bannerStats.urgentAlerts || 0}건
-                  </span>
-                </div>
-              )}
-              {(bannerStats.riskPatients || 0) > 0 && (
-                <div>
-                  <span className="text-lg font-bold">
-                    위험 환자 {bannerStats.riskPatients || 0}명
-                  </span>
-                </div>
-              )}
-              {(bannerStats.failedCalls || 0) > 0 && (
-                <div>
-                  <span className="text-lg font-bold">
-                    통화 실패 {bannerStats.failedCalls || 0}건
-                  </span>
-                </div>
-              )}
-            </div>
-            <button className="bg-slate-800 text-red-300 border border-red-500/50 px-6 py-2 rounded-sm font-bold hover:bg-red-900/50 hover:border-red-500 transition">
-              바로 확인하기 →
-            </button>
+          <div className="flex items-center gap-6">
+            {(bannerStats.urgentAlerts || 0) > 0 && (
+              <div>
+                <span className="text-lg font-bold">
+                  긴급 알림 {bannerStats.urgentAlerts || 0}건
+                </span>
+              </div>
+            )}
+            {(bannerStats.riskPatients || 0) > 0 && (
+              <div>
+                <span className="text-lg font-bold">
+                  위험 환자 {bannerStats.riskPatients || 0}명
+                </span>
+              </div>
+            )}
+            {(bannerStats.failedCalls || 0) > 0 && (
+              <div>
+                <span className="text-lg font-bold">
+                  통화 실패 {bannerStats.failedCalls || 0}건
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -164,10 +167,10 @@ function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* 통화 카드 */}
         <div
-          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm"
+          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm flex items-center"
           onClick={navigateToCall}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full">
             <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-slate-700/50 border border-slate-600">
               <svg
                 className="w-7 h-7 text-teal-400"
@@ -183,7 +186,7 @@ function DashboardPage() {
                 />
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 ml-8">
               {/* 오늘 총 건수만 출력 */}
               <div className="text-2xl font-bold text-slate-100 mb-2">
                 {loading ? "로딩 중..." : `통화 ${callStats.todayTotal || 0}건`}
@@ -195,18 +198,16 @@ function DashboardPage() {
               <div className="text-sm font-semibold text-teal-400">
                 {loading ? "..." : `${callStats.todaySuccessRate || 0}%`}
               </div>
-
-              {/* 참고: 어제 데이터는 callStats.yesterdayTotal 등에 들어있지만 화면엔 그리지 않음 */}
             </div>
           </div>
         </div>
 
         {/* 위험 카드 */}
         <div
-          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-red-500/50 transition-all cursor-pointer rounded-sm"
+          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-red-500/50 transition-all cursor-pointer rounded-sm flex items-center"
           onClick={navigateToCareTarget}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full">
             <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-red-500/10 border border-red-500/30">
               <svg
                 className="w-7 h-7 text-red-400"
@@ -222,13 +223,13 @@ function DashboardPage() {
                 />
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-2xl font-bold text-slate-100 mb-2">
-                {loading ? "로딩 중..." : `위험 ${riskStats.total || 0}명`}
+            <div className="flex-1 min-w-0 ml-8">
+              <div className="text-2xl font-bold text-white mb-2">
+                위험 {riskStats.total || 0}명
               </div>
               <div className="text-xs text-slate-400 uppercase tracking-wider">
                 <span className="text-red-400 font-semibold">
-                  {loading ? "로딩 중..." : `긴급 ${riskStats.urgent || 0}명`}
+                  긴급 {riskStats.urgent || 0}명
                 </span>
               </div>
             </div>
@@ -237,10 +238,10 @@ function DashboardPage() {
 
         {/* 작업 카드 */}
         <div
-          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm"
+          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm flex items-center"
           onClick={navigateToTask}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full">
             <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-slate-700/50 border border-slate-600">
               <svg
                 className="w-7 h-7 text-teal-400"
@@ -256,13 +257,13 @@ function DashboardPage() {
                 />
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-2xl font-bold text-slate-100 mb-2">
-                {loading ? "로딩 중..." : `작업 ${taskStats.total || 0}건`}
+            <div className="flex-1 min-w-0 ml-8">
+              <div className="text-2xl font-bold text-white mb-2">
+                작업 {taskStats.total || 0}건
               </div>
               <div className="text-xs text-slate-400 uppercase tracking-wider">
                 <span className="text-yellow-400 font-semibold">
-                  {loading ? "로딩 중..." : `대기 ${taskStats.waiting || 0}건`}
+                  대기 {taskStats.waiting || 0}건
                 </span>
               </div>
             </div>
@@ -271,10 +272,10 @@ function DashboardPage() {
 
         {/* 알림 카드 */}
         <div
-          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm"
+          className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm flex items-center"
           onClick={navigateToNotification}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full">
             <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-slate-700/50 border border-slate-600">
               <svg
                 className="w-7 h-7 text-teal-400"
@@ -284,17 +285,13 @@ function DashboardPage() {
                 <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-2xl font-bold text-slate-100 mb-2">
-                {loading
-                  ? "로딩 중..."
-                  : `알림 ${notificationStats.total || 0}건`}
+            <div className="flex-1 min-w-0 ml-8">
+              <div className="text-2xl font-bold text-white mb-2">
+                알림 {notificationStats.total || 0}건
               </div>
               <div className="text-xs text-slate-400 uppercase tracking-wider">
                 <span className="text-yellow-400 font-semibold">
-                  {loading
-                    ? "로딩 중..."
-                    : `미처리 ${notificationStats.unprocessed || 0}건`}
+                  미처리 {notificationStats.unprocessed || 0}건
                 </span>
               </div>
             </div>
@@ -305,18 +302,19 @@ function DashboardPage() {
       {/* 하단 섹션 - 3번~6번 박스 (2x2 그리드, 모두 같은 크기) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 3번 박스: 즉시 조치 필요 (왼쪽 상단) */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px]">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px] flex flex-col">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <h3 className="text-lg font-bold text-slate-200">즉시 조치 필요</h3>
+            <h3 className="text-lg font-bold text-white">즉시 조치 필요</h3>
           </div>
 
-          <div className="space-y-3 min-h-[340px]">
+          <div className="space-y-3 flex-1 min-h-[340px]">
             {/* 긴급 항목 목록 (최대 5개, 각 종류 최소 1개씩) */}
             {urgentItems.map((item, index) => {
               if (item.type === "patient") {
                 const patient = item.data;
-                const timeStr = formatDateTime(patient.riskCalculatedAt);
+                // 백엔드에서 포맷된 시간 사용
+                const timeStr = item.formattedTime || "";
                 return (
                   <div
                     key={`patient-${patient.careTargetId}`}
@@ -354,7 +352,8 @@ function DashboardPage() {
                 );
               } else if (item.type === "task") {
                 const task = item.data;
-                const timeStr = formatDateTime(task.createdAt);
+                // 백엔드에서 포맷된 시간 사용
+                const timeStr = item.formattedTime || "";
                 return (
                   <div
                     key={`task-${task.taskId}`}
@@ -384,7 +383,8 @@ function DashboardPage() {
                 );
               } else if (item.type === "notification") {
                 const notification = item.data;
-                const timeStr = formatDateTime(notification.occurredAt);
+                // 백엔드에서 포맷된 시간 사용
+                const timeStr = item.formattedTime || "";
                 return (
                   <div
                     key={`notification-${notification.notificationId}`}
@@ -443,7 +443,7 @@ function DashboardPage() {
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <h3 className="text-lg font-bold text-slate-200">오늘의 일정</h3>
+            <h3 className="text-lg font-bold text-white">오늘의 일정</h3>
           </div>
 
           <div className="space-y-3 flex-1 min-h-[340px]">
@@ -490,7 +490,7 @@ function DashboardPage() {
           </div>
 
           {todaySchedules.length === 0 && !loading && (
-            <div className="text-sm text-slate-500 text-center py-8 flex-1 flex items-center justify-center">
+            <div className="text-sm text-slate-300 text-center py-8 flex-1 flex items-center justify-center">
               오늘 예정된 일정이 없습니다.
             </div>
           )}
@@ -498,7 +498,7 @@ function DashboardPage() {
           <div className="mt-auto pt-4 text-right">
             <button
               onClick={navigateToCall}
-              className="text-sm text-slate-400 hover:text-teal-400 underline"
+              className="text-sm text-white hover:text-teal-300"
             >
               [전체 일정 보기 →]
             </button>
@@ -537,7 +537,10 @@ function DashboardPage() {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-sm text-slate-200 truncate">
-                        [최근 알림] {notification.title || notification.description || "알림 내용 없음"}
+                        [최근 알림]{" "}
+                        {notification.title ||
+                          notification.description ||
+                          "알림 내용 없음"}
                       </span>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         {timeStr && (
@@ -599,13 +602,57 @@ function DashboardPage() {
           )}
         </div>
 
-        {/* 6번 박스: 오른쪽 하단 */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px] flex flex-col items-center justify-center">
-          <div className="text-slate-600 flex flex-col items-center gap-2 opacity-30">
-            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        {/* 6번 박스: 그룹 현황 (오른쪽 하단) */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px] flex flex-col">
+          <div className="flex items-center gap-2 mb-6">
+            <svg
+              className="w-5 h-5 text-teal-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
             </svg>
-            <span className="text-sm font-semibold tracking-wider uppercase">Future Content</span>
+            <h3 className="text-lg font-bold text-white">그룹 현황</h3>
+          </div>
+
+          <div className="space-y-3 flex-1 min-h-[340px]">
+            {/* 그룹 목록 */}
+            {careGroups.map((group) => (
+              <div
+                key={group.groupId}
+                className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-white truncate">
+                    {group.groupName || "그룹명 없음"}
+                  </span>
+                  <span className="text-sm text-white flex-shrink-0">
+                    {group.careTargetCount || 0}명
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {careGroups.length === 0 && !loading && (
+            <div className="text-sm text-slate-300 text-center py-8 flex-1 flex items-center justify-center">
+              등록된 그룹이 없습니다.
+            </div>
+          )}
+
+          <div className="mt-auto pt-4 text-right">
+            <button
+              onClick={navigateToCareTargetGroup}
+              className="text-sm text-white hover:text-teal-300"
+            >
+              [그룹 확인]
+            </button>
           </div>
         </div>
       </div>

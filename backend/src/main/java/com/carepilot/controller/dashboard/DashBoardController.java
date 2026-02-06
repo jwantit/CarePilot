@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,17 +84,15 @@ public class DashBoardController {
     }
 
     /**
-     * 통화 통계 계산 (오늘/어제 데이터 모두 계산)
+     * 통화 통계 계산 (오늘 데이터만 계산)
      */
     private Map<String, Object> calculateCallStats(Long organizationId) {
         List<CallResponseDTO> callHistory = callService.getCallHistory(organizationId);
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. 오늘/어제 시간 범위 설정
+        // 오늘 시간 범위 설정
         LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
         LocalDateTime todayEnd = todayStart.plusDays(1).minusNanos(1);
-        LocalDateTime yesterdayStart = todayStart.minusDays(1);
-        LocalDateTime yesterdayEnd = todayStart.minusNanos(1);
 
         // 디버깅: 전체 통화 이력 로그
         log.info("전체 통화 이력 조회: {}건", callHistory.size());
@@ -102,7 +101,7 @@ public class DashBoardController {
                     call.getCallId(), call.getStartTime(), call.getStatus());
         });
 
-        // 2. 오늘 데이터 계산
+        // 오늘 데이터 계산
         List<CallResponseDTO> todayCalls = filterCallsByDate(callHistory, todayStart, todayEnd);
         log.info("오늘 통화 필터링: {}건 (범위: {} ~ {})", 
                 todayCalls.size(), todayStart, todayEnd);
@@ -111,21 +110,12 @@ public class DashBoardController {
         long todaySuccess = todayCalls.stream().filter(c -> "SUCCESS".equals(c.getStatus())).count();
         int todaySuccessRate = todayTotal > 0 ? (int) Math.round((todaySuccess * 100.0) / todayTotal) : 0;
 
-        // 3. 어제 데이터 계산 (데이터만 받아두기)
-        List<CallResponseDTO> yesterdayCalls = filterCallsByDate(callHistory, yesterdayStart, yesterdayEnd);
-        int yesterdayTotal = yesterdayCalls.size();
-        long yesterdaySuccess = yesterdayCalls.stream().filter(c -> "SUCCESS".equals(c.getStatus())).count();
-        int yesterdaySuccessRate = yesterdayTotal > 0 ? (int) Math.round((yesterdaySuccess * 100.0) / yesterdayTotal) : 0;
-
-        // 4. Map에 모두 담기 (오늘 수치와 어제 수치를 구분)
+        // Map에 담기
         Map<String, Object> callStats = new HashMap<>();
         callStats.put("todayTotal", todayTotal);
         callStats.put("todaySuccessRate", todaySuccessRate);
-        callStats.put("yesterdayTotal", yesterdayTotal);
-        callStats.put("yesterdaySuccessRate", yesterdaySuccessRate);
 
-        log.info("통화 통계: 오늘 {}건(성공률 {}%), 어제 {}건(성공률 {}%)", 
-                todayTotal, todaySuccessRate, yesterdayTotal, yesterdaySuccessRate);
+        log.info("통화 통계: 오늘 {}건(성공률 {}%)", todayTotal, todaySuccessRate);
 
         return callStats;
     }
@@ -179,7 +169,6 @@ public class DashBoardController {
         Map<String, Object> riskStats = new HashMap<>();
         riskStats.put("total", (int) riskPatients);
         riskStats.put("urgent", (int) urgentPatients);
-        riskStats.put("riskPatients", (int) riskPatients);
         
         return riskStats;
     }
@@ -247,19 +236,30 @@ public class DashBoardController {
     }
 
     /**
-     * 배너 통계 계산
+     * 배너 통계 계산 (오늘 생성된 데이터만)
      */
     private Map<String, Object> calculateBannerStats(Long organizationId, Long userId) {
         Map<String, Object> bannerStats = new HashMap<>();
         
-        // 통화 실패 건수
+        // 오늘 날짜 범위 설정
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfDay = now.withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endOfDay = now.withHour(23).withMinute(59).withSecond(59).withNano(999999999);
+        
+        // 통화 실패 건수 (오늘 발생한 실패한 통화만)
         List<CallResponseDTO> callHistory = callService.getCallHistory(organizationId);
         long failedCalls = callHistory.stream()
-                .filter(call -> "FAILED".equals(call.getStatus()))
+                .filter(call -> {
+                    if (!"FAILED".equals(call.getStatus())) return false;
+                    if (call.getStartTime() == null) return false;
+                    LocalDateTime callTime = parseDateTime(call.getStartTime());
+                    if (callTime == null) return false;
+                    return !callTime.isBefore(startOfDay) && !callTime.isAfter(endOfDay);
+                })
                 .count();
         bannerStats.put("failedCalls", (int) failedCalls);
         
-        // 위험 환자 수
+        // 위험 환자 수 (현재 상태 기준, 날짜 필터링 없음)
         List<CareTargetListResponseDTO> careTargets = careService.getCareTargetList(organizationId, "");
         long riskPatients = careTargets.stream()
                 .filter(patient -> {
@@ -270,14 +270,18 @@ public class DashBoardController {
                 .count();
         bannerStats.put("riskPatients", (int) riskPatients);
         
-        // 긴급 알림 건수
+        // 긴급 알림 건수 (오늘 발생한 긴급 알림만)
         if (userId != null) {
             List<Notification> notifications = notificationService.getNotificationsByUserId(userId);
             long urgentAlerts = notifications.stream()
                     .filter(notif -> {
                         if (notif.getSeverity() == null) return false;
                         String severity = notif.getSeverity().name();
-                        return "CRITICAL".equals(severity) || "HIGH".equals(severity);
+                        if (!"CRITICAL".equals(severity) && !"HIGH".equals(severity)) return false;
+                        // 오늘 발생한 알림만 필터링
+                        if (notif.getOccurredAt() == null) return false;
+                        LocalDateTime occurredAt = notif.getOccurredAt();
+                        return !occurredAt.isBefore(startOfDay) && !occurredAt.isAfter(endOfDay);
                     })
                     .count();
             bannerStats.put("urgentAlerts", (int) urgentAlerts);
@@ -303,6 +307,69 @@ public class DashBoardController {
         } catch (Exception e) {
             log.warn("날짜 파싱 실패: {}", dateString);
             return null;
+        }
+    }
+
+    /**
+     * 날짜를 "yyyy.MM.dd HH:mm" 형식으로 포맷팅 (즉시 조치 필요 박스용)
+     */
+    private String formatDateTimeForUrgentItems(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+            return dateTime.format(formatter);
+        } catch (Exception e) {
+            log.warn("날짜 포맷팅 실패: {}", dateTime);
+            return null;
+        }
+    }
+
+    /**
+     * 시간을 "오전/오후 HH:mm" 형식으로 포맷팅 (4번 박스용)
+     */
+    private String formatTimeForDisplay(String timeStr) {
+        if (timeStr == null || timeStr.isEmpty()) return null;
+        try {
+            // "yyyy-MM-dd HH:mm" 형식 파싱
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime dateTime = LocalDateTime.parse(timeStr, inputFormatter);
+            
+            int hour = dateTime.getHour();
+            String ampm = hour >= 12 ? "오후" : "오전";
+            int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+            int minute = dateTime.getMinute();
+            
+            return String.format("%s %d:%02d", ampm, displayHour, minute);
+        } catch (Exception e) {
+            log.warn("시간 포맷팅 실패: {}", timeStr);
+            return null;
+        }
+    }
+
+    /**
+     * 스케줄 상태 계산 (예정/진행 중/완료됨)
+     */
+    private String calculateScheduleStatus(ScheduleResponseDTO schedule) {
+        if (schedule.getStatus() != null && "COMPLETED".equals(schedule.getStatus())) {
+            return "[완료됨✓]";
+        }
+        
+        if (schedule.getScheduledTime() == null) {
+            return "[예정]";
+        }
+        
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime scheduledDate = LocalDateTime.parse(schedule.getScheduledTime(), formatter);
+            LocalDateTime now = LocalDateTime.now();
+            
+            if (now.isAfter(scheduledDate) || now.isEqual(scheduledDate)) {
+                return "[진행 중..]";
+            }
+            return "[예정]";
+        } catch (Exception e) {
+            log.warn("스케줄 상태 계산 실패: {}", schedule.getScheduledTime());
+            return "[예정]";
         }
     }
 
@@ -484,10 +551,10 @@ public class DashBoardController {
      * 오늘의 일정 조회 (오늘 날짜의 스케줄)
      * 
      * @param organizationId 조직 ID
-     * @return 오늘의 일정 목록
+     * @return 오늘의 일정 목록 (포맷된 시간과 상태 포함)
      */
     @GetMapping("/{organizationId}/today-schedules")
-    public ResponseEntity<List<ScheduleResponseDTO>> getTodaySchedules(
+    public ResponseEntity<List<Map<String, Object>>> getTodaySchedules(
             @PathVariable Long organizationId) {
         log.info("GET /api/dashboard/{}/today-schedules 요청", organizationId);
         
@@ -537,7 +604,30 @@ public class DashBoardController {
                     .limit(5)
                     .collect(Collectors.toList());
             
-            return ResponseEntity.ok(limitedSchedules);
+            // ScheduleResponseDTO를 Map으로 변환하여 포맷된 필드 추가
+            List<Map<String, Object>> result = limitedSchedules.stream()
+                    .map(schedule -> {
+                        Map<String, Object> scheduleMap = new HashMap<>();
+                        scheduleMap.put("scheduleId", schedule.getScheduleId());
+                        scheduleMap.put("careTargetId", schedule.getCareTargetId());
+                        scheduleMap.put("scheduledTime", schedule.getScheduledTime());
+                        scheduleMap.put("nextRunAt", schedule.getNextRunAt());
+                        scheduleMap.put("careTargetName", schedule.getCareTargetName());
+                        scheduleMap.put("targetGroupName", schedule.getTargetGroupName());
+                        scheduleMap.put("status", schedule.getStatus());
+                        scheduleMap.put("priority", schedule.getPriority());
+                        // 포맷된 시간 추가
+                        String timeStr = schedule.getScheduledTime() != null 
+                                ? schedule.getScheduledTime() 
+                                : schedule.getNextRunAt();
+                        scheduleMap.put("formattedTime", formatTimeForDisplay(timeStr));
+                        // 계산된 상태 추가
+                        scheduleMap.put("displayStatus", calculateScheduleStatus(schedule));
+                        return scheduleMap;
+                    })
+                    .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("오늘의 일정 조회 실패: {}", e.getMessage(), e);
             throw e;
@@ -669,6 +759,8 @@ public class DashBoardController {
                         item.put("type", "patient");
                         item.put("data", patient);
                         item.put("time", patient.getRiskCalculatedAt());
+                        // 포맷된 날짜 추가 (yyyy.MM.dd HH:mm 형식)
+                        item.put("formattedTime", formatDateTimeForUrgentItems(patient.getRiskCalculatedAt()));
                         items.add(item);
                     } catch (Exception e) {
                         log.warn("환자 데이터 처리 중 오류: {}", e.getMessage());
@@ -689,6 +781,8 @@ public class DashBoardController {
                         item.put("type", "task");
                         item.put("data", task);
                         item.put("time", task.getCreatedAt());
+                        // 포맷된 날짜 추가 (yyyy.MM.dd HH:mm 형식)
+                        item.put("formattedTime", formatDateTimeForUrgentItems(task.getCreatedAt()));
                         items.add(item);
                     } catch (Exception e) {
                         log.warn("작업 데이터 처리 중 오류: {}", e.getMessage());
@@ -718,6 +812,8 @@ public class DashBoardController {
                         item.put("type", "notification");
                         item.put("data", notification);
                         item.put("time", notification.getOccurredAt());
+                        // 포맷된 날짜 추가 (yyyy.MM.dd HH:mm 형식)
+                        item.put("formattedTime", formatDateTimeForUrgentItems(notification.getOccurredAt()));
                         items.add(item);
                     } catch (Exception e) {
                         log.warn("알림 데이터 처리 중 오류: {}", e.getMessage());

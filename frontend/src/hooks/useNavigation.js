@@ -22,5 +22,8 @@ export const useNavigation = () => {
     
     // 알림 관련
     navigateToNotification: () => navigate('/notification'),
+    
+    // 케어 그룹 관련
+    navigateToCareTargetGroup: () => navigate('/care-target-group'),
   };
 };
