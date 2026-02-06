@@ -243,7 +243,7 @@ class ConversationCycleTests {
         log.info("원래 질문: {}", originalQuestion);
         
         // 3-1. 과거 기록 검색
-        String context = contextService.buildContext(testCareTarget, firstAnswer, 3);
+        String context = contextService.buildContext(testCareTarget, firstAnswer, "",3);
         log.info("과거 기록 검색 결과:");
         if (context.isEmpty()) {
             log.info("  - 검색된 기록 없음 (벡터DB에 데이터가 없을 수 있음)");
@@ -292,7 +292,7 @@ class ConversationCycleTests {
         log.info("원래 질문: {}", originalQuestion3);
         
         // 과거 기록 검색 (이제 두 개의 답변이 저장되어 있음)
-        String context2 = contextService.buildContext(testCareTarget, secondAnswer, 3);
+        String context2 = contextService.buildContext(testCareTarget, secondAnswer, "", 3);
         log.info("과거 기록 검색 결과:");
         if (context2.isEmpty()) {
             log.info("  - 검색된 기록 없음");
@@ -373,7 +373,7 @@ class ConversationCycleTests {
         log.info("");
         
         // 컨텍스트 검색
-        String context = contextService.buildContext(testCareTarget, testAnswer, 3);
+        String context = contextService.buildContext(testCareTarget, testAnswer, "",3);
         
         log.info("검색 결과:");
         if (context.isEmpty()) {

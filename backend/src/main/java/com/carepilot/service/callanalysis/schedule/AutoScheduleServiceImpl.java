@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 @Service
 @Log4j2
@@ -81,6 +82,25 @@ public class AutoScheduleServiceImpl implements AutoScheduleService {
         try {
             LocalDateTime nextRunAt = calculateNextRunAt(extractionResult);
             CallSchedule schedule = call.getCallSchedule();
+            
+            // Call에 스케줄이 없으면 CareTarget의 활성 스케줄 찾기
+            if (schedule == null && call.getCareTarget() != null) {
+                List<CallSchedule> activeSchedules = callScheduleRepository
+                        .findIndividualSchedulesByCareTargetAndStatus(
+                                call.getCareTarget(), 
+                                ScheduleStatus.SCHEDULED);
+                
+                if (!activeSchedules.isEmpty()) {
+                    // 가장 가까운 스케줄(첫 번째) 사용
+                    schedule = activeSchedules.get(0);
+                    log.info("[스케줄 자동화] CareTarget의 활성 스케줄 발견: scheduleId={}, careTargetId={}", 
+                            schedule.getScheduleId(), call.getCareTarget().getCareTargetId());
+                } else {
+                    log.info("[스케줄 자동화] CareTarget의 활성 스케줄 없음: careTargetId={}", 
+                            call.getCareTarget().getCareTargetId());
+                }
+            }
+            
             String description;
 
             if (schedule != null) {

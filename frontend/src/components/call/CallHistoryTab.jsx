@@ -317,7 +317,7 @@ const CallHistoryTab = () => {
                       {item.direction}
                     </td>
                     <td className="px-3 py-2 text-sm text-slate-300">
-                      {item.duration}
+                      {item.duration || "-"}
                     </td>
                     <td className="px-3 py-2 text-sm text-slate-300">
                       {item.statusLabel || item.status}
@@ -463,8 +463,20 @@ const CallHistoryTab = () => {
                       {detail.callId}
                     </p>
                     <p>
-                      <strong className="text-slate-400">통화 시간:</strong>{" "}
+                      <strong className="text-slate-400">통화 시작:</strong>{" "}
                       {detail.startTime}
+                    </p>
+                    {detail.endTime && (
+                      <p>
+                        <strong className="text-slate-400">통화 종료:</strong>{" "}
+                        {detail.endTime}
+                      </p>
+                    )}
+                    <p>
+                      <strong className="text-slate-400">통화 시간:</strong>{" "}
+                      {detail.duration != null && detail.duration > 0
+                        ? `${Math.floor(detail.duration / 60)}분 ${detail.duration % 60}초`
+                        : "-"}
                     </p>
                     <p>
                       <strong className="text-slate-400">상태:</strong>{" "}

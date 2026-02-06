@@ -6,10 +6,12 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,7 +27,7 @@ public class CallVectorStoreService {
     }
     
     /**
-     * 답변을 벡터로 변환하여 Redis에 저장
+     * 답변을 벡터로 변환하여 Redis에 저장 (동기 메서드)
      * @param careTargetId 어르신 ID
      * @param questionText 질문 내용
      * @param answerText 답변 내용
@@ -60,6 +62,32 @@ public class CallVectorStoreService {
                 careTargetId, documentId, answerText);
         } catch (Exception e) {
             log.error("벡터 저장 실패: careTargetId={}, error={}", careTargetId, e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 답변을 벡터로 변환하여 Redis에 저장 (비동기 메서드)
+     * 다음 질문 생성에 현재 답변의 임베딩이 즉시 필요하지 않으므로 비동기로 처리하여 응답 속도 향상
+     * 
+     * @param careTargetId 어르신 ID
+     * @param questionText 질문 내용
+     * @param answerText 답변 내용
+     * @param embedding 벡터 (1024차원) - 사용하지 않음 (VectorStore가 자동으로 생성)
+     * @param callDateTime 통화 일시
+     * @return CompletableFuture (비동기 처리 완료 시점을 추적할 수 있음)
+     */
+    @Async("vectorStoreExecutor")
+    public CompletableFuture<Void> saveAnswerVectorAsync(Long careTargetId, String questionText, 
+                                                         String answerText, float[] embedding, 
+                                                         LocalDateTime callDateTime) {
+        try {
+            saveAnswerVector(careTargetId, questionText, answerText, embedding, callDateTime);
+            log.debug("비동기 벡터 저장 완료: careTargetId={}", careTargetId);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            log.error("비동기 벡터 저장 실패: careTargetId={}, error={}", 
+                    careTargetId, e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
         }
     }
     

@@ -352,20 +352,20 @@ public class TwilioController {
                     return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
                 }
 
-                // 4-2. 답변 저장 및 벡터 저장 (변형된 질문 사용)
+                // 4-2. 답변 저장 (동기)
                 saveAnswer(callSid, previousContextualQuestion, speechResult);
 
-                // VectorStore에 저장 (임베딩은 자동 생성됨)
+                // VectorStore에 저장 (비동기 - 다음 질문 생성에 기다릴 필요 없음)
                 // 벡터 저장 시에는 원래 질문 사용 (메타데이터용)
                 if (careTarget != null) {
-                    callVectorStoreService.saveAnswerVector(
+                    callVectorStoreService.saveAnswerVectorAsync(
                             careTarget.getCareTargetId(),
                             previousQuestion.getQuestionText(), // 원래 질문 (메타데이터용)
                             speechResult,
                             null, // embedding은 VectorStore가 자동 생성
                             java.time.LocalDateTime.now()
                     );
-                    log.debug("벡터 저장 완료: careTargetId={}, questionIdx={}",
+                    log.debug("벡터 저장 비동기 요청: careTargetId={}, questionIdx={}",
                             careTarget.getCareTargetId(), questionIdx);
                 }
             }

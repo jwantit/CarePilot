@@ -141,6 +141,12 @@ public class VectorDBConfig {
                 .indexName(c2IndexName)
                 .prefix(c2Prefix)
                 .initializeSchema(initializeSchema)
+                .metadataFields(
+                        new RedisVectorStore.MetadataField("careTargetId", Schema.FieldType.TAG),
+                        new RedisVectorStore.MetadataField("question", Schema.FieldType.TEXT),
+                        new RedisVectorStore.MetadataField("answer", Schema.FieldType.TEXT),
+                        new RedisVectorStore.MetadataField("timestamp", Schema.FieldType.TEXT)
+                )
                 .build();
     }//---------------------------------------------------------------------------------------------------
 

@@ -11,6 +11,7 @@ import NotificationTable from "../../components/notification/NotificationTable";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import Breadcrumb from "../../components/common/Breadcrumb";
+import { getSeverityBadge } from "../../utils/riskLevelStyles";
 
 function getSeverityBadge(severity) {
   const map = {
@@ -158,7 +159,10 @@ function NotificationPage() {
     }
 
     const riskScore = prompt("위험도 점수를 입력하세요 (기본값: 75):", "75");
-    const riskLevel = prompt("위험 수준을 입력하세요 (LOW/MEDIUM/HIGH/CRITICAL, 기본값: HIGH):", "HIGH");
+    const riskLevel = prompt(
+      "위험 수준을 입력하세요 (LOW/MEDIUM/HIGH/CRITICAL, 기본값: HIGH):",
+      "HIGH",
+    );
 
     try {
       const result = await testRiskDetectionNotification(
@@ -166,7 +170,7 @@ function NotificationPage() {
         riskScore ? parseInt(riskScore) : 75,
         riskLevel || "HIGH",
       );
-      
+
       if (result.success) {
         toast.success("위험 감지 알림이 생성되었습니다.");
         fetchNotifications();
@@ -175,7 +179,9 @@ function NotificationPage() {
       }
     } catch (error) {
       console.error("위험 감지 알림 테스트 실패:", error);
-      toast.error(error.response?.data?.error || "위험 감지 알림 생성에 실패했습니다.");
+      toast.error(
+        error.response?.data?.error || "위험 감지 알림 생성에 실패했습니다.",
+      );
     }
   };
 
@@ -356,7 +362,9 @@ function NotificationPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-2xl max-w-lg w-full overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-              <h3 className="text-lg font-bold text-slate-100">알림 상세 내역</h3>
+              <h3 className="text-lg font-bold text-slate-100">
+                알림 상세 내역
+              </h3>
               <button
                 onClick={closeModal}
                 className="text-slate-400 hover:text-slate-200 transition-colors text-2xl p-1"
@@ -367,7 +375,9 @@ function NotificationPage() {
 
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-3">
-                <span className={`px-2.5 py-1 rounded-sm text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}>
+                <span
+                  className={`px-2.5 py-1 rounded-sm text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}
+                >
                   {getSeverityBadge(selectedNotification.severity).label}
                 </span>
                 <span className="px-2.5 py-1 bg-slate-700 text-slate-300 rounded-sm text-xs font-bold border border-slate-600">
@@ -379,12 +389,18 @@ function NotificationPage() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">알림 제목</label>
-                <p className="text-lg font-bold text-slate-100 leading-tight">{selectedNotification.title}</p>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">
+                  알림 제목
+                </label>
+                <p className="text-lg font-bold text-slate-100 leading-tight">
+                  {selectedNotification.title}
+                </p>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">상세 내용</label>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">
+                  상세 내용
+                </label>
                 <div className="bg-slate-800/50 p-4 rounded-sm border border-slate-600 text-sm text-slate-200 whitespace-pre-wrap leading-relaxed min-h-[120px]">
                   {selectedNotification.description}
                 </div>
@@ -392,20 +408,32 @@ function NotificationPage() {
 
               <div className="grid grid-cols-2 gap-6 pt-2">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">케어대상자</label>
-                  <p className="text-sm font-bold text-slate-200">{selectedNotification.careTarget?.name || "-"}</p>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    케어대상자
+                  </label>
+                  <p className="text-sm font-bold text-slate-200">
+                    {selectedNotification.careTarget?.name || "-"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">상태</label>
-                  <p className="text-sm font-bold text-slate-200">{getStatusLabel(selectedNotification.status)}</p>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    상태
+                  </label>
+                  <p className="text-sm font-bold text-slate-200">
+                    {getStatusLabel(selectedNotification.status)}
+                  </p>
                 </div>
               </div>
 
               {selectedNotification.status === "RESOLVED" && (
                 <div className="mt-6 p-4 bg-emerald-500/10 rounded-sm border border-emerald-500/30">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-emerald-400 font-bold">✓ 확인 완료</span>
-                    <span className="text-emerald-400/80">{formatDateTime(selectedNotification.resolvedAt)}</span>
+                    <span className="text-emerald-400 font-bold">
+                      ✓ 확인 완료
+                    </span>
+                    <span className="text-emerald-400/80">
+                      {formatDateTime(selectedNotification.resolvedAt)}
+                    </span>
                   </div>
                   <p className="text-sm text-emerald-300 mt-1 font-medium">
                     {selectedNotification.resolvedBy?.name} 님이 확인하였습니다.

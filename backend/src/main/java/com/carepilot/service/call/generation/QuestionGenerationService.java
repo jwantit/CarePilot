@@ -11,106 +11,86 @@ import org.springframework.stereotype.Service;
 @Service
 @Log4j2
 public class QuestionGenerationService {
-    
+
     private final ChatClient chatClient;
     private final ConversationContextService contextService;
-    
+
     public QuestionGenerationService(
             @Autowired(required = false) @Qualifier("openaiChatClient") ChatClient chatClient,
             ConversationContextService contextService) {
         this.chatClient = chatClient;
         this.contextService = contextService;
     }
-    
+
     /**
      * 과거 기록을 참고하여 질문을 변형
+     * RAG를 활용하여 과거 기록과 현재 답변을 비교하며 자연스러운 질문 생성
+     *
      * @param originalQuestion 원래 시나리오 질문
      * @param careTarget 어르신
-     * @param previousAnswer 직전 답변 (있으면)
+     * @param previousAnswer 직전 답변 (null 가능, 첫 번째 질문인 경우)
      * @return 변형된 질문
      */
-    public String generateContextualQuestion(String originalQuestion, 
+    public String generateContextualQuestion(String originalQuestion,
                                             CareTarget careTarget,
                                             String previousAnswer) {
-        if (originalQuestion == null || originalQuestion.trim().isEmpty()) {
-            log.warn("원래 질문이 비어있어서 변형 스킵");
-            return originalQuestion;
+        if (originalQuestion == null || originalQuestion.trim().isEmpty()) return originalQuestion;
+        if (chatClient == null) return originalQuestion;
+
+        String previousAnswerText = (previousAnswer != null && !previousAnswer.trim().isEmpty())
+                ? previousAnswer : "없음 (첫 번째 질문)";
+
+        // 1. Regex를 사용하여 현재 질문의 핵심 주제(약, 식사, 잠 등) 추출
+        String currentSubject = extractSubject(originalQuestion);
+
+        // 2. RAG 데이터 가져오기
+        String contextText = contextService.buildContext(careTarget, previousAnswer, originalQuestion, 3);
+
+        // 3. 긍정/부정 상태 파악 (환각 방지용)
+        String sentimentGuide = "어르신의 답변에 맞춰 자연스럽게 반응하세요.";
+        if (previousAnswerText.matches(".*(아니|못|아파|힘들어|안|나빠|그저|깜빡|안해).*")) {
+            sentimentGuide = "주의: 어르신이 부정적인 상태를 언급했습니다. 절대 '다행이다'라고 하지 말고 걱정과 위로를 하세요.";
         }
-        
-        if (chatClient == null) {
-            log.warn("ChatClient not configured, returning original question");
-            return originalQuestion;
-        }
-        
-        // 과거 기록 검색
-        String context = contextService.buildContext(careTarget, 
-            previousAnswer != null ? previousAnswer : "", 3);
-        
-        String previousAnswerText = previousAnswer != null && !previousAnswer.trim().isEmpty() 
-            ? previousAnswer 
-            : "없음 (첫 번째 질문)";
-        
-        String contextText = context.isEmpty() ? "없음" : context;
-        
+
+        // 4. 프롬프트 구성 (주제 인지 강화)
         String prompt = String.format("""
-            [역할]
-            당신은 혼자 계신 어르신의 건강을 챙기는 다정하고 똑똑한 안부 확인 서비스 '케어파일럿'입니다.
-            
-            [입력 데이터]
-            1. 원래 해야 할 질문: "%s"
-            2. 어르신의 직전 답변: "%s"
-            3. 어르신의 과거 기록(RAG): %s
-            
-            [작성 규칙]
-            1. **공감적 리액션**: 어르신의 [직전 답변]에 대해 짤막하게(1문장 내외) 따뜻한 반응을 보이세요.
-               - 절대 답변 내용을 그대로 반복하지 마세요. (예: "머리 아파" -> "머리 아프시군요" (X) / "아이구, 통증 때문에 고생이 많으시네요" (O))
-            
-            2. **맥락 연결(RAG 활용)**: [과거 기록]에 오늘 질문과 관련된 아픈 부위나 상황이 있다면 슬쩍 언급하며 물으세요. 
-               - 단, 반드시 [원래 해야 할 질문]의 주제 안에서만 언급하세요.
-               - 예: 원래 질문이 "식사는 하셨나요?"이고 과거 기록에 "두통"이 있어도, 두통을 언급하지 마세요. 식사와 관련된 기록만 활용하세요.
-               - 관련 기록이 없다면 억지로 끼워 넣지 말고 자연스럽게 넘어갑니다.
-            
-            3. **핵심 질문 유지 (절대 규칙)**: 
-               - 리액션 후에는 반드시 [원래 해야 할 질문]을 그대로 물어야 합니다.
-               - 원래 질문이 "식사는 하셨나요?"이면 → 반드시 "식사는 하셨나요?"로 끝나야 합니다.
-               - 원래 질문이 "약은 드셨나요?"이면 → 반드시 "약은 드셨나요?"로 끝나야 합니다.
-               - 절대로 다른 주제(약, 컨디션, 식사 등)로 바꾸지 마세요.
-            
-            4. **질문은 하나만**: 한 번에 하나의 질문만 하세요. 여러 질문을 묶어서 하지 마세요.
-            
-            5. **말투**: 70-80대 어르신과 대화하듯 부드럽고, 다정하며, 예의 바른 '해요체'를 사용하세요.
-            
-            [출력 가이드]
-            - 불필요한 연결어(그나저나, 그럼 등)를 줄이고 한 문장 혹은 두 문장의 자연스러운 흐름으로 만드세요.
-            - 설명이나 주석 없이 '실제 말할 내용'만 출력하세요.
-            - 반드시 [원래 해야 할 질문]의 주제로 끝나야 합니다.
-            
-            [출력 예시]
-            - 입력: (질문: 식사는 하셨나요? / 답변: 입맛이 없어 / 기록: 어제 두통)
-            - 출력: "입맛이 없으시다니 기운이 없으실까 봐 걱정되네요. 식사는 하셨나요?"
-            
-            - 입력: (질문: 약 드셨나요? / 답변: 입맛이 없어 / 기록: 어제 두통)
-            - 출력: "입맛이 없으시다니 기운이 없으실까 봐 걱정되네요. 어제 두통은 좀 가라앉으셨는지, 오늘 약은 드셨나요?"
-            
-            - 입력: (질문: 컨디션은 어떠신가요? / 답변: 네 먹었습니다 / 기록: 어제 두통)
-            - 출력: "저번에 아프셨던 두통은 좀 나아지셨나요? 오늘 컨디션은 어떠신가요?"
-            """,
-            originalQuestion,
-            previousAnswerText,
-            contextText);
-        
+                [역할] 어르신 안부를 확인하는 다정한 AI '케어파일럿'
+                
+                [대화 맥락]
+                - **현재 질문 주제**: [%s]
+                - **어르신의 방금 전 답변**: "%s"
+                - **상태 가이드**: %s
+                
+                [미션: 멍청한 답변 방지]
+                1. **답변 매칭**: 어르신의 답변 "%s"은 현재 주제인 [%s]에 대한 대답입니다. 
+                   - 예: 주제가 '약'인데 "안 먹었어"라고 했다면, '식사'가 아니라 '약'을 안 드신 것입니다. 절대 딴소리(식사 등)를 하지 마세요.
+                2. **과거 기록(RAG) 활용**: 아래 기록 중 [%s]와 관련된 내용만 인용하세요.
+                   %s
+                
+                [작성 규칙]
+                - 첫 문장은 반드시 어르신의 답변에 대한 적절한 리액션으로 시작하세요.
+                - 말투는 70대 어르신과 대화하듯 부드러운 '해요체'를 사용하세요.
+                - 마지막 문장은 반드시 원래 질문인 "%s"으로 끝내세요.
+                
+                [설명 없이 실제 말할 내용만 출력]
+                """,
+                currentSubject, previousAnswerText, sentimentGuide,
+                previousAnswerText, currentSubject, currentSubject,
+                contextText.isEmpty() ? "없음" : contextText,
+                originalQuestion);
+
         try {
             String generatedQuestion = chatClient.prompt()
                 .user(prompt)
                 .call()
                 .content();
-            
+
             if (generatedQuestion != null && !generatedQuestion.trim().isEmpty()) {
                 String trimmed = generatedQuestion.trim();
                 log.debug("질문 변형 성공: original={}, generated={}", originalQuestion, trimmed);
                 return trimmed;
             }
-            
+
             // 생성 실패 시 원래 질문 반환
             log.warn("질문 생성 결과가 비어있어서 원래 질문 반환");
             return originalQuestion;
@@ -118,5 +98,17 @@ public class QuestionGenerationService {
             log.error("질문 생성 실패: originalQuestion={}, error={}", originalQuestion, e.getMessage(), e);
             return originalQuestion;
         }
+    }
+
+    /**
+     * Regex 기반 주제 추출 메서드
+     */
+    private String extractSubject(String question) {
+        if (question.matches(".*(약|복용|처방|물약|가루약|제때).*")) return "약 복용 여부";
+        if (question.matches(".*(식사|밥|음식|먹었|진지|입맛).*")) return "식사 및 영양 상태";
+        if (question.matches(".*(잠|수면|주무|밤새|꿈|설쳤).*")) return "수면 및 숙면 여부";
+        if (question.matches(".*(어디|아픈|불편|통증|무릎|허리|머리|어지러).*")) return "신체 통증 및 불편함";
+        if (question.matches(".*(컨디션|기분|어떠신가요|어떻게).*")) return "전반적인 건강 컨디션";
+        return "일반 안부";
     }
 }
