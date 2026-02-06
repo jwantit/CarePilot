@@ -6,19 +6,13 @@ import com.carepilot.domain.call.CallRecording;
 import com.carepilot.domain.call.CallStatus;
 import com.carepilot.domain.call.CallType;
 import com.carepilot.domain.caretarget.CareTarget;
-import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.file.UploadFileType;
 import com.carepilot.domain.file.UploadTargetType;
-import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.domain.sms.SmsType;
-import com.carepilot.domain.task.Task;
-import com.carepilot.domain.task.TaskSourceType;
-import com.carepilot.domain.task.TaskStatus;
-import com.carepilot.domain.task.TaskType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
@@ -29,17 +23,14 @@ import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.sms.InboundSmsRepository;
 import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.repository.upload.UploadFileRepository;
-import com.carepilot.service.call.emergency.EmergencyDetectionService;
+import com.carepilot.service.call.emergency.EmergencyNotificationService;
 import com.carepilot.service.call.emergency.EmergencyDetectionResult;
+import com.carepilot.service.call.emergency.EmergencyDetectionService;
 import com.carepilot.service.call.generation.QuestionGenerationService;
 import com.carepilot.service.call.vector.CallVectorStoreService;
 import com.carepilot.service.callanalysis.CallAnalysisService;
 import com.carepilot.service.notification.NotificationService;
 import com.carepilot.domain.notification.NotificationType;
-import com.carepilot.domain.notification.RiskLevel;
-import com.carepilot.domain.user.User;
-import com.carepilot.domain.user.User;
-import com.carepilot.domain.user.UserRole;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.repository.notification.NotificationRepository;
 
@@ -51,6 +42,9 @@ import com.carepilot.service.config.ai.AiConfigService;
 import com.carepilot.service.sms.SmsTypeService;
 import com.carepilot.service.task.TaskService;
 import com.carepilot.service.upload.UploadFileService;
+import com.carepilot.service.call.TwilioService;
+import com.carepilot.dto.config.AIConfigDTO;
+import com.carepilot.domain.config.Doctor;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Gather;
 import com.twilio.twiml.voice.Say;
@@ -116,6 +110,8 @@ public class TwilioController {
     private final SimpMessagingTemplate messagingTemplate;
     private final TaskService taskService;
     private final TaskRepository taskRepository;
+    private final TwilioService twilioService;
+    private final EmergencyNotificationService emergencyNotificationService;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -1131,112 +1127,11 @@ public class TwilioController {
     }
 
     /**
-     * 긴급 상황 발생 시 조직 공유 알림 전송
-     * 같은 Call에 대해 하나의 조직 공유 알림만 생성 (user_id = null)
-     * 조직별 WebSocket 토픽(/topic/org/{organizationId})으로 브로드캐스트
+     * 긴급 상황 발생 시 처리 (Service에 위임)
      */
     private void sendEmergencyNotification(Call call, CareTarget careTarget,
                                            String emergencyAnswer, String emergencyMessage) {
-        try {
-            Organization organization = call.getOrganization();
-            if (organization == null) {
-                log.warn("Organization을 찾을 수 없어 긴급 알림 전송 실패: callId={}", call.getCallId());
-                return;
-            }
-
-            // 같은 Call에 대해 이미 긴급 알림이 생성되었는지 확인
-            List<com.carepilot.domain.notification.Notification> existingNotifications =
-                    notificationRepository.findByCallIdAndType(call.getCallId(), NotificationType.EMERGENCY);
-
-            if (!existingNotifications.isEmpty()) {
-                log.info("이미 긴급 알림이 생성되어 중복 방지: callId={}, 기존 알림 개수={}",
-                        call.getCallId(), existingNotifications.size());
-                return;
-            }
-
-            // 알림 제목 및 내용 구성
-            String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
-            String title = String.format("긴급 상황 발생: %s", careTargetName);
-            String description = String.format("케어대상자 '%s'의 통화 중 긴급 상황이 감지되었습니다.\n\n" +
-                            "감지된 답변: %s\n" +
-                            "대응 메시지: %s",
-                    careTargetName, emergencyAnswer, emergencyMessage);
-
-            // 조직 공유 알림 생성 (user_id = null, 하나만 생성)
-            // WebSocket은 조직별 토픽으로 브로드캐스트
-            Notification notification =
-                    notificationService.createOrganizationNotification(
-                            organization.getOrganizationId(),
-                            NotificationType.EMERGENCY,
-                            title,
-                            description,
-                            RiskLevel.CRITICAL,
-                            call,
-                            careTarget
-                    );
-
-            log.info("긴급 알림 생성 완료: organizationId={}, careTargetName={}",
-                    organization.getOrganizationId(), careTargetName);
-
-            // 의료진 호출 작업(Task) 생성
-            try {
-                // 같은 Call에 대해 이미 Task가 생성되었는지 확인
-                List<Task> existingTasks = taskRepository.findByCall_CallId(call.getCallId());
-
-                boolean hasEmergencyTask = existingTasks.stream()
-                        .anyMatch(task -> task.getType() == TaskType.RISK_FOLLOWUP);
-
-                if (!hasEmergencyTask) {
-                    // 담당 의료진 정보 가져오기
-                    String doctorInfo = "담당 의료진 정보 없음";
-                    if (careTarget != null && careTarget.getDoctor() != null) {
-                        com.carepilot.domain.config.Doctor doctor = careTarget.getDoctor();
-                        doctorInfo = String.format(
-                                "담당 의료진: %s\n" +
-                                        "전화번호: %s\n" +
-                                        "전문과목: %s",
-                                doctor.getName() != null ? doctor.getName() : "이름 없음",
-                                doctor.getPhone() != null ? doctor.getPhone() : "번호 없음",
-                                doctor.getSpecialty() != null ? doctor.getSpecialty() : "과목 없음"
-                        );
-                    }
-
-                    Task emergencyTask = Task.builder()
-                            .organization(organization)
-                            .sourceType(TaskSourceType.USER)  // 사용자가 처리해야 하는 작업
-                            .careTarget(careTarget)
-                            .title(String.format("의료진 호출: %s", careTargetName))
-                            .description(String.format(
-                                    "케어대상자 '%s'의 긴급 상황으로 인한 의료진 호출이 필요합니다.\n\n" +
-                                            "긴급 상황 내용:\n%s\n\n" +
-                                            "대응 메시지: %s\n\n" +
-                                            "=== 담당 의료진 호출 정보 ===\n%s",
-                                    careTargetName, emergencyAnswer, emergencyMessage, doctorInfo))
-                            .type(TaskType.RISK_FOLLOWUP)  // 위험 후속조치로 설정
-                            .priority(Priority.HIGH)  // 긴급 상황이므로 HIGH 우선순위
-                            .status(TaskStatus.WAITING)
-                            .createdBy(null)  // 시스템이 생성
-                            .assignedTo(null)  // 할당되지 않음 (나중에 할당 가능)
-                            .call(call)
-                            .notification(notification)  // 알림과 연결
-                            .build();
-
-                    taskRepository.save(emergencyTask);
-                    log.info("긴급 상황 위험 후속조치 작업 생성 완료: taskId={}, callId={}, careTargetId={}",
-                            emergencyTask.getTaskId(), call.getCallId(),
-                            careTarget != null ? careTarget.getCareTargetId() : null);
-                } else {
-                    log.info("이미 위험 후속조치 작업이 존재하여 생성하지 않음: callId={}", call.getCallId());
-                }
-            } catch (Exception e) {
-                log.error("긴급 상황 위험 후속조치 작업 생성 실패: callId={}, error={}",
-                        call.getCallId(), e.getMessage(), e);
-                // 작업 생성 실패해도 알림은 이미 생성되었으므로 계속 진행
-            }
-        } catch (Exception e) {
-            log.error("긴급 알림 전송 중 오류 발생: callId={}, error={}",
-                    call.getCallId(), e.getMessage(), e);
-        }
+        emergencyNotificationService.handleEmergency(call, careTarget, emergencyAnswer, emergencyMessage);
     }
 
     /**

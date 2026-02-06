@@ -10,6 +10,7 @@ import com.carepilot.domain.sms.SentBy;
 import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
 import com.carepilot.repository.sms.OutboundSmsRepository;
 import com.carepilot.service.call.TwilioService;
+import com.carepilot.util.PhoneNumberUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class ScheduleNotificationServiceImpl implements ScheduleNotificationServ
                     : "고객님";
             String message = buildMessage(name, timeText);
             try {
-                String parsedPhone = parsePhoneNumber(phone);
+                String parsedPhone = PhoneNumberUtil.parsePhoneNumber(phone);
                 String messageSid = twilioService.sendSms(parsedPhone, message);
                 outboundSmsRepository.save(OutboundSms.builder()
                         .messageSid(messageSid)
@@ -120,22 +121,5 @@ public class ScheduleNotificationServiceImpl implements ScheduleNotificationServ
                 최근 받은 처방전이나 관련 사진이 있다면
                 이미지 링크로 보내주셔도 됩니다.
                 """.formatted(name, timeText);
-    }
-
-    private String parsePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("전화번호가 입력되지 않았습니다.");
-        }
-        String cleaned = phoneNumber.replaceAll("[\\s-]", "");
-        if (cleaned.startsWith("+82")) {
-            return cleaned;
-        }
-        if (cleaned.startsWith("010")) {
-            return "+82" + cleaned.substring(1);
-        }
-        if (cleaned.startsWith("0")) {
-            return "+82" + cleaned.substring(1);
-        }
-        return "+82" + cleaned;
     }
 }

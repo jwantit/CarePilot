@@ -17,6 +17,7 @@ import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.sms.OutboundSmsRepository;
 import com.carepilot.repository.task.TaskRepository;
 import com.carepilot.service.call.TwilioService;
+import com.carepilot.util.PhoneNumberUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -339,7 +340,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
                 : "고객님";
         String message = "[CarePilot 안내]\n%s 전화 예약이 %s으로 변경되었습니다.".formatted(name, timeText);
         try {
-            String parsed = parsePhoneNumber(phone);
+            String parsed = PhoneNumberUtil.parsePhoneNumber(phone);
             String messageSid = twilioService.sendSms(parsed, message);
             outboundSmsRepository.save(OutboundSms.builder()
                     .messageSid(messageSid)
@@ -351,16 +352,5 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         } catch (Exception e) {
             log.error("[ScheduleChange] 확인 문자 발송 실패: {}", e.getMessage(), e);
         }
-    }
-
-    private String parsePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("전화번호가 입력되지 않았습니다.");
-        }
-        String cleaned = phoneNumber.replaceAll("[\\s-]", "");
-        if (cleaned.startsWith("+82")) return cleaned;
-        if (cleaned.startsWith("010")) return "+82" + cleaned.substring(1);
-        if (cleaned.startsWith("0")) return "+82" + cleaned.substring(1);
-        return "+82" + cleaned;
     }
 }

@@ -13,6 +13,7 @@ import com.carepilot.repository.sms.InboundSmsRepository;
 import com.carepilot.repository.sms.OutboundSmsRepository;
 import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.call.TwilioService;
+import com.carepilot.util.PhoneNumberUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +74,7 @@ public class SmsController {
         if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
             throw new IllegalArgumentException("메시지 내용이 입력되지 않았습니다.");
         }
-        String parsedPhoneNumber = parsePhoneNumber(request.getTo());
+        String parsedPhoneNumber = PhoneNumberUtil.parsePhoneNumber(request.getTo());
         String messageSid = twilioService.sendSms(parsedPhoneNumber, request.getMessage());
         OutboundSms outbound = OutboundSms.builder()
                 .messageSid(messageSid)
@@ -162,20 +163,5 @@ public class SmsController {
             return "0" + digits.substring(2);
         }
         return digits;
-    }
-
-    /**
-     * 한국 전화번호를 Twilio 형식으로 파싱
-     * 010-0000-0000 → +82100000000
-     */
-    private String parsePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("전화번호가 입력되지 않았습니다.");
-        }
-        String cleaned = phoneNumber.replaceAll("[\\s-]", "");
-        if (cleaned.startsWith("+82")) return cleaned;
-        if (cleaned.startsWith("010")) return "+82" + cleaned.substring(1);
-        if (cleaned.startsWith("0")) return "+82" + cleaned.substring(1);
-        return "+82" + cleaned;
     }
 }

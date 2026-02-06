@@ -154,16 +154,20 @@ public class TaskServiceImpl implements TaskService {
         return toResponseDTO(task);
     }
 
-    // 작업 상태 변경 (USER 전용)
+    // 작업 상태 변경
     @Override
     public void updateStatus(Long taskId, String status) {
         Task task = getTaskInOrg(taskId);
-        if (task.getSourceType() != TaskSourceType.USER) {
-            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 상태 변경할 수 없습니다.");
-        }
         TaskStatus taskStatus = parseTaskStatus(status);
         if (taskStatus == null) {
             throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "유효하지 않은 상태값입니다.");
+        }
+
+        // RISK_FOLLOWUP 타입의 USER 작업은 작업 시작 시 특별 처리 없음 (이미 SMS 전송됨)
+
+        // USER 작업만 일반 상태 변경 허용 (기존 로직)
+        if (task.getSourceType() != TaskSourceType.USER) {
+            throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "AI 작업은 상태 변경할 수 없습니다.");
         }
 
         // AI가 감지한 Task인지 확인 (CALL, SMS, 또는 챗봇)
