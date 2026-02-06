@@ -106,7 +106,7 @@ const TaskListTab = () => {
 
   const statCards = useMemo(
     () => [
-      { value: taskStats.total, label: "전체 작업", icon: ListTodo, iconColor: "text-teal-400", valueColor: "text-slate-100", hoverBorderColor: "hover:border-teal-500/50" },
+      { value: taskStats.total, label: "전체 작업", icon: ListTodo, iconColor: "text-teal-400", valueColor: "text-cp-text", hoverBorderColor: "hover:border-teal-500/50" },
       { value: taskStats.waiting, label: "대기", icon: Clock, iconColor: "text-yellow-400", valueColor: "text-yellow-400", hoverBorderColor: "hover:border-yellow-500/50" },
       { value: taskStats.progress, label: "진행중", icon: Play, iconColor: "text-blue-400", valueColor: "text-blue-400", hoverBorderColor: "hover:border-blue-500/50" },
       { value: taskStats.done, label: "완료", icon: CheckCircle, iconColor: "text-emerald-400", valueColor: "text-emerald-400", hoverBorderColor: "hover:border-emerald-500/50" },

@@ -32,7 +32,7 @@ const getAITaskStatusStyle = (status) => {
     case "FAILED":
       return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
     default:
-      return "bg-gradient-to-br from-slate-500/20 to-slate-600/20 text-slate-400 border border-slate-500/50";
+      return "bg-cp-bg/50 text-cp-muted border border-cp-border/50";
   }
 };
 
@@ -67,16 +67,16 @@ const AITaskDetailModal = ({ open, onClose, taskId }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-          <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center p-5 border-b border-cp-border bg-cp-bg/30 shrink-0">
+          <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
             <Cpu size={24} className="text-teal-400" />
             AI 처리 내역 상세
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+            className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
           >
             <X size={24} />
           </button>
@@ -90,11 +90,11 @@ const AITaskDetailModal = ({ open, onClose, taskId }) => {
           ) : detail ? (
             <dl className="space-y-4 text-sm">
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">유형</dt>
-                <dd className="text-slate-200">{getAITaskTypeLabel(detail.type)}</dd>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">유형</dt>
+                <dd className="text-cp-text">{getAITaskTypeLabel(detail.type)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">상태</dt>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">상태</dt>
                 <dd>
                   <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${getAITaskStatusStyle(detail.status)}`}>
                     {getAITaskStatusLabel(detail.status)}
@@ -102,13 +102,13 @@ const AITaskDetailModal = ({ open, onClose, taskId }) => {
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">케어대상</dt>
-                <dd className="text-slate-200">{detail.careTargetName || "-"}</dd>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">케어대상</dt>
+                <dd className="text-cp-text">{detail.careTargetName || "-"}</dd>
               </div>
               {(detail.callId != null || detail.scheduleId != null || detail.notificationId != null || detail.groupId != null) && (
                 <div>
-                  <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">연결 ID</dt>
-                  <dd className="text-slate-400">
+                  <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">연결 ID</dt>
+                  <dd className="text-cp-muted">
                     {detail.callId != null && `통화 ${detail.callId} `}
                     {detail.scheduleId != null && `스케줄 ${detail.scheduleId} `}
                     {detail.notificationId != null && `알림 ${detail.notificationId} `}
@@ -117,24 +117,24 @@ const AITaskDetailModal = ({ open, onClose, taskId }) => {
                 </div>
               )}
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">시작 시각</dt>
-                <dd className="text-slate-200">{formatDateTime(detail.startedAt)}</dd>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">시작 시각</dt>
+                <dd className="text-cp-text">{formatDateTime(detail.startedAt)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">완료 시각</dt>
-                <dd className="text-slate-200">{formatDateTime(detail.completedAt)}</dd>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">완료 시각</dt>
+                <dd className="text-cp-text">{formatDateTime(detail.completedAt)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">등록 시각</dt>
-                <dd className="text-slate-200">{formatDateTime(detail.createdAt)}</dd>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">등록 시각</dt>
+                <dd className="text-cp-text">{formatDateTime(detail.createdAt)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">수정 시각</dt>
-                <dd className="text-slate-200">{formatDateTime(detail.updatedAt)}</dd>
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">수정 시각</dt>
+                <dd className="text-cp-text">{formatDateTime(detail.updatedAt)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">처리 결과</dt>
-                <dd className="text-slate-200 mt-1 p-3 bg-slate-900/50 rounded-sm border border-slate-600 whitespace-pre-wrap break-words">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">처리 결과</dt>
+                <dd className="text-cp-text mt-1 p-3 bg-cp-input/50 rounded-sm border border-cp-border whitespace-pre-wrap break-words">
                   {detail.result || "-"}
                 </dd>
               </div>
@@ -142,7 +142,7 @@ const AITaskDetailModal = ({ open, onClose, taskId }) => {
           ) : null}
         </div>
 
-        <div className="p-5 border-t border-slate-700 flex-shrink-0 bg-gradient-to-r from-slate-800/80 to-slate-900/80">
+        <div className="p-5 border-t border-cp-border flex-shrink-0 bg-cp-bg/30">
           <button
             type="button"
             onClick={onClose}

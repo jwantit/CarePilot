@@ -26,10 +26,10 @@ function RequireLoginRoute() {
   // 초기화 중이면 대기
   if (!isInitialized || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-cp-bg">
         <div className="text-center">
           <Loading />
-          <p className="mt-4 text-gray-600">인증 확인 중...</p>
+          <p className="mt-4 text-cp-muted">인증 확인 중...</p>
         </div>
       </div>
     );

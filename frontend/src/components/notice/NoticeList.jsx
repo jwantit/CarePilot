@@ -25,10 +25,10 @@ const NoticeList = ({ notices, onDetail }) => {
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden shadow-lg">
+    <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
       {notices && notices.length > 0 ? (
         <table className="w-full text-left">
-          <thead className="bg-slate-900 text-slate-400 uppercase text-sm border-b-2 border-teal-500/30">
+          <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
               <th className="px-4 py-3 text-teal-400 w-20 text-center">종류</th>
               <th className="px-4 py-3 text-teal-400">제목</th>
@@ -43,13 +43,13 @@ const NoticeList = ({ notices, onDetail }) => {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-cp-border">
             {notices.map((notice) => {
               const isPinned = notice.isPinned;
               return (
                 <tr
                   key={notice.noticeId}
-                  className="hover:bg-slate-700/50 transition cursor-pointer bg-slate-800/30 group"
+                  className="hover:bg-cp-bg/50 transition cursor-pointer bg-cp-card/30 group"
                   onClick={() => onDetail(notice)}
                 >
                   <td className="px-4 py-5 text-center">
@@ -69,7 +69,7 @@ const NoticeList = ({ notices, onDetail }) => {
                         );
                       } else {
                         return (
-                          <span className="inline-block bg-slate-700 text-slate-300 border border-slate-600 text-xs px-2.5 py-1 rounded-sm font-bold whitespace-nowrap uppercase">
+                          <span className="inline-block bg-cp-bg text-cp-text border border-cp-border text-xs px-2.5 py-1 rounded-sm font-bold whitespace-nowrap uppercase">
                             일반
                           </span>
                         );
@@ -84,13 +84,13 @@ const NoticeList = ({ notices, onDetail }) => {
                           className="text-teal-400 fill-teal-400/20 rotate-45 shrink-0"
                         />
                       )}
-                      <span className="text-slate-100 font-bold text-base truncate max-w-lg group-hover:text-teal-400 transition-colors">
+                      <span className="text-cp-text font-bold text-base truncate max-w-lg group-hover:text-teal-400 transition-colors">
                         {notice.title}
                       </span>
                       {notice.files && notice.files.length > 0 && (
                         <FileText
                           size={16}
-                          className="text-slate-500 shrink-0"
+                          className="text-cp-muted shrink-0"
                         />
                       )}
                       {notice.commentCount > 0 && (
@@ -103,7 +103,7 @@ const NoticeList = ({ notices, onDetail }) => {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-5 text-center text-base text-slate-300 font-bold truncate">
+                  <td className="px-4 py-5 text-center text-base text-cp-text font-bold truncate">
                     {notice.writerName || "익명"}
                   </td>
                   <td className="px-4 py-5 text-center text-sm text-slate-400 whitespace-nowrap font-mono tracking-tighter">
@@ -111,7 +111,7 @@ const NoticeList = ({ notices, onDetail }) => {
                       ? formatDate(notice.updatedAt)
                       : formatDate(notice.createdAt)}
                   </td>
-                  <td className="px-4 py-5 text-center text-base text-slate-400 font-mono font-bold">
+                  <td className="px-4 py-5 text-center text-base text-cp-muted font-mono font-bold">
                     {notice.viewCount || 0}
                   </td>
                 </tr>
@@ -120,7 +120,7 @@ const NoticeList = ({ notices, onDetail }) => {
           </tbody>
         </table>
       ) : (
-        <div className="text-center py-20 text-slate-500 bg-slate-800/30">
+        <div className="text-center py-20 text-cp-muted bg-cp-card/30">
           게시글이 없습니다.
         </div>
       )}

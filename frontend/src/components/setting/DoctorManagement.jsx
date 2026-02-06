@@ -12,10 +12,10 @@ import BulkUploadModal from "../../components/common/BulkUploadModal";
 import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle } from "lucide-react";
 
 const inputClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
-const labelClass = "block text-sm font-semibold text-slate-200 mb-1.5";
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+const labelClass = "block text-sm font-semibold text-cp-text mb-1.5";
 const selectClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
 
 function DoctorManagement() {
   const auth = useSelector((state) => state.auth);
@@ -207,17 +207,17 @@ function DoctorManagement() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-100">의료진 관리</h1>
+        <h1 className="text-2xl font-bold text-cp-text">의료진 관리</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 font-semibold shadow-md"
+            className="px-4 py-2.5 bg-cp-input border border-cp-border text-cp-muted rounded-sm hover:bg-cp-bg hover:text-cp-text font-semibold shadow-md"
           >
             CSV/EXCEL 업로드
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold shadow-md"
+            className="px-4 py-2.5 bg-cp-input border border-teal-500/50 text-teal-400 rounded-sm hover:bg-cp-bg hover:border-teal-500 font-semibold shadow-md"
           >
             의료진 등록
           </button>
@@ -225,42 +225,42 @@ function DoctorManagement() {
       </div>
 
       {/* 필터 섹션 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-4 mb-6">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-400 mb-2">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               역할
             </label>
             <select
               value={filters.role}
               onChange={(e) => handleFilterChange("role", e.target.value)}
-              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="">전체</option>
-              <option value="ADMIN">관리자</option>
-              <option value="DOCTOR">의사</option>
-              <option value="NURSE">간호사</option>
-              <option value="OPERATOR">운영자</option>
+              <option value="ADMIN" className="bg-cp-card">관리자</option>
+              <option value="DOCTOR" className="bg-cp-card">의사</option>
+              <option value="NURSE" className="bg-cp-card">간호사</option>
+              <option value="OPERATOR" className="bg-cp-card">운영자</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-400 mb-2">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
             <select
               value={filters.isActive}
               onChange={(e) => handleFilterChange("isActive", e.target.value)}
-              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="">전체</option>
-              <option value="true">활성</option>
-              <option value="false">비활성</option>
+              <option value="true" className="bg-cp-card">활성</option>
+              <option value="false" className="bg-cp-card">비활성</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-400 mb-2">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               이름 검색
             </label>
             <input
@@ -268,21 +268,21 @@ function DoctorManagement() {
               value={filters.name}
               onChange={(e) => handleFilterChange("name", e.target.value)}
               placeholder="이름으로 검색"
-              className="w-full px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="w-full px-4 py-2 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* 테이블 */}
-      <div className="bg-slate-800 border border-slate-700 rounded-none overflow-hidden shadow-lg">
+      <div className="bg-cp-card border border-cp-border rounded-none overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="text-slate-500">로딩 중...</div>
+            <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-900">
+          <table className="min-w-full divide-y divide-cp-border">
+            <thead className="bg-cp-header">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   이름
@@ -304,37 +304,37 @@ function DoctorManagement() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-cp-border">
               {doctors.length === 0 ? (
                 <tr>
                   <td
                     colSpan="6"
-                    className="px-6 py-4 text-center text-slate-500"
+                    className="px-6 py-4 text-center text-cp-muted"
                   >
                     등록된 의료진이 없습니다.
                   </td>
                 </tr>
               ) : (
                 doctors.map((doctor) => (
-                  <tr key={doctor.doctorId} className="hover:bg-slate-700/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-100">
+                  <tr key={doctor.doctorId} className="hover:bg-cp-bg/50 transition">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
                       {doctor.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
                       {doctor.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
                       {doctor.specialty || "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
                       {getRoleLabel(doctor.role)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
                           doctor.isActive
                             ? "bg-teal-500/20 text-teal-400 border border-teal-500/50"
-                            : "bg-slate-600/50 text-slate-400 border border-slate-500"
+                            : "bg-cp-bg/50 text-cp-muted border border-cp-border"
                         }`}
                       >
                         {getStatusLabel(doctor.isActive)}
@@ -365,10 +365,10 @@ function DoctorManagement() {
       {/* 모달 */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
             {/* 헤더 */}
-            <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+              <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
                 {editingDoctor ? (
                   <FileText size={24} className="text-teal-400" />
                 ) : (
@@ -378,7 +378,7 @@ function DoctorManagement() {
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+                className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
               >
                 <X size={24} />
               </button>
@@ -387,7 +387,7 @@ function DoctorManagement() {
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
               <div className="grid grid-cols-2 gap-5">
                 {/* 섹션 1: 의료진 기본 정보 */}
-                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <User size={16} /> 의료진 기본 정보
                 </div>
 
@@ -454,7 +454,7 @@ function DoctorManagement() {
                 </div>
 
                 {/* 섹션 2: 권한 및 상태 정보 */}
-                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <Briefcase size={16} /> 권한 및 상태 설정
                 </div>
 
@@ -468,10 +468,10 @@ function DoctorManagement() {
                     required
                     className={selectClass}
                   >
-                    <option value="ADMIN" className="bg-slate-900">관리자</option>
-                    <option value="DOCTOR" className="bg-slate-900">의사</option>
-                    <option value="NURSE" className="bg-slate-900">간호사</option>
-                    <option value="OPERATOR" className="bg-slate-900">운영자</option>
+                    <option value="ADMIN" className="bg-cp-card">관리자</option>
+                    <option value="DOCTOR" className="bg-cp-card">의사</option>
+                    <option value="NURSE" className="bg-cp-card">간호사</option>
+                    <option value="OPERATOR" className="bg-cp-card">운영자</option>
                   </select>
                 </div>
 
@@ -489,7 +489,7 @@ function DoctorManagement() {
                         className={`flex-1 py-2.5 rounded-sm font-medium border transition-all shadow-md ${
                           formData.isActive === status.value
                             ? "bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 hover:from-teal-500 hover:to-teal-600"
-                            : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-300 border-slate-600 hover:border-slate-500"
+                            : "bg-cp-input text-cp-muted border-cp-border hover:bg-cp-bg"
                         }`}
                       >
                         {status.label}
@@ -516,14 +516,14 @@ function DoctorManagement() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
+                  className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:from-slate-700 disabled:to-slate-800 disabled:border-slate-600 disabled:text-slate-400 transition-all shadow-md"
+                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
                 >
                   {loading ? "저장 중..." : (editingDoctor ? "저장 완료" : "의료진 등록 완료")}
                 </button>
@@ -547,7 +547,7 @@ function DoctorManagement() {
         isUploading={isUploading}
         optionSlot={
           <div className="mb-6">
-            <label className="block text-sm font-bold text-slate-400 mb-3">
+            <label className="block text-sm font-bold text-cp-muted mb-3">
               등록 의료진 기본 상태 설정
             </label>
             <div className="flex gap-2">
@@ -557,7 +557,7 @@ function DoctorManagement() {
                 className={`flex-1 py-2.5 rounded-none font-medium border flex items-center justify-center gap-2 transition-all ${
                   defaultActive
                     ? "bg-[#008080] text-white border-[#008080]"
-                    : "bg-slate-800 text-slate-400 border-slate-600 hover:border-slate-500"
+                    : "bg-cp-input text-cp-muted border-cp-border hover:bg-cp-bg"
                 }`}
               >
                 활성 등록
@@ -568,13 +568,13 @@ function DoctorManagement() {
                 className={`flex-1 py-2.5 rounded-none font-medium border flex items-center justify-center gap-2 transition-all ${
                   !defaultActive
                     ? "bg-red-500 text-white border-red-500"
-                    : "bg-slate-800 text-slate-400 border-slate-600 hover:border-slate-500"
+                    : "bg-cp-input text-cp-muted border-cp-border hover:bg-cp-bg"
                 }`}
               >
                 비활성 등록
               </button>
             </div>
-            <p className="mt-2 text-[11px] text-slate-500">
+            <p className="mt-2 text-[11px] text-cp-muted">
               ※ 업로드되는 모든 의료진에게 해당 상태가 일괄 적용됩니다.
             </p>
           </div>

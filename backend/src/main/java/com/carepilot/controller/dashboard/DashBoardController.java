@@ -97,7 +97,7 @@ public class DashBoardController {
         // 디버깅: 전체 통화 이력 로그
         log.info("전체 통화 이력 조회: {}건", callHistory.size());
         callHistory.forEach(call -> {
-            log.info("통화 정보: callId={}, startTime={}, status={}", 
+            log.info("통화 정보: callId={}, startTime={}, status={}",
                     call.getCallId(), call.getStartTime(), call.getStatus());
         });
 

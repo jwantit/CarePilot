@@ -7,16 +7,16 @@ const PrescriptionHistoryTable = ({ list }) => {
 
   if (!list || list.length === 0) {
     return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-lg hover:shadow-xl transition-shadow overflow-hidden mb-12">
-        <div className="px-10 py-7 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900">
-          <h3 className="font-black text-slate-200 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-slate-900 to-slate-950 rounded-sm flex items-center justify-center shadow-md border border-slate-700">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-lg hover:shadow-xl transition-shadow overflow-hidden mb-12">
+        <div className="px-10 py-7 border-b border-cp-border flex justify-between items-center bg-cp-bg/30">
+          <h3 className="font-black text-cp-text flex items-center gap-3">
+            <div className="w-10 h-10 bg-cp-input rounded-sm flex items-center justify-center shadow-md border border-cp-border">
               <FileText size={20} className="text-teal-400" />
             </div>
             처방 이력
           </h3>
         </div>
-        <div className="px-10 py-12 text-center text-slate-500 text-sm font-medium">
+        <div className="px-10 py-12 text-center text-cp-muted text-sm font-medium">
           등록된 처방 이력이 없습니다.
         </div>
       </div>
@@ -24,10 +24,10 @@ const PrescriptionHistoryTable = ({ list }) => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-lg hover:shadow-xl transition-shadow overflow-hidden mb-12">
-      <div className="px-10 py-7 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900">
-        <h3 className="font-black text-slate-200 flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-slate-900 to-slate-950 rounded-sm flex items-center justify-center shadow-md border border-slate-700">
+    <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-lg hover:shadow-xl transition-shadow overflow-hidden mb-12">
+      <div className="px-10 py-7 border-b border-cp-border flex justify-between items-center bg-cp-bg/30">
+        <h3 className="font-black text-cp-text flex items-center gap-3">
+          <div className="w-10 h-10 bg-cp-input rounded-sm flex items-center justify-center shadow-md border border-cp-border">
             <FileText size={20} className="text-teal-400" />
           </div>
           처방 이력
@@ -35,27 +35,27 @@ const PrescriptionHistoryTable = ({ list }) => {
       </div>
       <div className="max-h-[500px] overflow-y-auto modal-scrollbar">
         <table className="w-full text-left table-fixed border-separate border-spacing-0">
-          <thead className="bg-gradient-to-r from-slate-900 to-slate-950 sticky top-0 z-10 border-b border-slate-700">
+          <thead className="bg-cp-header sticky top-0 z-10 border-b border-cp-border">
             <tr>
-              <th className="px-10 py-4 w-[12%] text-[11px] font-bold text-slate-400 uppercase tracking-widest">처방일</th>
-              <th className="px-6 py-4 w-[12%] text-[11px] font-bold text-slate-400 uppercase tracking-widest">분석 일시</th>
-              <th className="px-6 py-4 w-[46%] text-[11px] font-bold text-slate-400 uppercase tracking-widest">요약 및 분석</th>
-              <th className="px-10 py-4 w-[15%] text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">처방전 이미지</th>
+              <th className="px-10 py-4 w-[12%] text-[11px] font-bold text-cp-muted uppercase tracking-widest">처방일</th>
+              <th className="px-6 py-4 w-[12%] text-[11px] font-bold text-cp-muted uppercase tracking-widest">분석 일시</th>
+              <th className="px-6 py-4 w-[46%] text-[11px] font-bold text-cp-muted uppercase tracking-widest">요약 및 분석</th>
+              <th className="px-10 py-4 w-[15%] text-[11px] font-bold text-cp-muted uppercase tracking-widest text-center">처방전 이미지</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-cp-border">
             {list.map((row) => {
               const isExpanded = expandedId === row.prescriptionId;
               return (
-                <tr key={row.prescriptionId} className="hover:bg-slate-700/50 transition-all group bg-gradient-to-r from-slate-800/50 to-slate-900/50">
-                  <td className="px-10 py-5 text-xs font-bold text-slate-300 tabular-nums align-top">
+                <tr key={row.prescriptionId} className="hover:bg-cp-bg/50 transition-all group bg-cp-card/50">
+                  <td className="px-10 py-5 text-xs font-bold text-cp-text tabular-nums align-top">
                     {row.prescribedDate || '-'}
                   </td>
-                  <td className="px-6 py-5 text-xs font-medium text-slate-500 tabular-nums align-top">
+                  <td className="px-6 py-5 text-xs font-medium text-cp-muted tabular-nums align-top">
                     {row.analyzedAt || '-'}
                   </td>
                   <td className="px-6 py-5 align-top">
-                    <div className="text-sm text-slate-400 font-medium group-hover:text-slate-200 whitespace-pre-wrap">
+                    <div className="text-sm text-cp-muted font-medium group-hover:text-cp-text whitespace-pre-wrap">
                       {row.summary ? (
                         <>
                           <span className={isExpanded ? '' : 'line-clamp-2'}>{row.summary}</span>
@@ -70,7 +70,7 @@ const PrescriptionHistoryTable = ({ list }) => {
                           )}
                         </>
                       ) : (
-                        <span className="text-slate-500">내역 없음</span>
+                        <span className="text-cp-muted/50">내역 없음</span>
                       )}
                     </div>
                   </td>
@@ -85,7 +85,7 @@ const PrescriptionHistoryTable = ({ list }) => {
                         이미지 보기
                       </a>
                     ) : (
-                      <span className="text-slate-600 text-xs">-</span>
+                      <span className="text-cp-muted text-xs">-</span>
                     )}
                   </td>
                 </tr>

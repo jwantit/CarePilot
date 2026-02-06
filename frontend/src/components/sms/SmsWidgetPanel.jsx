@@ -84,7 +84,7 @@ const SmsWidgetPanel = ({
 
   return (
     <div
-      className="overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 shadow-xl flex flex-col border border-slate-600 shrink-0"
+      className="overflow-hidden bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg shadow-xl flex flex-col border border-cp-border shrink-0"
       style={{ width: size.width, height: size.height }}
     >
       {edges.map(({ key, className, edge }) => (
@@ -104,7 +104,7 @@ const SmsWidgetPanel = ({
         />
       ))}
 
-      <div className="p-4 bg-gradient-to-br from-slate-700 to-slate-800 border-b border-slate-600 space-y-2">
+      <div className="p-4 bg-cp-bg/30 border-b border-cp-border space-y-2">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-bold shrink-0 text-teal-400">
             문자 (SMS)
@@ -113,14 +113,14 @@ const SmsWidgetPanel = ({
             <button
               onClick={loadList}
               disabled={loading}
-              className="p-1.5 hover:bg-slate-600 rounded text-slate-300 hover:text-slate-100 text-sm transition-colors"
+              className="p-1.5 hover:bg-cp-bg rounded text-cp-muted hover:text-cp-text text-sm transition-colors"
               title="새로고침"
             >
               새로고침
             </button>
             <button
               onClick={closePanel}
-              className="p-1 hover:bg-slate-600 rounded text-slate-300 hover:text-slate-100 transition-colors"
+              className="p-1 hover:bg-cp-bg rounded text-cp-muted hover:text-cp-text transition-colors"
               aria-label="닫기"
             >
               <X className="h-5 w-5" />
@@ -138,20 +138,20 @@ const SmsWidgetPanel = ({
               setShowCareTargetDropdown(true);
             }}
             placeholder="케어대상자 검색 후 선택..."
-            className="w-full px-3 py-2 bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 placeholder:text-slate-400 border border-slate-600 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-sm"
+            className="w-full px-3 py-2 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-sm rounded-sm"
             autoComplete="off"
           />
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-cp-muted pointer-events-none" />
           {showCareTargetDropdown && (
-            <ul className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg border border-slate-600 text-slate-100">
+            <ul className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-cp-card shadow-lg border border-cp-border text-cp-text rounded-sm">
               {loadingCareTargets ? (
-                <li className="px-3 py-2 text-sm text-gray-500">로딩 중...</li>
+                <li className="px-3 py-2 text-sm text-cp-muted">로딩 중...</li>
               ) : !organizationId ? (
-                <li className="px-3 py-2 text-sm text-slate-300">
+                <li className="px-3 py-2 text-sm text-cp-muted">
                   로그인 후 이용 가능합니다.
                 </li>
               ) : filteredCareTargets.length === 0 ? (
-                <li className="px-3 py-2 text-sm text-slate-300">
+                <li className="px-3 py-2 text-sm text-cp-muted">
                   검색 결과가 없습니다.
                 </li>
               ) : (
@@ -160,11 +160,11 @@ const SmsWidgetPanel = ({
                     key={item.careTargetId}
                     role="button"
                     onClick={() => handleCareTargetSelect(item)}
-                    className="px-3 py-2 text-sm hover:bg-slate-600 cursor-pointer border-b border-slate-600 last:border-0"
+                    className="px-3 py-2 text-sm hover:bg-cp-bg cursor-pointer border-b border-cp-border last:border-0"
                   >
                     {item.name ?? `ID ${item.careTargetId}`}
                     {item.careTargetPhone && (
-                      <span className="text-slate-300 ml-1">
+                      <span className="text-cp-muted ml-1">
                         ({item.careTargetPhone})
                       </span>
                     )}
@@ -178,13 +178,13 @@ const SmsWidgetPanel = ({
 
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-gradient-to-br from-slate-800 to-slate-900 modal-scrollbar"
+        className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-cp-input/20 modal-scrollbar"
       >
         {loading && list.length === 0 ? (
-          <div className="text-center text-slate-400 py-10">로딩 중...</div>
+          <div className="text-center text-cp-muted py-10">로딩 중...</div>
         ) : displayList.length === 0 ? (
-          <div className="text-center text-slate-400 mt-10">
-            <Smartphone className="h-12 w-12 mx-auto mb-2 opacity-20 text-slate-600" />
+          <div className="text-center text-cp-muted mt-10">
+            <Smartphone className="h-12 w-12 mx-auto mb-2 opacity-20 text-cp-text" />
             <p className="text-sm">
               {selectedCareTargetDisplay
                 ? "이 케어대상자와 주고받은 문자가 없습니다."
@@ -215,7 +215,7 @@ const SmsWidgetPanel = ({
                   className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm text-left ${
                     isOutbound
                       ? "bg-gradient-to-br from-teal-600 to-teal-700 text-white rounded-br-none shadow-md"
-                      : "bg-gradient-to-br from-slate-700 to-slate-800 text-slate-100 border border-slate-600 rounded-bl-none shadow-sm"
+                      : "bg-cp-card text-cp-text border border-cp-border rounded-bl-none shadow-sm"
                   }`}
                 >
                   <div
@@ -239,7 +239,7 @@ const SmsWidgetPanel = ({
                         className={
                           isOutbound
                             ? "text-white/80 ml-2"
-                            : "text-slate-400 ml-2"
+                            : "text-cp-muted ml-2"
                         }
                       >
                         {formatDate(msg.createdAt)}
@@ -297,10 +297,10 @@ const SmsWidgetPanel = ({
         )}
       </div>
 
-      <div className="p-4 border-t border-slate-600 bg-gradient-to-br from-slate-700 to-slate-800 flex gap-2">
+      <div className="p-4 border-t border-cp-border bg-cp-bg/30 flex gap-2">
         <input
           type="text"
-          className="flex-1 px-3 py-2 border border-slate-600 bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-sm"
+          className="flex-1 px-3 py-2 border border-cp-border bg-cp-input text-cp-text placeholder:text-cp-muted focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-sm rounded-sm"
           placeholder="메시지를 입력하세요..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -310,9 +310,9 @@ const SmsWidgetPanel = ({
         <button
           onClick={handleSend}
           disabled={sending || !to.trim() || !message.trim()}
-          className={`p-2 text-white transition-colors shrink-0 ${
+          className={`p-2 text-white transition-colors shrink-0 rounded-sm ${
             sending || !to.trim() || !message.trim()
-              ? "bg-slate-600 text-slate-400 cursor-not-allowed"
+              ? "bg-cp-bg/50 text-cp-muted cursor-not-allowed"
               : "bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 cursor-pointer"
           }`}
           aria-label="전송"

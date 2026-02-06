@@ -23,7 +23,7 @@ const AITaskListTab = () => {
 
   const statCards = useMemo(
     () => [
-      { value: aiStats.total, label: "전체 AI 작업", icon: Cpu, iconColor: "text-teal-400", valueColor: "text-slate-100", hoverBorderColor: "hover:border-teal-500/50" },
+      { value: aiStats.total, label: "전체 AI 작업", icon: Cpu, iconColor: "text-teal-400", valueColor: "text-cp-text", hoverBorderColor: "hover:border-teal-500/50" },
       { value: aiStats.waiting, label: "대기", icon: Clock, iconColor: "text-yellow-400", valueColor: "text-yellow-400", hoverBorderColor: "hover:border-yellow-500/50" },
       { value: aiStats.success, label: "성공", icon: CheckCircle, iconColor: "text-emerald-400", valueColor: "text-emerald-400", hoverBorderColor: "hover:border-emerald-500/50" },
       { value: aiStats.failed, label: "실패", icon: XCircle, iconColor: "text-red-400", valueColor: "text-red-400", hoverBorderColor: "hover:border-red-500/50" },

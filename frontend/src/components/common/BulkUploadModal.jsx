@@ -48,15 +48,15 @@ function BulkUploadModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900">
-          <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg">
+          <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
             <Upload size={24} className="text-teal-400" />
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+            className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
           >
             <X size={24} />
           </button>
@@ -64,12 +64,12 @@ function BulkUploadModal({
 
         <div className="p-6">
           {description && (
-            <p className="text-sm text-slate-400 mb-6">{description}</p>
+            <p className="text-sm text-cp-muted mb-6">{description}</p>
           )}
 
           {optionSlot}
 
-          <div className="mb-6 text-center p-8 border-2 border-dashed border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 hover:border-teal-500/50 transition-all cursor-pointer group shadow-inner">
+          <div className="mb-6 text-center p-8 border-2 border-dashed border-cp-border rounded-sm bg-cp-input hover:border-teal-500/50 transition-all cursor-pointer group shadow-inner">
             <input
               type="file"
               ref={fileInputRef}
@@ -80,12 +80,12 @@ function BulkUploadModal({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 mx-auto bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-600 px-6 py-3 rounded-sm font-semibold text-teal-400 hover:from-slate-700 hover:to-slate-800 hover:border-teal-500 transition-all shadow-md group-hover:scale-105"
+              className="flex items-center gap-2 mx-auto bg-cp-input border border-cp-border px-6 py-3 rounded-sm font-semibold text-teal-400 hover:bg-cp-bg hover:border-teal-500 transition-all shadow-md group-hover:scale-105"
             >
               <Upload size={18} className="text-teal-400" />
               파일 선택하기
             </button>
-            <div className="flex items-center justify-center gap-1 mt-4 text-xs text-slate-500">
+            <div className="flex items-center justify-center gap-1 mt-4 text-xs text-cp-muted">
               <AlertCircle size={14} />
               <span>CSV, Excel (.xlsx, .xls) 파일만 가능합니다.</span>
             </div>
@@ -93,7 +93,7 @@ function BulkUploadModal({
 
           <div className="mb-6">
             <div className="flex justify-between mb-3 items-center">
-              <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+              <h4 className="text-sm font-bold text-cp-text flex items-center gap-2">
                 <FileText size={16} className="text-teal-400" />
                 선택된 파일 ({selectedFiles.length})
               </h4>
@@ -111,16 +111,16 @@ function BulkUploadModal({
                 selectedFiles.map((file, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 p-3 bg-gradient-to-br from-slate-900 to-slate-950 rounded-sm border border-slate-700 shadow-md group/item"
+                    className="flex items-center gap-3 p-3 bg-cp-input rounded-sm border border-cp-border shadow-md group/item"
                   >
-                    <div className="p-2 bg-slate-800 rounded-sm">
+                    <div className="p-2 bg-cp-bg rounded-sm">
                       <FileText size={16} className="text-teal-400" />
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-medium text-slate-200 truncate">
+                      <p className="text-sm font-medium text-cp-text truncate">
                         {file.name}
                       </p>
-                      <p className="text-[10px] text-slate-500 font-medium">
+                      <p className="text-[10px] text-cp-muted font-medium">
                         {(file.size / 1024).toFixed(1)} KB
                       </p>
                     </div>
@@ -130,14 +130,14 @@ function BulkUploadModal({
                           selectedFiles.filter((_, i) => i !== idx),
                         )
                       }
-                      className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                      className="p-1 text-cp-muted hover:text-red-400 transition-colors"
                     >
                       <X size={16} />
                     </button>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 text-slate-500 text-sm border border-slate-700 border-dashed rounded-sm bg-slate-900/30">
+                <div className="text-center py-10 text-cp-muted text-sm border border-cp-border border-dashed rounded-sm bg-cp-bg/30">
                   파일을 선택하거나 드래그하여 추가하세요.
                 </div>
               )}
@@ -147,14 +147,14 @@ function BulkUploadModal({
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
+              className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
             >
               취소
             </button>
             <button
               onClick={onUpload}
               disabled={selectedFiles.length === 0 || isUploading}
-              className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:from-slate-700 disabled:to-slate-800 disabled:border-slate-600 disabled:text-slate-400 transition-all shadow-md"
+              className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
             >
               {isUploading ? "업로드 중..." : "업로드 시작"}
             </button>
@@ -166,5 +166,3 @@ function BulkUploadModal({
 }
 
 export default BulkUploadModal;
-
-

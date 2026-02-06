@@ -86,7 +86,7 @@ function CareTargetPage() {
       label: '대상',
       icon: Users,
       iconColor: 'text-teal-400',
-      valueColor: 'text-slate-100',
+      valueColor: 'text-cp-text',
       hoverBorderColor: 'hover:border-teal-500/50'
     },
     {
@@ -251,13 +251,13 @@ function CareTargetPage() {
         selectedCount={selectedIds.length}
       />
 
-      <div className="bg-slate-800 border border-slate-700 overflow-hidden">
+      <div className="bg-cp-card border border-cp-border overflow-hidden">
         {/* 테이블 헤더 - 터미널 스타일 */}
-        <div className="grid grid-cols-8 bg-slate-900 border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-slate-300 text-center items-center">
+        <div className="grid grid-cols-8 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-cp-text text-center items-center">
           <div className="flex justify-center">
             <button
               onClick={handleSelectAll}
-              className="px-3 py-1 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               전체선택
             </button>

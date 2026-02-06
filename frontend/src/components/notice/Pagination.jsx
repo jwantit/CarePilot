@@ -22,8 +22,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         disabled={currentPage === 0}
         className={`px-3 py-1.5 rounded border text-sm font-medium transition-all ${
           currentPage === 0
-            ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-            : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+            ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+            : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
         }`}
       >
         처음
@@ -36,8 +36,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         disabled={currentPage === 0}
         className={`px-3 py-1.5 rounded border text-sm font-medium transition-all ${
           currentPage === 0
-            ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-            : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+            ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+            : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
         }`}
       >
         이전
@@ -52,7 +52,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           className={`px-3 py-1.5 rounded border text-sm font-medium transition-all ${
             currentPage === number
               ? "bg-teal-600 text-white border-teal-500"
-              : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+              : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
           }`}
         >
           {number + 1}
@@ -66,8 +66,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         disabled={currentPage === totalPages - 1}
         className={`px-3 py-1.5 rounded border text-sm font-medium transition-all ${
           currentPage === totalPages - 1
-            ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-            : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+            ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+            : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
         }`}
       >
         다음
@@ -80,8 +80,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         disabled={currentPage === totalPages - 1}
         className={`px-3 py-1.5 rounded border text-sm font-medium transition-all ${
           currentPage === totalPages - 1
-            ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-            : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+            ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+            : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
         }`}
       >
         마지막

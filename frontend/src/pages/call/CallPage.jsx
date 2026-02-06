@@ -17,12 +17,12 @@ const CallPage = () => {
       <Breadcrumb items={["통화 관리"]} />
 
       {/* 탭 메뉴 */}
-      <div className="flex border-b border-slate-700 mb-4">
+      <div className="flex border-b border-cp-border mb-4">
         <button
           className={`px-4 py-2 font-medium text-sm transition-colors ${
             activeTab === "history"
               ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
+              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
           }`}
           onClick={() => handleTabChange("history")}
         >
@@ -32,7 +32,7 @@ const CallPage = () => {
           className={`px-4 py-2 font-medium text-sm transition-colors ${
             activeTab === "schedule"
               ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
+              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
           }`}
           onClick={() => handleTabChange("schedule")}
         >

@@ -17,16 +17,16 @@ function CareTargetActionBar({
   const role = user?.role; // ADMIN, MANAGER, USER 값 확인
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 mb-6 space-y-4 shadow-lg hover:shadow-xl transition-shadow">
+    <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 mb-6 space-y-4 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
       {/* 상단: 검색 영역 - 터미널 스타일 */}
       <div className="flex flex-wrap items-center gap-2 w-full">
         <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-cp-muted">
             <Search size={18} />
           </span>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-600 bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all placeholder:text-slate-600 shadow-md focus:shadow-lg"
+            className="block w-full pl-10 pr-3 py-2.5 border border-cp-border bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all placeholder:text-cp-muted shadow-md focus:shadow-lg"
             placeholder="검색 (이름 / 전화번호 / 질환)"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -36,14 +36,14 @@ function CareTargetActionBar({
         
         <button 
           onClick={handleSearch}
-          className="bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-6 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          className="bg-cp-input hover:bg-cp-bg text-teal-400 px-6 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
           <span className="font-mono text-teal-400">&gt;</span> 검색
         </button>
 
         <button 
           onClick={handleReset}
-          className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 text-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          className="flex items-center gap-1.5 px-5 py-2.5 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
           <RotateCcw size={14} />
           전체보기
@@ -51,11 +51,11 @@ function CareTargetActionBar({
       </div>
 
       {/* 하단: 체크 숫자, 통화/삭제 버튼, 환자 등록 버튼 */}
-      <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-700">
+      <div className="flex items-center justify-between gap-4 pt-4 border-t border-cp-border">
         {/* 왼쪽: 체크 숫자와 통화/삭제 버튼 */}
         <div className="flex items-center gap-3">
           {/* 체크 숫자 */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 shadow-md">
+          <div className="flex items-center gap-2 px-4 py-2 bg-cp-input border border-teal-500/50 shadow-md">
             <span className="text-teal-400 text-sm font-semibold">
               <span className="font-mono">[{selectedCount}]</span> 선택됨
             </span>
@@ -64,7 +64,7 @@ function CareTargetActionBar({
           {/* 통화하기, 삭제하기 버튼 */}
           <button 
             onClick={() => onActionClick("CALL")}
-            className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-green-400 px-5 py-2.5 font-semibold transition-all border border-green-500/50 hover:border-green-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-green-400 px-5 py-2.5 font-semibold transition-all border border-green-500/50 hover:border-green-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <Phone size={18} />
             통화하기
@@ -73,7 +73,7 @@ function CareTargetActionBar({
           {(role === 'ADMIN' || role === 'MANAGER') && (
             <button 
               onClick={() => onActionClick("DELETE")}
-              className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-red-400 px-5 py-2.5 font-semibold transition-all border border-red-500/50 hover:border-red-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-red-400 px-5 py-2.5 font-semibold transition-all border border-red-500/50 hover:border-red-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               <Trash2 size={18} />
               삭제하기
@@ -85,7 +85,7 @@ function CareTargetActionBar({
         <div className="flex items-center gap-3">
           <button 
             onClick={onInsertClick}
-            className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 py-2.5 font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-teal-400 px-5 py-2.5 font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <UserPlus size={18} />
             대상자 등록
@@ -93,7 +93,7 @@ function CareTargetActionBar({
           
           <button 
             onClick={onUploadClick}
-            className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-slate-300 px-5 py-2.5 font-semibold transition-all border border-slate-600 hover:border-slate-500 whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-cp-muted px-5 py-2.5 font-semibold transition-all border border-cp-border hover:border-cp-border hover:text-cp-text whitespace-nowrap text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <Upload size={18} />
             CSV/EXCEL 업로드

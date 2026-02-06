@@ -24,7 +24,7 @@ function Breadcrumb({ items = [], showHome = true }) {
   }
 
   return (
-    <nav className="mb-4 flex items-center gap-2 text-sm text-slate-400" aria-label="Breadcrumb">
+    <nav className="mb-4 flex items-center gap-2 text-sm text-cp-muted" aria-label="Breadcrumb">
       {/* 홈 아이콘 */}
       {showHome && (
         <>
@@ -37,7 +37,7 @@ function Breadcrumb({ items = [], showHome = true }) {
             <span>대시보드</span>
           </Link>
           {breadcrumbArray.length > 0 && (
-            <ChevronRight size={14} className="text-slate-600" />
+            <ChevronRight size={14} className="text-cp-muted/50" />
           )}
         </>
       )}
@@ -48,16 +48,16 @@ function Breadcrumb({ items = [], showHome = true }) {
         return (
           <React.Fragment key={index}>
             {isLast ? (
-              <span className="text-slate-300 font-semibold" aria-current="page">
+              <span className="text-cp-text font-semibold" aria-current="page">
                 {item}
               </span>
             ) : (
-              <span className="text-slate-400 hover:text-teal-400 transition-colors cursor-default">
+              <span className="text-cp-muted hover:text-teal-400 transition-colors cursor-default">
                 {item}
               </span>
             )}
             {!isLast && (
-              <ChevronRight size={14} className="text-slate-600" />
+              <ChevronRight size={14} className="text-cp-muted/50" />
             )}
           </React.Fragment>
         );

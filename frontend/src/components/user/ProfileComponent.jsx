@@ -10,28 +10,28 @@ const formatPhoneDisplay = (value) => {
 };
 
 const ProfileComponent = ({ formData, handleChange, handleSave }) => {
-  const inputClass = "w-full p-3 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm text-sm";
-  const disabledInputClass = "w-full p-3 border border-slate-700 rounded-sm bg-slate-900/50 text-slate-400 cursor-not-allowed text-sm font-medium";
-  const labelClass = "flex items-center gap-2 text-sm font-bold text-slate-200 mb-1.5 ml-1";
+  const inputClass = "w-full p-3 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm text-sm";
+  const disabledInputClass = "w-full p-3 border border-cp-border rounded-sm bg-cp-bg/50 text-cp-muted cursor-not-allowed text-sm font-medium";
+  const labelClass = "flex items-center gap-2 text-sm font-bold text-cp-text mb-1.5 ml-1";
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in duration-500 relative">
+    <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in duration-500 relative">
       {/* 배경 장식 아이콘 */}
-      <User size={200} className="absolute -right-20 -bottom-20 text-slate-700/10 -rotate-12 pointer-events-none" />
+      <User size={200} className="absolute -right-20 -bottom-20 text-cp-text/5 -rotate-12 pointer-events-none" />
       
       <div className="p-10 space-y-10 relative z-10">
         <div className="text-center space-y-2 mb-4">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-500/10 border border-teal-500/20 mb-2">
             <User size={32} className="text-teal-400" />
           </div>
-          <h1 className="text-2xl font-black text-slate-100 tracking-tight">개인정보 수정</h1>
+          <h1 className="text-2xl font-black text-cp-text tracking-tight">개인정보 수정</h1>
         </div>
 
         {/* 기본 정보 섹션 */}
         <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-2 pb-1 border-b border-slate-700/50">
+          <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
             <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
-            <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight">개인정보</h2>
+            <h2 className="text-lg font-black text-cp-text uppercase tracking-tight">개인정보</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -88,9 +88,9 @@ const ProfileComponent = ({ formData, handleChange, handleSave }) => {
 
         {/* 조직 정보 섹션 */}
         <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-2 pb-1 border-b border-slate-700/50">
+          <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
             <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
-            <h2 className="text-lg font-black text-slate-100 uppercase tracking-tight">소속 정보</h2>
+            <h2 className="text-lg font-black text-cp-text uppercase tracking-tight">소속 정보</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -112,7 +112,7 @@ const ProfileComponent = ({ formData, handleChange, handleSave }) => {
         </div>
 
         {/* 저장 버튼 */}
-        <div className="pt-6 border-t border-slate-700">
+        <div className="pt-6 border-t border-cp-border">
           <button 
             onClick={handleSave}
             className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-black text-xl hover:from-teal-500 hover:to-teal-600 transition-all shadow-lg shadow-teal-900/20 hover:-translate-y-0.5 active:translate-y-0"

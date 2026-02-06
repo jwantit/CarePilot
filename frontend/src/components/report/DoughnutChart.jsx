@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -10,8 +10,28 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 function DoughnutChart({ title, data, labels, colors }) {
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   const values = data || [];
   const total = values.reduce((a, b) => a + b, 0);
+
+  // 테마에 따른 색상값 가져오기
+  const getThemeColor = (variableName) => {
+    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  };
+
+  const cardColor = getThemeColor('--bg-card');
+  const borderColor = getThemeColor('--border-main');
+  const textColor = getThemeColor('--text-main');
+  const mutedColor = getThemeColor('--text-muted');
 
   const chartData = {
     labels: labels || [],
@@ -25,14 +45,13 @@ function DoughnutChart({ title, data, labels, colors }) {
           '#3b82f6',
         ],
         borderWidth: 2,
-        borderColor: '#334155',
+        borderColor: cardColor || (isDark ? '#1e293b' : '#ffffff'),
         hoverBorderWidth: 3,
-        hoverBorderColor: '#475569',
+        hoverBorderColor: borderColor || (isDark ? '#334155' : '#e2e8f0'),
       },
     ],
   };
 
-  const textColor = '#94a3b8';
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -44,7 +63,7 @@ function DoughnutChart({ title, data, labels, colors }) {
       legend: {
         position: 'bottom',
         labels: {
-          color: textColor,
+          color: mutedColor || (isDark ? '#94a3b8' : '#64748b'),
           font: { size: 12 },
           padding: 14,
           usePointStyle: true,
@@ -53,20 +72,21 @@ function DoughnutChart({ title, data, labels, colors }) {
       title: {
         display: !!title,
         text: title,
+        color: textColor || (isDark ? '#f1f5f9' : '#0f172a'),
       },
       tooltip: {
         enabled: true,
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        titleColor: '#f1f5f9', // 초록색(teal) 제거하고 흰색 계열로 변경
-        bodyColor: '#f1f5f9',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: cardColor || (isDark ? '#1e293b' : '#ffffff'),
+        titleColor: textColor || (isDark ? '#f1f5f9' : '#0f172a'),
+        bodyColor: textColor || (isDark ? '#f1f5f9' : '#0f172a'),
+        borderColor: borderColor || (isDark ? '#334155' : '#e2e8f0'),
         borderWidth: 1,
         padding: 12,
         boxPadding: 6,
         usePointStyle: true,
         callbacks: {
           title: (context) => {
-            return context[0].label; // 제목은 데이터 라벨로
+            return context[0].label;
           },
           label: (context) => {
             const value = context.parsed || 0;
@@ -84,7 +104,6 @@ function DoughnutChart({ title, data, labels, colors }) {
       const { ctx, chartArea, data, tooltip } = chart;
       if (!chartArea || !data.datasets?.[0]?.data?.length) return;
       
-      // 툴팁이 활성화된 인덱스 확인 (더 확실한 방법)
       const activeIndex = tooltip?._active?.length > 0 ? tooltip._active[0].element.index : -1;
 
       const values = data.datasets[0].data;
@@ -100,7 +119,6 @@ function DoughnutChart({ title, data, labels, colors }) {
       const centerY = (top + bottom) / 2;
 
       meta.data.forEach((arc, i) => {
-        // 호버된 조각이거나 값이 없으면 라벨을 그리지 않음
         if (i === activeIndex) return;
         
         const value = data.datasets[0].data[i];
@@ -122,9 +140,9 @@ function DoughnutChart({ title, data, labels, colors }) {
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
         ctx.shadowBlur = 4;
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px sans-serif'; // 18px -> 20px
+        ctx.font = 'bold 20px sans-serif';
         ctx.fillText(`${pct}%`, 0, -10);
-        ctx.font = 'bold 14px sans-serif'; // 12px -> 14px (bold 추가)
+        ctx.font = 'bold 14px sans-serif';
         ctx.fillText(countStr, 0, 10);
         ctx.shadowBlur = 0;
 
@@ -136,6 +154,7 @@ function DoughnutChart({ title, data, labels, colors }) {
   return (
     <div className="h-72">
       <Doughnut
+        key={isDark ? 'dark' : 'light'} // 테마 변경 시 차트 강제 재렌더링
         data={chartData}
         options={options}
         plugins={[doughnutLabelsPlugin]}

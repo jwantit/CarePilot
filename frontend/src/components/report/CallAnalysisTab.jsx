@@ -108,8 +108,8 @@ function CallAnalysisTab({ statistics }) {
   return (
     <div className="space-y-6">
       {/* 통화 추이 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-        <h2 className="text-xl font-bold text-slate-100 mb-4">통화 추이</h2>
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+        <h2 className="text-xl font-bold text-cp-text mb-4">통화 추이</h2>
         <LineChart
           labels={callTrendLabels}
           datasets={callTrendDatasets}
@@ -119,8 +119,8 @@ function CallAnalysisTab({ statistics }) {
       {/* 통계 그리드 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 통화 상태 분포 */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-          <h2 className="text-xl font-bold text-slate-100 mb-4">통화 상태 분포</h2>
+        <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+          <h2 className="text-xl font-bold text-cp-text mb-4">통화 상태 분포</h2>
           <DoughnutChart
             data={callStatusValues}
             labels={callStatusLabels}
@@ -129,8 +129,8 @@ function CallAnalysisTab({ statistics }) {
         </div>
 
         {/* 통화 실패 원인 분석 */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-          <h2 className="text-xl font-bold text-slate-100 mb-4">통화 실패 원인 분석</h2>
+        <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+          <h2 className="text-xl font-bold text-cp-text mb-4">통화 실패 원인 분석</h2>
           {failureReasonLabels.length > 0 ? (
             <DoughnutChart
               data={failureReasonValues}
@@ -138,7 +138,7 @@ function CallAnalysisTab({ statistics }) {
               colors={failureReasonColors}
             />
           ) : (
-            <div className="text-center text-slate-500 py-8">
+            <div className="text-center text-cp-muted py-8">
               실패한 통화가 없습니다.
             </div>
           )}
@@ -147,8 +147,8 @@ function CallAnalysisTab({ statistics }) {
 
       {/* 시간대별 통화 현황 */}
       {timeSlotLabels.length > 0 && (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-        <h2 className="text-xl font-bold text-slate-100 mb-4">시간대별 통화 현황</h2>
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+        <h2 className="text-xl font-bold text-cp-text mb-4">시간대별 통화 현황</h2>
           <BarChart
             title="시간대별 통화 건수"
             data={timeSlotValues}
@@ -162,4 +162,3 @@ function CallAnalysisTab({ statistics }) {
 }
 
 export default CallAnalysisTab;
-

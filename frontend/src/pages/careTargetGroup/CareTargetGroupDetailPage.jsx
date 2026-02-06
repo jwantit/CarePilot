@@ -225,50 +225,36 @@ const CareTargetGroupDetailPage = () => {
   if (loading && !formData) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <Loader2
-          className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full"
-          size={48}
-        />
-        <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
+        <div className="w-12 h-12 border-4 border-cp-border border-t-teal-400 rounded-full animate-spin" />
+        <p className="text-cp-muted text-sm font-mono">로딩 중...</p>
       </div>
     );
   }
 
   if (!formData) {
     return (
-      <div className="flex flex-col items-center justify-center h-80 bg-slate-800 border border-slate-700">
-        <div className="w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded flex items-center justify-center mb-5">
-          <span className="text-3xl text-slate-600">[ ]</span>
+      <div className="flex flex-col items-center justify-center h-80 bg-cp-card border border-cp-border shadow-xl rounded-sm">
+        <div className="w-20 h-20 bg-cp-bg border-2 border-cp-border rounded flex items-center justify-center mb-5">
+          <span className="text-3xl text-cp-muted">[ ]</span>
         </div>
-        <p className="text-slate-300 font-mono font-semibold text-base mb-2">
+        <p className="text-cp-text font-mono font-semibold text-base mb-2">
           // No group data found
         </p>
-        <p className="text-slate-500 text-sm font-mono">
+        <p className="text-cp-muted text-sm font-mono">
           // 그룹 정보를 찾을 수 없습니다.
         </p>
       </div>
     );
   }
 
-  const getLevelColor = (level) => {
-    const l = level?.toUpperCase();
-    if (l === "CRITICAL" || l === "URGENT")
-      return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
-    if (l === "HIGH")
-      return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50";
-    if (l === "MEDIUM")
-      return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
-    return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
-  };
-
   return (
     <div className="space-y-6">
       <Breadcrumb items={["케어 그룹", formData?.groupName ?? "상세"]} />
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/care-target-group")}
-            className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+            className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
           >
             <ChevronLeft size={18} />
             목록으로
@@ -281,21 +267,21 @@ const CareTargetGroupDetailPage = () => {
                   setSelectedIds([]);
                   setIsAddModalOpen(true);
                 }}
-                className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+                className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-teal-400 px-5 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
               >
                 <UserPlus size={18} />
                 대상자 추가
               </button>
               <button
                 onClick={handleOpenEditModal}
-                className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-orange-400 px-5 py-2.5 text-sm font-semibold transition-all border border-orange-500/50 hover:border-orange-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+                className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-orange-400 px-5 py-2.5 text-sm font-semibold transition-all border border-orange-500/50 hover:border-orange-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
               >
                 <Edit3 size={18} />
                 수정하기
               </button>
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-red-400 px-5 py-2.5 text-sm font-semibold transition-all border border-red-500/50 hover:border-red-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+                className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-red-400 px-5 py-2.5 text-sm font-semibold transition-all border border-red-500/50 hover:border-red-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
               >
                 <Trash2 size={18} />
                 삭제하기
@@ -305,13 +291,13 @@ const CareTargetGroupDetailPage = () => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-8 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-8 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         {/* 그룹 제목 및 설명 */}
-        <div className="mb-8 pb-6 border-b border-slate-700">
-          <h1 className="text-3xl font-black text-slate-100 tracking-tight mb-3">
+        <div className="mb-8 pb-6 border-b border-cp-border/50">
+          <h1 className="text-3xl font-black text-cp-text tracking-tight mb-3">
             {formData.groupName}
           </h1>
-          <p className="text-base text-slate-400 font-medium leading-relaxed">
+          <p className="text-base text-cp-muted font-medium leading-relaxed">
             {formData.groupDescription}
           </p>
         </div>
@@ -319,20 +305,20 @@ const CareTargetGroupDetailPage = () => {
         {/* 그룹 상세 정보 */}
         <div className="space-y-6">
           {/* 시나리오 정보 - 전체 너비 사용 */}
-          <div className="space-y-4 pb-6 border-b border-slate-700">
+          <div className="space-y-4 pb-6 border-b border-cp-border/50">
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
                 시나리오명
               </p>
-              <p className="text-base font-bold text-slate-200 break-words">
+              <p className="text-base font-bold text-cp-text break-words">
                 {formData.scenarioName || "-"}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
                 시나리오 설명
               </p>
-              <p className="text-base font-bold text-slate-200 break-words leading-relaxed">
+              <p className="text-base font-bold text-cp-text break-words leading-relaxed">
                 {formData.scenarioDescription || "-"}
               </p>
             </div>
@@ -354,11 +340,11 @@ const CareTargetGroupDetailPage = () => {
               { label: "그룹 생성자", value: formData.createdByName },
             ].map((item, idx) => (
               <div key={idx} className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
                   {item.label}
                 </p>
                 <p
-                  className={`text-base font-bold ${item.highlight ? "text-teal-400" : "text-slate-200"}`}
+                  className={`text-base font-bold ${item.highlight ? "text-teal-400" : "text-cp-text"}`}
                 >
                   {item.value || "-"}
                 </p>
@@ -370,15 +356,15 @@ const CareTargetGroupDetailPage = () => {
 
       <StatCardGrid cards={statCards} />
 
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 shadow-lg hover:shadow-xl transition-shadow flex flex-col h-[500px] overflow-hidden rounded-sm mb-6">
-        <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 sticky top-0 z-10">
+      <div className="bg-cp-card border border-cp-border shadow-lg hover:shadow-xl transition-shadow flex flex-col h-[500px] overflow-hidden rounded-sm mb-6">
+        <div className="p-6 border-b border-cp-border flex justify-between items-center bg-cp-bg/30 sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
               <Users size={18} />
             </div>
-            <h2 className="text-lg font-bold text-slate-200">대상자 목록</h2>
+            <h2 className="text-lg font-bold text-cp-text">대상자 목록</h2>
           </div>
-          <span className="text-xs font-bold text-slate-400">
+          <span className="text-xs font-bold text-cp-muted">
             <span className="font-mono">
               Total: [{formData.careList?.length || 0}]
             </span>
@@ -386,8 +372,8 @@ const CareTargetGroupDetailPage = () => {
         </div>
         <div className="overflow-y-auto flex-1 modal-scrollbar">
           <table className="w-full text-left border-separate border-spacing-0">
-            <thead className="sticky top-0 bg-slate-900 border-b-2 border-teal-500/30 z-10">
-              <tr className="text-xs font-semibold text-slate-300">
+            <thead className="sticky top-0 bg-cp-header border-b-2 border-teal-500/30 z-10">
+              <tr className="text-xs font-semibold text-cp-muted">
                 <th className="px-8 py-3.5">
                   <div className="flex items-center gap-1 text-teal-400">
                     <Users className="w-3.5 h-3.5" />
@@ -415,22 +401,22 @@ const CareTargetGroupDetailPage = () => {
                 <th className="px-8 py-3.5 text-right text-teal-400">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-cp-border">
               {formData.careList?.map((p) => (
                 <tr
                   key={p.careTargetId}
-                  className="hover:bg-slate-700/50 transition-colors group bg-gradient-to-r from-slate-800/50 to-slate-900/50"
+                  className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50"
                 >
                   <td className="px-8 py-5">
-                    <div className="font-bold text-slate-200 group-hover:text-teal-400 transition-colors">
+                    <div className="font-bold text-cp-text group-hover:text-teal-400 transition-colors">
                       {p.name}
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-sm font-bold text-slate-300">
-                    {p.gender} <span className="mx-1 text-slate-600">|</span>{" "}
+                  <td className="px-8 py-5 text-sm font-bold text-cp-text">
+                    {p.gender} <span className="mx-1 text-cp-muted">|</span>{" "}
                     {p.age}세
                   </td>
-                  <td className="px-8 py-5 font-bold text-slate-300">
+                  <td className="px-8 py-5 font-bold text-cp-text">
                     {p.careTargetPhone || "미등록"}
                   </td>
                   <td className="px-8 py-5 text-center">
@@ -445,7 +431,7 @@ const CareTargetGroupDetailPage = () => {
                       onClick={() =>
                         navigate(`/care-target/detail/${p.careTargetId}`)
                       }
-                      className="px-3 py-1 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+                      className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
                     >
                       <span className="font-mono text-teal-400">&gt;</span>
                       <span>상세보기</span>

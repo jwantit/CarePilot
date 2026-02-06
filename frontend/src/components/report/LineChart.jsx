@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,13 +24,30 @@ ChartJS.register(
 );
 
 function LineChart({ title, data, labels, datasets }) {
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const getThemeColor = (variableName) => {
+    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  };
+
+  const textColor = getThemeColor('--text-main');
+  const mutedColor = getThemeColor('--text-muted');
+  const borderColor = getThemeColor('--border-main');
+  const cardColor = getThemeColor('--bg-card');
+
   const chartData = {
     labels: labels || [],
     datasets: datasets || []
   };
 
-  const textColor = '#94a3b8';
-  
   const lineLabelsPlugin = {
     id: 'lineLabels',
     afterDraw(chart) {
@@ -47,16 +64,14 @@ function LineChart({ title, data, labels, datasets }) {
 
           const { x, y } = element.tooltipPosition();
           
-          ctx.fillStyle = dataset.borderColor || '#ffffff';
-          ctx.font = 'bold 14px sans-serif'; // 12px -> 14px
+          ctx.fillStyle = dataset.borderColor || (isDark ? '#ffffff' : '#0f172a');
+          ctx.font = 'bold 14px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
           
-          // 가독성을 위해 그림자 효과 추가
           ctx.shadowColor = 'rgba(0,0,0,0.8)';
           ctx.shadowBlur = 3;
           
-          // 데이터 포인트 위에 건수 표시
           ctx.fillText(dataValue.toLocaleString(), x, y - 8);
         });
       });
@@ -73,7 +88,7 @@ function LineChart({ title, data, labels, datasets }) {
         position: 'top',
         align: 'end',
         labels: { 
-          color: textColor,
+          color: mutedColor || (isDark ? '#94a3b8' : '#64748b'),
           boxWidth: 12,
           padding: 20,
           font: { size: 12 }
@@ -82,21 +97,21 @@ function LineChart({ title, data, labels, datasets }) {
       title: {
         display: !!title,
         text: title,
-        color: '#f1f5f9',
+        color: textColor || (isDark ? '#f1f5f9' : '#0f172a'),
         font: { size: 16, weight: 'bold' }
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleColor: '#f1f5f9',
-        bodyColor: '#f1f5f9',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: cardColor || (isDark ? '#1e293b' : '#ffffff'),
+        titleColor: textColor || (isDark ? '#f1f5f9' : '#0f172a'),
+        bodyColor: textColor || (isDark ? '#f1f5f9' : '#0f172a'),
+        borderColor: borderColor || (isDark ? '#334155' : '#e2e8f0'),
         borderWidth: 1,
         padding: 10,
       }
     },
     layout: {
       padding: {
-        top: 25, // 라벨 공간 확보
+        top: 25,
         right: 20,
         left: 10,
         bottom: 10
@@ -104,18 +119,17 @@ function LineChart({ title, data, labels, datasets }) {
     },
     scales: {
       x: { 
-        ticks: { color: textColor, font: { size: 11 } }, 
-        grid: { display: false } // X축 그리드 제거로 깔끔하게
+        ticks: { color: mutedColor || (isDark ? '#94a3b8' : '#64748b'), font: { size: 11 } }, 
+        grid: { display: false }
       },
       y: {
         beginAtZero: true,
         ticks: { 
-          color: textColor, 
+          color: mutedColor || (isDark ? '#94a3b8' : '#64748b'), 
           font: { size: 11 },
           padding: 8
         },
-        grid: { color: 'rgba(148,163,184,0.1)' },
-        // 라벨이 잘리지 않도록 상단 여백 확보
+        grid: { color: borderColor || (isDark ? '#334155' : '#e2e8f0'), opacity: 0.1 },
         grace: '15%'
       },
     },
@@ -123,10 +137,14 @@ function LineChart({ title, data, labels, datasets }) {
 
   return (
     <div className="h-72">
-      <Line data={chartData} options={options} plugins={[lineLabelsPlugin]} />
+      <Line 
+        key={isDark ? 'dark' : 'light'}
+        data={chartData} 
+        options={options} 
+        plugins={[lineLabelsPlugin]} 
+      />
     </div>
   );
 }
 
 export default LineChart;
-

@@ -28,19 +28,19 @@ const NoticeForm = ({
     setNoticeType("NORMAL");
   };
 
-  const inputClass = "w-full p-3 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm text-sm";
-  const labelClass = "block text-sm font-bold text-slate-200 mb-1.5 ml-1";
-  const selectClass = "px-3 py-1.5 border border-slate-600 rounded-sm bg-slate-900 text-slate-100 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer font-medium";
+  const inputClass = "w-full p-3 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm text-sm";
+  const labelClass = "block text-sm font-bold text-cp-text mb-1.5 ml-1";
+  const selectClass = "px-3 py-1.5 border border-cp-border rounded-sm bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer font-medium";
 
   return (
     <div className="animate-in fade-in slide-in-from-top-4 duration-300">
       <form
         onSubmit={handleSubmit}
-        className="mb-12 p-8 border border-slate-700 rounded-sm bg-gradient-to-br from-slate-800 to-slate-900 shadow-xl"
+        className="mb-12 p-8 border border-cp-border rounded-sm bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg shadow-xl"
       >
-        <div className="flex items-center gap-3 mb-8 pb-3 border-b border-slate-700">
+        <div className="flex items-center gap-3 mb-8 pb-3 border-b border-cp-border">
           <FileText size={22} className="text-teal-400" />
-          <h2 className="font-bold text-xl text-slate-100">
+          <h2 className="font-bold text-xl text-cp-text">
             {editingId ? "공지사항 수정하기" : "새 공지사항 작성"}
           </h2>
         </div>
@@ -48,7 +48,7 @@ const NoticeForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-bold text-slate-400">분류</label>
+              <label className="text-sm font-bold text-cp-muted">분류</label>
               <select
                 value={noticeType}
                 onChange={(e) => {
@@ -61,9 +61,9 @@ const NoticeForm = ({
                 }}
                 className={selectClass}
               >
-                <option value="NORMAL" className="bg-slate-900">일반 게시글</option>
-                <option value="NOTICE" className="bg-slate-900">공지사항</option>
-                <option value="MANUAL" className="bg-slate-900">사용 매뉴얼</option>
+                <option value="NORMAL" className="bg-cp-card">일반 게시글</option>
+                <option value="NOTICE" className="bg-cp-card">공지사항</option>
+                <option value="MANUAL" className="bg-cp-card">사용 매뉴얼</option>
               </select>
             </div>
 
@@ -76,9 +76,9 @@ const NoticeForm = ({
                   disabled={noticeType === "NOTICE" || noticeType === "MANUAL"}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4 peer-disabled:opacity-50"></div>
+                <div className="w-9 h-5 bg-cp-bg rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4 peer-disabled:opacity-50"></div>
               </div>
-              <span className="text-sm font-bold text-slate-400 group-hover:text-slate-200 transition-colors">상단 고정</span>
+              <span className="text-sm font-bold text-cp-muted group-hover:text-cp-text transition-colors">상단 고정</span>
             </label>
           </div>
         </div>
@@ -108,7 +108,7 @@ const NoticeForm = ({
 
         {/* 파일 첨부 영역 */}
         <div className="space-y-5 mb-10">
-          <div className="flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+          <div className="flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
             <Paperclip size={18} /> 파일 첨부
           </div>
           
@@ -124,11 +124,11 @@ const NoticeForm = ({
               />
               <label 
                 htmlFor="file-upload"
-                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 rounded-sm bg-slate-900/30 hover:border-teal-500/50 hover:bg-slate-900/50 cursor-pointer transition-all group"
+                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-cp-border rounded-sm bg-cp-bg/30 hover:border-teal-500/50 hover:bg-cp-bg/50 cursor-pointer transition-all group"
               >
-                <Plus size={28} className="text-slate-500 group-hover:text-teal-400 mb-2" />
-                <span className="text-sm text-slate-400 group-hover:text-slate-200 font-bold">새 파일 추가하기</span>
-                <span className="text-[10px] text-slate-600 mt-1">드래그하거나 클릭하여 파일을 선택하세요</span>
+                <Plus size={28} className="text-cp-muted group-hover:text-teal-400 mb-2" />
+                <span className="text-sm text-cp-muted group-hover:text-cp-text font-bold">새 파일 추가하기</span>
+                <span className="text-[10px] text-cp-muted/60 mt-1">드래그하거나 클릭하여 파일을 선택하세요</span>
               </label>
             </div>
 
@@ -136,16 +136,16 @@ const NoticeForm = ({
             <div className="space-y-2.5 max-h-48 overflow-y-auto modal-scrollbar pr-2">
               {/* 기존 파일 */}
               {editingId && existingFiles.map((file) => (
-                <div key={file.fileId} className="flex items-center justify-between p-3 bg-slate-900/50 border border-slate-700 rounded-sm group/file">
+                <div key={file.fileId} className="flex items-center justify-between p-3 bg-cp-bg/50 border border-cp-border rounded-sm group/file">
                   <div className="flex items-center gap-2 truncate flex-1">
                     <Paperclip size={16} className="text-teal-500/70 shrink-0" />
-                    <span className="text-xs text-slate-300 truncate font-semibold">{file.originalName}</span>
-                    <span className="text-[10px] text-slate-500 shrink-0 font-mono">({(file.fileSize / 1024).toFixed(1)} KB)</span>
+                    <span className="text-xs text-cp-text truncate font-semibold">{file.originalName}</span>
+                    <span className="text-[10px] text-cp-muted shrink-0 font-mono">({(file.fileSize / 1024).toFixed(1)} KB)</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => onDeleteExistingFile(file.fileId)}
-                    className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                    className="p-1 text-cp-muted hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -162,19 +162,19 @@ const NoticeForm = ({
               ))}
 
               {!editingId && selectedFiles.length === 0 && (
-                <div className="h-full flex items-center justify-center border border-slate-700 border-dashed rounded-sm bg-slate-900/10 py-10">
-                  <span className="text-xs text-slate-600 font-medium tracking-wide text-center">첨부된 파일이 없습니다.</span>
+                <div className="h-full flex items-center justify-center border border-cp-border border-dashed rounded-sm bg-cp-bg/10 py-10">
+                  <span className="text-xs text-cp-muted font-medium tracking-wide text-center">첨부된 파일이 없습니다.</span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-slate-700 pt-6">
+        <div className="flex justify-end gap-3 border-t border-cp-border pt-6">
           <button
             type="button"
             onClick={handleCancel}
-            className="px-8 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700 text-slate-400 rounded-sm font-bold text-base hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md"
+            className="px-8 py-2.5 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-bold text-base hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all shadow-md"
           >
             취소
           </button>

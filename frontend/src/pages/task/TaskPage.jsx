@@ -11,13 +11,13 @@ const TaskPage = () => {
       <Breadcrumb items={["작업 관리"]} />
 
       {/* 탭 메뉴 - CallPage와 동일한 스타일 적용 */}
-      <div className="flex border-b border-slate-700 mb-4">
+      <div className="flex border-b border-cp-border mb-4">
         <button
           type="button"
           className={`px-4 py-2 font-medium text-sm transition-colors ${
             activeTab === "task"
               ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
+              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
           }`}
           onClick={() => setActiveTab("task")}
         >
@@ -28,7 +28,7 @@ const TaskPage = () => {
           className={`px-4 py-2 font-medium text-sm transition-colors ${
             activeTab === "ai"
               ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-slate-400 hover:text-slate-200 border-b-2 border-transparent"
+              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
           }`}
           onClick={() => setActiveTab("ai")}
         >

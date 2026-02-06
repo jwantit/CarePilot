@@ -3,6 +3,53 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* 라이트모드: 밝은 배경 + 흰색 카드, 보이는 테두리 */
+    color-scheme: light;
+    --bg-main: #f8fafc;    /* slate-50: 배경 */
+    --bg-card: #ffffff;    /* pure white: 카드/섹션 */
+    --bg-header: #e2e8f0;   /* slate-200: 테이블 헤더행 */
+    --text-main: #0f172a;  /* slate-900: 주 텍스트 */
+    --text-muted: #64748b; /* slate-500: 보조 텍스트 */
+    --border-main: #cbd5e1; /* slate-300: 경계선 (선명하게) */
+    --accent-teal: #0d9488;/* teal-600: 라이트모드 짙은 초록 */
+    --input-bg: #ffffff;
+  }
+
+  .dark {
+    /* 다크모드: 1=전체배경, 2=카드/로우, 3=테이블 헤더행 */
+    color-scheme: dark;
+    --bg-main: #1A202C;    /* 첫 번째: 전체 배경 (짙은 다크 블루) */
+    --bg-card: #27313C;    /* 두 번째: 스탯카드·컴포넌트·로우 안쪽 */
+    --bg-header: #1A202C;  /* 세 번째: 테이블 기준행(헤더) */
+    --text-main: #f1f5f9;  /* slate-100 */
+    --text-muted: #94a3b8; /* slate-400 */
+    --border-main: #334155; /* slate-700: 구분선 */
+    --accent-teal: #14b8a6;/* teal-400 */
+    --input-bg: #1A202C;
+    /* 테두리 기본색: 상속되어 흰 테두리 대신 기존 다크 테두리(slate-700) 적용 */
+    border-color: var(--border-main);
+  }
+
+  /* 다크모드: 카드/테이블/버튼 등 기본 테두리를 --border-main으로 통일 (흰 테두리 제거) */
+  .dark *,
+  .dark *::before,
+  .dark *::after {
+    border-color: var(--border-main);
+  }
+
+  /* 다크모드 시 브라우저 기본 폼 스타일(흰 테두리 등) 덮어쓰기 */
+  .dark input,
+  .dark select,
+  .dark button,
+  .dark textarea {
+    border-color: var(--border-main) !important;
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: var(--text-muted);
+  }
+
   html {
     overflow-y: scroll; /* 항상 스크롤바 공간 유지 */
     scrollbar-gutter: stable; /* 스크롤바 공간 항상 확보 */
@@ -10,11 +57,12 @@
 
   html, body {
     font-family: "Pretendard", sans-serif;
-    background-color: #131925 !important;    
-    color: #e2e8f0; /* slate-200 */
+    background-color: var(--bg-main) !important;
+    color: var(--text-main);
     width: 100%;
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* 커스텀 체크박스 스타일 */
@@ -191,44 +239,80 @@
 }
 
 @layer components {
-  /* 다크 테마 공통 입력창 스타일 */
+  /* 모달 내용 박스: 라이트/다크 모두 불투명 배경 보장 (배경 투명화 방지) */
+  [class*="fixed"][class*="inset-0"] > div[class*="max-w"],
+  [class*="fixed"][class*="inset-0"] > div[class*="rounded"]:not([class*="blur"]) {
+    background-color: var(--bg-card) !important;
+  }
+
+  /* 다크/라이트 테마 공통 입력창 스타일 */
   .cp-input {
-    @apply w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm;
+    @apply w-full p-2.5 border rounded-sm outline-none transition-all shadow-sm;
+    background-color: var(--input-bg);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-input:focus {
+    @apply ring-2 ring-teal-500/50 border-teal-500;
+  }
+  .cp-input::placeholder {
+    color: var(--text-muted);
   }
 
-  /* 다크 테마 공통 라벨 스타일 */
+  /* 다크/라이트 테마 공통 라벨 스타일 */
   .cp-label {
-    @apply block text-sm font-semibold text-slate-200 mb-1.5 ml-1;
+    @apply block text-sm font-semibold mb-1.5 ml-1;
+    color: var(--text-main);
   }
 
-  /* 다크 테마 공통 셀렉트 박스 스타일 */
+  /* 다크/라이트 테마 공통 셀렉트 박스 스타일 */
   .cp-select {
-    @apply w-full p-2.5 border border-slate-600 rounded-sm bg-slate-900 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer;
+    @apply w-full p-2.5 border rounded-sm outline-none cursor-pointer;
+    background-color: var(--input-bg);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-select:focus {
+    @apply ring-2 ring-teal-500/50 border-teal-500;
   }
 
   /* 필터 바 전용 라벨 스타일 */
   .cp-label-filter {
-    @apply text-xs font-semibold text-slate-400 uppercase tracking-wider;
+    @apply text-xs font-semibold uppercase tracking-wider;
+    color: var(--text-muted);
   }
 
   /* 필터 바 전용 입력창 스타일 */
   .cp-input-filter {
-    @apply rounded-sm border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all;
+    @apply rounded-sm border px-3 py-2 text-sm outline-none transition-all;
+    background-color: var(--input-bg);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-input-filter:focus {
+    @apply ring-2 ring-teal-500/50 border-teal-500;
   }
 
-  /* 다크 테마 메인 버튼 스타일 (Teal) */
+  /* 테마 메인 버튼 스타일 (Teal) */
   .cp-btn-primary {
-    @apply bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:from-slate-700 disabled:to-slate-800 disabled:border-slate-600 disabled:text-slate-400 flex items-center justify-center gap-2;
+    @apply bg-teal-600 border border-teal-500 text-white rounded-sm font-semibold hover:bg-teal-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:bg-slate-400 disabled:border-slate-400 disabled:text-slate-200 flex items-center justify-center gap-2;
   }
 
-  /* 다크 테마 서브 버튼 스타일 (Slate) */
+  /* 테마 서브 버튼 스타일 */
   .cp-btn-secondary {
-    @apply bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    @apply border rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    background-color: var(--bg-card);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-btn-secondary:hover {
+    background-color: var(--bg-main);
+    border-color: var(--text-muted);
   }
 
   /* 위험/삭제 버튼 스타일 (Red) */
   .cp-btn-danger {
-    @apply bg-gradient-to-br from-red-600 to-red-700 border border-red-500 text-white rounded-sm font-semibold hover:from-red-500 hover:to-red-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 flex items-center justify-center gap-2;
+    @apply bg-red-600 border border-red-500 text-white rounded-sm font-semibold hover:bg-red-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 flex items-center justify-center gap-2;
   }
 
   /* 외곽선 버튼 스타일 (Outline) */
@@ -243,7 +327,62 @@
   .cp-link-red {
     @apply text-red-400 hover:text-red-300 underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
   }
-  .cp-link-slate {
-    @apply text-slate-400 hover:text-slate-200 underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+  .cp-link-muted {
+    @apply underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    color: var(--text-muted);
+  }
+  .cp-link-muted:hover {
+    color: var(--text-main);
+  }
+}
+
+/* 라이트/다크 모드 모두 --accent-teal 적용 (Tailwind teal 유틸리티 강제) */
+@layer utilities {
+  .text-teal-300,
+  .text-teal-400,
+  .text-teal-500,
+  .text-teal-600,
+  .text-teal-700 {
+    color: var(--accent-teal) !important;
+  }
+  .bg-teal-300,
+  .bg-teal-400,
+  .bg-teal-500,
+  .bg-teal-600,
+  .bg-teal-700 {
+    background-color: var(--accent-teal) !important;
+  }
+  .border-teal-300,
+  .border-teal-400,
+  .border-teal-500,
+  .border-teal-600,
+  .border-teal-700 {
+    border-color: var(--accent-teal) !important;
+  }
+  .hover\:text-teal-400:hover,
+  .hover\:text-teal-500:hover {
+    color: var(--accent-teal) !important;
+  }
+  .hover\:bg-teal-500:hover {
+    background-color: var(--accent-teal) !important;
+  }
+  .hover\:border-teal-500:hover {
+    border-color: var(--accent-teal) !important;
+  }
+  /* ring, gradient 등 teal 참조 */
+  .ring-teal-500 {
+    --tw-ring-color: var(--accent-teal) !important;
+  }
+  .focus\:ring-teal-500:focus {
+    --tw-ring-color: var(--accent-teal) !important;
+  }
+  .from-teal-600,
+  .from-teal-500 {
+    --tw-gradient-from: var(--accent-teal) !important;
+  }
+  .to-teal-700,
+  .to-teal-600,
+  .to-teal-500 {
+    --tw-gradient-to: var(--accent-teal) !important;
   }
 }

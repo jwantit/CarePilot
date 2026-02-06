@@ -48,9 +48,9 @@ function CareTarget({
 
   if (loading && careTargetList.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 gap-4 bg-slate-800">
-        <div className="w-12 h-12 border-4 border-slate-700 border-t-teal-400 rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
+      <div className="flex flex-col items-center justify-center p-20 gap-4 bg-cp-card">
+        <div className="w-12 h-12 border-4 border-cp-border border-t-teal-400 rounded-full animate-spin" />
+        <p className="text-cp-muted text-sm font-mono">로딩 중...</p>
       </div>
     );
   }
@@ -74,14 +74,14 @@ function CareTarget({
 
   if (careTargetList && careTargetList.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 bg-slate-800">
-        <div className="w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded flex items-center justify-center mb-5">
-          <span className="text-3xl text-slate-600">[ ]</span>
+      <div className="flex flex-col items-center justify-center p-20 bg-cp-card">
+        <div className="w-20 h-20 bg-cp-bg border-2 border-cp-border rounded flex items-center justify-center mb-5">
+          <span className="text-3xl text-cp-muted">[ ]</span>
         </div>
-        <p className="text-slate-300 font-mono font-semibold text-base mb-2">
+        <p className="text-cp-text font-mono font-semibold text-base mb-2">
           {keyword ? `// No results for "${keyword}"` : "// No patient data found"}
         </p>
-        <p className="text-slate-500 text-sm font-mono">
+        <p className="text-cp-muted text-sm font-mono">
           {keyword ? "// Please check your search query" : "// Use 'ADD' button to register patients"}
         </p>
       </div>
@@ -89,7 +89,7 @@ function CareTarget({
   }
 
   return (
-    <div className="w-full bg-slate-800" style={{ height: '600px' }}>
+    <div className="w-full bg-cp-card" style={{ height: '600px' }}>
       <AutoSizer>
         {({ height, width }) => (
           <List

@@ -23,8 +23,8 @@ function LoginForm() {
     await login(formData);
   };
 
-  const inputClass = "block w-full px-4 py-3 bg-gradient-to-br from-slate-900 to-slate-950 text-slate-100 placeholder:text-slate-600 border border-slate-600 rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-sm";
-  const labelClass = "block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1";
+  const inputClass = "block w-full px-4 py-3 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-sm";
+  const labelClass = "block text-xs font-black text-cp-muted uppercase tracking-widest mb-1.5 ml-1";
 
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -78,9 +78,9 @@ function LoginForm() {
         </button>
 
         <div className="relative flex items-center py-2">
-          <div className="flex-grow border-t border-slate-700"></div>
-          <span className="flex-shrink mx-4 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Social Login</span>
-          <div className="flex-grow border-t border-slate-700"></div>
+          <div className="flex-grow border-t border-cp-border"></div>
+          <span className="flex-shrink mx-4 text-cp-muted text-[10px] font-black uppercase tracking-[0.2em]">Social Login</span>
+          <div className="flex-grow border-t border-cp-border"></div>
         </div>
 
         <button
@@ -98,7 +98,7 @@ function LoginForm() {
       </div>
 
       <div className="text-center pt-2">
-        <p className="text-sm text-slate-500 font-medium">
+        <p className="text-sm text-cp-muted font-medium">
           아직 계정이 없으신가요?{' '}
           <button
             type="button"

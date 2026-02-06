@@ -23,10 +23,10 @@ const toISODateTime = (dateTimeLocal) => {
 };
 
 const inputClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
-const labelClass = "block text-sm font-semibold text-slate-200 mb-1.5";
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+const labelClass = "block text-sm font-semibold text-cp-text mb-1.5";
 const selectClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
 
 const TaskFormModal = ({
   open,
@@ -89,10 +89,10 @@ const TaskFormModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
         {/* 헤더 */}
-        <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-          <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+        <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+          <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
             {mode === "edit" ? (
               <FileText size={24} className="text-teal-400" />
             ) : (
@@ -103,7 +103,7 @@ const TaskFormModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+            className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
           >
             <X size={24} />
           </button>
@@ -112,7 +112,7 @@ const TaskFormModal = ({
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
           <div className="grid grid-cols-2 gap-5">
             {/* 섹션 1: 작업 기본 정보 */}
-            <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+            <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
               <ClipboardList size={16} /> 작업 기본 정보
             </div>
 
@@ -132,7 +132,7 @@ const TaskFormModal = ({
               <label className={labelClass}>유형</label>
               <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
                 {typeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} className="bg-slate-900">
+                  <option key={opt.value} value={opt.value} className="bg-cp-card">
                     {opt.label}
                   </option>
                 ))}
@@ -143,7 +143,7 @@ const TaskFormModal = ({
               <label className={labelClass}>우선순위</label>
               <select value={priority} onChange={(e) => setPriority(e.target.value)} className={selectClass}>
                 {priorityOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} className="bg-slate-900">
+                  <option key={opt.value} value={opt.value} className="bg-cp-card">
                     {opt.label}
                   </option>
                 ))}
@@ -151,7 +151,7 @@ const TaskFormModal = ({
             </div>
 
             {/* 섹션 2: 할당 및 대상 정보 */}
-            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
               <UserCheck size={16} /> 할당 및 대상 정보
             </div>
 
@@ -164,9 +164,9 @@ const TaskFormModal = ({
                 }
                 className={selectClass}
               >
-                <option value="" className="bg-slate-900">대상자 미지정</option>
+                <option value="" className="bg-cp-card">대상자 미지정</option>
                 {careTargetList.map((c) => (
-                  <option key={c.careTargetId} value={c.careTargetId} className="bg-slate-900">
+                  <option key={c.careTargetId} value={c.careTargetId} className="bg-cp-card">
                     {c.name ?? c.careTargetId}
                   </option>
                 ))}
@@ -182,9 +182,9 @@ const TaskFormModal = ({
                 }
                 className={selectClass}
               >
-                <option value="" className="bg-slate-900">직원 미할당</option>
+                <option value="" className="bg-cp-card">직원 미할당</option>
                 {staffList.map((s) => (
-                  <option key={s.userId} value={s.userId} className="bg-slate-900">
+                  <option key={s.userId} value={s.userId} className="bg-cp-card">
                     {s.name ?? s.email}
                   </option>
                 ))}
@@ -199,12 +199,12 @@ const TaskFormModal = ({
                 type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className={`${inputClass} [color-scheme:dark]`}
+                className={`${inputClass}`}
               />
             </div>
 
             {/* 섹션 3: 상세 설명 */}
-            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
               <FileText size={16} /> 상세 설명
             </div>
 
@@ -238,7 +238,7 @@ const TaskFormModal = ({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
+                    className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                   >
                     취소
                   </button>
@@ -255,7 +255,7 @@ const TaskFormModal = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 >
                   취소
                 </button>

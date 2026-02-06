@@ -24,8 +24,8 @@ function SettingPage() {
       <Breadcrumb items={["설정"]} />
       <div className="flex min-h-[500px]">
       {/* 왼쪽 사이드바 */}
-      <div className="w-64 flex-shrink-0 bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 rounded-none p-4 mr-4 shadow-lg">
-        <h2 className="text-xl font-semibold mb-4 text-slate-100">설정</h2>
+      <div className="w-64 flex-shrink-0 bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none p-4 mr-4 shadow-lg">
+        <h2 className="text-xl font-semibold mb-4 text-cp-text">설정</h2>
         <div className="space-y-1">
           {menuItems.map((item) => (
             <button
@@ -34,7 +34,7 @@ function SettingPage() {
               className={`w-full text-left px-4 py-2 rounded-sm transition-colors ${
                 activeMenu === item.id
                   ? "bg-teal-500/20 text-teal-400 font-semibold border border-teal-500/50"
-                  : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 border border-transparent"
+                  : "text-cp-muted hover:bg-cp-bg/50 hover:text-cp-text border border-transparent"
               }`}
             >
               {item.label}
@@ -44,7 +44,7 @@ function SettingPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="flex-1 p-8 overflow-auto bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg">
+      <div className="flex-1 p-8 overflow-auto bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg">
         <ActiveComponent />
       </div>
       </div>

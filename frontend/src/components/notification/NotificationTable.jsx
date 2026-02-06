@@ -83,7 +83,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const titleCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm font-bold text-slate-100 whitespace-nowrap truncate h-full flex items-center">
+      <div className="px-4 py-3 text-sm font-bold text-cp-text whitespace-nowrap truncate h-full flex items-center">
         {rowData.title || '-'}
       </div>
     );
@@ -92,7 +92,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const descriptionCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-400 truncate h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-cp-muted truncate h-full flex items-center">
         {rowData.description || '-'}
       </div>
     );
@@ -101,7 +101,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const careTargetCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-bold h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-cp-text whitespace-nowrap font-bold h-full flex items-center">
         {rowData.careTarget?.name || '-'}
       </div>
     );
@@ -110,7 +110,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const typeCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-bold h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-cp-text whitespace-nowrap font-bold h-full flex items-center">
         {getTypeLabel(rowData.type)}
       </div>
     );
@@ -119,7 +119,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const occurredAtCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-slate-400 whitespace-nowrap font-mono h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-cp-muted whitespace-nowrap font-mono h-full flex items-center">
         {formatDateTime(rowData.occurredAt)}
       </div>
     );
@@ -158,7 +158,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
           </button>
         ) : (
           <div className="flex flex-col items-center">
-            <span className="text-[10px] text-slate-500 font-bold">확인완료</span>
+            <span className="text-[10px] text-cp-muted font-bold">확인완료</span>
             <span className="text-xs text-teal-500 font-black">{rowData.resolvedBy?.name || '시스템'}</span>
           </div>
         )}
@@ -170,7 +170,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     if (index < 0 || index >= notifications.length) return '';
     const notification = notifications[index];
     const isUnread = notification?.status === 'ACTIVE';
-    return `hover:bg-slate-700/30 border-b border-slate-700/50 transition-colors cursor-pointer ${isUnread ? 'bg-teal-500/5' : 'bg-slate-800/30'}`;
+    return `hover:bg-cp-bg/30 border-b border-cp-border/50 transition-colors cursor-pointer ${isUnread ? 'bg-teal-500/5' : 'bg-cp-card/30'}`;
   };
 
   const headerRenderer = ({ label }) => {
@@ -188,8 +188,8 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
   if (notifications.length === 0) {
     return (
-      <div className="bg-slate-800 rounded-sm border border-slate-700 overflow-hidden shadow-lg">
-        <div className="px-4 py-20 text-center text-slate-500 bg-slate-800/30">
+      <div className="bg-cp-card rounded-sm border border-cp-border overflow-hidden shadow-lg">
+        <div className="px-4 py-20 text-center text-cp-muted bg-cp-card/30">
           알림이 없습니다.
         </div>
       </div>
@@ -197,11 +197,11 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   }
 
   return (
-    <div className="bg-slate-800 rounded-sm border border-slate-700 overflow-hidden shadow-lg flex-1 flex flex-col">
+    <div className="bg-cp-card rounded-sm border border-cp-border overflow-hidden shadow-lg flex-1 flex flex-col">
       <style>
         {`
           .ReactVirtualized__Table__headerRow {
-            background-color: #0f172a !important;
+            background-color: var(--input-bg) !important;
             border-bottom: 2px solid rgba(20, 184, 166, 0.3) !important;
             display: flex !important;
             align-items: center !important;
@@ -230,7 +230,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               height={height}
               headerHeight={48}
               headerStyle={{ 
-                backgroundColor: '#0f172a', 
+                backgroundColor: 'var(--input-bg)', 
                 borderBottom: '2px solid rgba(20, 184, 166, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
@@ -311,12 +311,12 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
       {/* 상세 보기 모달 */}
       {selectedNotification && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-              <h3 className="text-lg font-bold text-slate-100">알림 상세 내역</h3>
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-cp-border flex justify-between items-center bg-cp-bg/50">
+              <h3 className="text-lg font-bold text-cp-text">알림 상세 내역</h3>
               <button 
                 onClick={closeModal} 
-                className="text-slate-500 hover:text-slate-400 transition-colors text-2xl p-1"
+                className="text-cp-muted hover:text-cp-text transition-colors text-2xl p-1"
               >
                 &times;
               </button>
@@ -327,34 +327,34 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
                 <span className={`px-2.5 py-1 rounded text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}>
                   {getSeverityBadge(selectedNotification.severity).label}
                 </span>
-                <span className="px-2.5 py-1 bg-slate-700 text-slate-300 rounded text-xs font-bold">
+                <span className="px-2.5 py-1 bg-cp-bg text-cp-text rounded text-xs font-bold">
                   {getTypeLabel(selectedNotification.type)}
                 </span>
-                <span className="text-xs text-slate-500 ml-auto">
+                <span className="text-xs text-cp-muted ml-auto">
                   {formatDateTime(selectedNotification.occurredAt)}
                 </span>
               </div>
 
               <div>
                 <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">알림 제목</label>
-                <p className="text-lg font-bold text-slate-100 leading-tight">{selectedNotification.title}</p>
+                <p className="text-lg font-bold text-cp-text leading-tight">{selectedNotification.title}</p>
               </div>
 
               <div>
                 <label className="text-[11px] font-bold text-teal-600 uppercase tracking-wider block mb-1.5">상세 내용</label>
-                <div className="bg-slate-800/50 p-4 rounded-none border border-slate-700 text-sm text-slate-300 whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                <div className="bg-cp-bg/50 p-4 rounded-none border border-cp-border text-sm text-cp-text whitespace-pre-wrap leading-relaxed min-h-[120px]">
                   {selectedNotification.description}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6 pt-2">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">케어대상자</label>
-                  <p className="text-sm font-bold text-slate-200">{selectedNotification.careTarget?.name || '-'}</p>
+                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">케어대상자</label>
+                  <p className="text-sm font-bold text-cp-text">{selectedNotification.careTarget?.name || '-'}</p>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">상태</label>
-                  <p className="text-sm font-bold text-slate-200">{getStatusLabel(selectedNotification.status)}</p>
+                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">상태</label>
+                  <p className="text-sm font-bold text-cp-text">{getStatusLabel(selectedNotification.status)}</p>
                 </div>
               </div>
 
@@ -371,7 +371,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               )}
             </div>
 
-            <div className="px-6 py-4 bg-slate-800/50 border-t border-slate-700 flex justify-end gap-3">
+            <div className="px-6 py-4 bg-cp-bg/50 border-t border-cp-border flex justify-end gap-3">
               {selectedNotification.status === 'ACTIVE' && (
                 <button
                   onClick={(e) => {
@@ -385,7 +385,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               )}
               <button 
                 onClick={closeModal} 
-                className="px-5 py-2.5 bg-slate-800 border border-gray-300 rounded-none hover:bg-slate-800/50 font-bold text-slate-300 transition-all"
+                className="px-5 py-2.5 bg-cp-bg border border-cp-border rounded-none hover:bg-cp-card font-bold text-cp-text transition-all"
               >
                 닫기
               </button>

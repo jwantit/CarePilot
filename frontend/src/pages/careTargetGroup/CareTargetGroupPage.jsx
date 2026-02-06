@@ -75,9 +75,9 @@ const CareTargetGroupPage = () => {
       />
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center h-80 text-slate-400">
-          <Loader2 className="animate-spin mb-4 border-4 border-slate-700 border-t-teal-400 rounded-full" size={48} />
-          <p className="font-medium text-slate-500 font-mono">로딩 중...</p>
+        <div className="flex flex-col items-center justify-center h-80 text-cp-muted">
+          <div className="w-12 h-12 border-4 border-cp-border border-t-teal-400 rounded-full animate-spin mb-4" />
+          <p className="font-medium text-cp-muted font-mono">로딩 중...</p>
         </div>
       ) : filteredGroups.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -86,9 +86,9 @@ const CareTargetGroupPage = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 bg-slate-800 border border-slate-700">
-          <ClipboardList className="mx-auto mb-4 text-slate-600" size={64} />
-          <p className="text-slate-400 font-semibold text-lg">검색 조건에 맞는 그룹이 없습니다.</p>
+        <div className="text-center py-24 bg-cp-card border border-cp-border shadow-xl rounded-sm">
+          <ClipboardList className="mx-auto mb-4 text-cp-muted/40" size={64} />
+          <p className="text-cp-muted font-semibold text-lg">검색 조건에 맞는 그룹이 없습니다.</p>
         </div>
       )}
 

@@ -163,9 +163,9 @@ function ReportPage() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={["통계"]} />
-        <div className="flex flex-col items-center justify-center p-20 gap-4 bg-slate-800 border border-slate-700 rounded-none">
-          <div className="w-12 h-12 border-4 border-slate-700 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
+        <div className="flex flex-col items-center justify-center p-20 gap-4 bg-cp-card border border-cp-border rounded-none">
+          <div className="w-12 h-12 border-4 border-cp-border border-t-teal-400 rounded-full animate-spin" />
+          <p className="text-cp-muted text-sm font-mono">로딩 중...</p>
         </div>
       </div>
     );
@@ -211,18 +211,18 @@ function ReportPage() {
     <div className="space-y-6">
       <Breadcrumb items={["통계"]} />
 
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 mb-6 rounded-none shadow-lg hover:shadow-xl transition-shadow">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 mb-6 rounded-none shadow-lg hover:shadow-xl transition-shadow">
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
               기간 선택
             </span>
             <div className="flex items-center gap-1.5 relative">
               <button
                 className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
                   dateRange === "today"
-                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                    ? "bg-cp-input text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-cp-input text-cp-muted border border-cp-border hover:bg-cp-bg"
                 }`}
                 onClick={() => {
                   setDateRange("today");
@@ -234,8 +234,8 @@ function ReportPage() {
               <button
                 className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
                   dateRange === "week"
-                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                    ? "bg-cp-input text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-cp-input text-cp-muted border border-cp-border hover:bg-cp-bg"
                 }`}
                 onClick={() => {
                   setDateRange("week");
@@ -247,8 +247,8 @@ function ReportPage() {
               <button
                 className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
                   dateRange === "month"
-                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                    ? "bg-cp-input text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-cp-input text-cp-muted border border-cp-border hover:bg-cp-bg"
                 }`}
                 onClick={() => {
                   setDateRange("month");
@@ -260,8 +260,8 @@ function ReportPage() {
               <button
                 className={`px-4 h-9 rounded-none text-xs font-semibold transition-all border ${
                   dateRange === "custom"
-                    ? "bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
-                    : "bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400 border border-slate-700 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500"
+                    ? "bg-cp-input text-teal-400 border-teal-500/50 hover:border-teal-500 shadow-md"
+                    : "bg-cp-input text-cp-muted border border-cp-border hover:bg-cp-bg"
                 }`}
                 onClick={() => {
                   setDateRange("custom");
@@ -277,12 +277,12 @@ function ReportPage() {
 
               {/* 날짜 선택 팝오버 */}
               {isDatePickerOpen && (
-                <div className="absolute top-10 left-0 z-50 bg-slate-800 border border-slate-700 p-4 shadow-2xl space-y-3 min-w-[320px]">
+                <div className="absolute top-10 left-0 z-50 bg-cp-card border border-cp-border p-4 shadow-2xl space-y-3 min-w-[320px]">
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold text-teal-400 uppercase">시작일</span>
                     <input
                       type="date"
-                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full [color-scheme:dark]"
+                      className="h-9 px-3 border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full"
                       value={tempStartDate ? tempStartDate.toISOString().split("T")[0] : ""}
                       onChange={(e) => setTempStartDate(new Date(e.target.value))}
                     />
@@ -291,15 +291,15 @@ function ReportPage() {
                     <span className="text-[10px] font-bold text-teal-400 uppercase">종료일</span>
                     <input
                       type="date"
-                      className="h-9 px-3 border border-slate-700 rounded-none bg-slate-950 text-slate-200 text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full [color-scheme:dark]"
+                      className="h-9 px-3 border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-1 focus:ring-teal-500 outline-none w-full"
                       value={tempEndDate ? tempEndDate.toISOString().split("T")[0] : ""}
                       onChange={(e) => setTempEndDate(new Date(e.target.value))}
                     />
                   </div>
-                  <div className="pt-2 border-t border-slate-700 flex justify-end gap-2">
+                  <div className="pt-2 border-t border-cp-border flex justify-end gap-2">
                     <button
                       onClick={() => setIsDatePickerOpen(false)}
-                      className="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                      className="px-3 py-1.5 text-xs font-semibold text-cp-muted hover:text-cp-text transition-colors"
                     >
                       취소
                     </button>
@@ -320,11 +320,11 @@ function ReportPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
               그룹
             </span>
             <select
-              className="h-9 px-3 min-w-[120px] border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 min-w-[120px] border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
               value={selectedGroupId || ""}
               onChange={(e) =>
                 setSelectedGroupId(
@@ -342,11 +342,11 @@ function ReportPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
               질환
             </span>
             <select
-              className="h-9 px-3 min-w-[120px] border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 min-w-[120px] border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
               value={selectedDisease}
               onChange={(e) => setSelectedDisease(e.target.value)}
             >
@@ -361,7 +361,7 @@ function ReportPage() {
 
           <button
             onClick={handleReset}
-            className="h-9 flex items-center gap-1.5 px-5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700 text-slate-400 text-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-none"
+            className="h-9 flex items-center gap-1.5 px-5 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-none"
           >
             <RotateCcw size={14} />
             초기화
@@ -371,21 +371,21 @@ function ReportPage() {
 
           <button
             onClick={handleExportPDF}
-            className="h-9 flex items-center gap-2 px-5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 rounded-none shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="h-9 flex items-center gap-2 px-5 bg-cp-input hover:bg-cp-bg text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 rounded-none shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <Download size={18} />
             PDF 내보내기
           </button>
         </div>
 
-        <div className="mt-8 pt-4 border-t border-slate-700/50">
+        <div className="mt-8 pt-4 border-t border-cp-border/50">
           <nav className="flex gap-4">
             <button
               onClick={() => setActiveTab("overview")}
               className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
                 activeTab === "overview"
                   ? "border-teal-500 text-teal-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-cp-muted hover:text-cp-text"
               }`}
             >
               개요
@@ -395,7 +395,7 @@ function ReportPage() {
               className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
                 activeTab === "risk"
                   ? "border-teal-500 text-teal-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-cp-muted hover:text-cp-text"
               }`}
             >
               위험도 분석
@@ -405,7 +405,7 @@ function ReportPage() {
               className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
                 activeTab === "call"
                   ? "border-teal-500 text-teal-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-cp-muted hover:text-cp-text"
               }`}
             >
               통화 분석
@@ -415,7 +415,7 @@ function ReportPage() {
               className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
                 activeTab === "ai"
                   ? "border-teal-500 text-teal-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  : "border-transparent text-cp-muted hover:text-cp-text"
               }`}
             >
               AI 자동화

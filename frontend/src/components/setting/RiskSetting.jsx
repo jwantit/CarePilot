@@ -61,7 +61,7 @@ function RiskSetting() {
 
   const ThresholdInput = ({ label, value, onChange, description }) => (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-slate-400">{label}</label>
+      <label className="block text-sm font-semibold text-cp-muted">{label}</label>
       <div className="flex items-center space-x-3">
         <input
           type="number"
@@ -69,26 +69,26 @@ function RiskSetting() {
           max="100"
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-24 px-4 py-2 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+          className="w-24 px-4 py-2 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
           placeholder="0-100"
         />
-        <span className="text-sm text-slate-500">점</span>
+        <span className="text-sm text-cp-muted">점</span>
       </div>
-      {description && <p className="text-xs text-slate-500">{description}</p>}
+      {description && <p className="text-xs text-cp-muted">{description}</p>}
     </div>
   );
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-slate-100">위험 설정</h1>
+      <h1 className="text-2xl font-bold mb-6 text-cp-text">위험 설정</h1>
 
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6 space-y-6">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6 space-y-6">
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-100 mb-4">
+            <h2 className="text-xl font-semibold text-cp-text mb-4">
               위험 점수 임계값 설정
             </h2>
-            <p className="text-sm text-slate-400 mb-6">
+            <p className="text-sm text-cp-muted mb-6">
               각 위험 계급에 대한 점수 임계값을 설정합니다. (0-100점)
             </p>
           </div>
@@ -130,11 +130,11 @@ function RiskSetting() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-700">
+        <div className="pt-4 border-t border-cp-border">
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-6 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-cp-input border border-teal-500/50 text-teal-400 rounded-sm hover:bg-cp-bg hover:border-teal-500 font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? "저장 중..." : "저장"}
           </button>

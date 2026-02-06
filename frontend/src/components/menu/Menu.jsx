@@ -2,12 +2,39 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getUnreadCount } from "../../api/notificationApi";
 import { useAuth } from "../../hooks/useAuth";
+import { Sun, Moon } from "lucide-react";
 
 function Menu() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains("dark"));
+
+  // 테마 전환 핸들러
+  const toggleTheme = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    if (newDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
+  // 초기 테마 설정 확인
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    } else if (savedTheme === "light") {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+    }
+  }, []);
 
   // Redux에서 사용자 정보 가져오기
   const userId = user?.userId;
@@ -81,7 +108,7 @@ function Menu() {
   };
 
   return (
-    <nav className="bg-slate-800 border-b border-slate-700 shadow-lg">
+    <nav className="bg-cp-card border-b border-cp-border shadow-lg">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* 로고 영역 */}
@@ -96,7 +123,7 @@ function Menu() {
               }}
             />
 
-            <span className="text-xl font-semibold text-slate-200">
+            <span className="text-xl font-semibold text-cp-text">
               Care<span className="text-teal-400">Pilot</span>
             </span>
           </Link>
@@ -111,7 +138,7 @@ function Menu() {
                 className={`px-4 py-2 text-sm font-semibold transition-colors relative ${
                   isActive(item.path)
                     ? 'text-teal-400 border-b-2 border-teal-400'
-                    : 'text-slate-300 hover:text-teal-400'
+                    : 'text-cp-text/70 hover:text-teal-400'
                 }`}
               >
                 {item.isIcon ? (
@@ -146,12 +173,21 @@ function Menu() {
 
           {/* 우측 버튼 영역 */}
           <div className="flex items-center space-x-3">
+            {/* 테마 토글 버튼 */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full text-cp-text/70 hover:text-teal-400 hover:bg-cp-bg/50 transition-all"
+              title={isDark ? "라이트모드로 전환" : "다크모드로 전환"}
+            >
+              {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
             {/* 유저 드롭다운 */}
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
 
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-slate-200 hover:text-teal-400 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-cp-text hover:text-teal-400 transition-colors"
               >
                 <span>{user?.name || user?.email || "유저"}</span>
                 <svg
@@ -177,10 +213,10 @@ function Menu() {
                     className="fixed inset-0 z-10"
                     onClick={() => setIsUserMenuOpen(false)}
                   ></div>
-                  <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded border border-slate-700 shadow-xl py-2 z-20">
+                  <div className="absolute right-0 mt-2 w-48 bg-cp-card rounded border border-cp-border shadow-xl py-2 z-20">
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 hover:text-teal-400 transition-colors"
+                      className="block px-4 py-2 text-sm text-cp-text hover:bg-cp-bg/50 hover:text-teal-400 transition-colors"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       개인정보 수정
@@ -188,19 +224,19 @@ function Menu() {
                     {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
                       <Link
                         to="/user-management"
-                        className="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 hover:text-teal-400 transition-colors"
+                        className="block px-4 py-2 text-sm text-cp-text hover:bg-cp-bg/50 hover:text-teal-400 transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         직원 관리
                       </Link>
                     )}
-                    <hr className="my-2 border-slate-700" />
+                    <hr className="my-2 border-cp-border" />
                     <button
                       onClick={() => {
                         setIsUserMenuOpen(false);
                         logout();
                       }}
-                      className="block w-full text-left px-4 py-2 text-sm text-slate-400 hover:bg-slate-700 hover:text-red-400 transition-colors"
+                      className="block w-full text-left px-4 py-2 text-sm text-cp-muted hover:bg-cp-bg/50 hover:text-red-400 transition-colors"
                     >
                       로그아웃
                     </button>

@@ -109,20 +109,20 @@ function CareTargetDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <Loader2 className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full" size={48} />
-        <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
+        <div className="w-12 h-12 border-4 border-cp-border border-t-teal-400 rounded-full animate-spin" />
+        <p className="text-cp-muted text-sm font-mono">로딩 중...</p>
       </div>
     );
   }
   
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center h-80 bg-slate-800 border border-slate-700">
-        <div className="w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded flex items-center justify-center mb-5">
-          <span className="text-3xl text-slate-600">[ ]</span>
+      <div className="flex flex-col items-center justify-center h-80 bg-cp-card border border-cp-border shadow-xl rounded-sm">
+        <div className="w-20 h-20 bg-cp-bg border-2 border-cp-border rounded flex items-center justify-center mb-5">
+          <span className="text-3xl text-cp-muted">[ ]</span>
         </div>
-        <p className="text-slate-300 font-mono font-semibold text-base mb-2">// No patient data found</p>
-        <p className="text-slate-500 text-sm font-mono">// 대상자 정보를 찾을 수 없습니다.</p>
+        <p className="text-cp-text font-mono font-semibold text-base mb-2">// No patient data found</p>
+        <p className="text-cp-muted text-sm font-mono">// 대상자 정보를 찾을 수 없습니다.</p>
       </div>
     );
   }
@@ -130,11 +130,11 @@ function CareTargetDetailPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={["케어 대상자", data?.name || "상세"]} />
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/care-target')} 
-            className="cp-btn-secondary px-5 py-2.5 text-teal-400 border-teal-500/50 hover:border-teal-500"
+            className="h-10 flex items-center gap-1.5 px-5 bg-cp-input border border-cp-border text-teal-400 text-sm font-semibold hover:bg-cp-bg hover:border-teal-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <ChevronLeft size={18} />
             목록으로
@@ -147,13 +147,13 @@ function CareTargetDetailPage() {
                 <>
                   <button 
                     onClick={() => { setIsEditing(false); fetchData(); setPreviewUrl(null); setNewFile(null); }} 
-                    className="cp-btn-secondary px-5 py-2.5"
+                    className="h-10 flex items-center gap-1.5 px-5 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                   >
                     취소
                   </button>
                   <button 
                     onClick={handleSave} 
-                    className="cp-btn-primary px-5 py-2.5"
+                    className="h-10 flex items-center gap-1.5 px-5 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white text-sm font-semibold hover:from-teal-500 hover:to-teal-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                   >
                     저장하기
                   </button>
@@ -161,7 +161,7 @@ function CareTargetDetailPage() {
               ) : (
                 <button 
                   onClick={() => setIsEditing(true)} 
-                  className="cp-btn-secondary px-5 py-2.5 text-orange-400 border-orange-500/50 hover:border-orange-500"
+                  className="h-10 flex items-center gap-1.5 px-5 bg-cp-input border border-orange-500/50 text-orange-400 text-sm font-semibold hover:bg-cp-bg hover:border-orange-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 >
                   정보 수정
                 </button>

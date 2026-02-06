@@ -56,20 +56,20 @@ function SignupForm() {
     }
   };
 
-  const inputClass = "block w-full px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 text-slate-100 placeholder:text-slate-600 border border-slate-600 rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-sm";
-  const labelClass = "flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1";
+  const inputClass = "block w-full px-4 py-2.5 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-sm";
+  const labelClass = "flex items-center gap-2 text-[11px] font-black text-cp-muted uppercase tracking-widest mb-1.5 ml-1";
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
       {/* 회원가입 타입 선택 */}
-      <div className="flex p-1 bg-slate-950/50 border border-slate-700 rounded-sm">
+      <div className="flex p-1 bg-cp-bg/50 border border-cp-border rounded-sm">
         <button
           type="button"
           onClick={() => setSignupType('organization')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-sm font-bold transition-all ${
             signupType === 'organization'
-              ? 'bg-slate-800 text-teal-400 shadow-md border border-slate-600'
-              : 'text-slate-500 hover:text-slate-300'
+              ? 'bg-cp-bg text-teal-400 shadow-md border border-cp-border'
+              : 'text-cp-muted hover:text-cp-text'
           }`}
         >
           <Building size={16} />
@@ -80,8 +80,8 @@ function SignupForm() {
           onClick={() => setSignupType('user')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-sm font-bold transition-all ${
             signupType === 'user'
-              ? 'bg-slate-800 text-teal-400 shadow-md border border-slate-600'
-              : 'text-slate-500 hover:text-slate-300'
+              ? 'bg-cp-bg text-teal-400 shadow-md border border-cp-border'
+              : 'text-cp-muted hover:text-cp-text'
           }`}
         >
           <UserPlus size={16} />
@@ -124,7 +124,7 @@ function SignupForm() {
                 className={inputClass}
                 placeholder="ABC-12345"
               />
-              <p className="mt-1.5 text-[10px] text-slate-500 font-medium ml-1">
+              <p className="mt-1.5 text-[10px] text-cp-muted font-medium ml-1">
                 관리자로부터 전달받은 식별 코드를 입력하세요
               </p>
             </div>
@@ -231,7 +231,7 @@ function SignupForm() {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="group inline-flex items-center gap-2 text-sm text-slate-500 font-medium hover:text-slate-300 transition-colors"
+            className="group inline-flex items-center gap-2 text-sm text-cp-muted font-medium hover:text-cp-text transition-colors"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             이미 계정이 있으신가요? <span className="text-teal-400 font-black underline underline-offset-4 decoration-2 decoration-teal-500/30">로그인하기</span>

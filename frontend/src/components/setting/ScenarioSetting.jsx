@@ -21,10 +21,10 @@ import {
 } from "lucide-react";
 
 const inputClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
-const labelClass = "block text-sm font-semibold text-slate-200 mb-1.5";
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+const labelClass = "block text-sm font-semibold text-cp-text mb-1.5";
 const selectClass =
-  "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
 
 function ScenarioSetting() {
   const auth = useSelector((state) => state.auth);
@@ -260,26 +260,26 @@ function ScenarioSetting() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-100">시나리오 설정</h1>
+        <h1 className="text-2xl font-bold text-cp-text">시나리오 설정</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="px-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-teal-500/50 text-teal-400 rounded-sm hover:from-slate-800 hover:to-slate-900 hover:border-teal-500 font-semibold shadow-md"
+          className="px-4 py-2.5 bg-cp-input border border-teal-500/50 text-teal-400 rounded-sm hover:bg-cp-bg hover:border-teal-500 font-semibold shadow-md"
         >
           시나리오 등록
         </button>
       </div>
 
       {/* 필터 섹션 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-4 mb-6">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-400 mb-2">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="전체">전체</option>
               <option value="활성">활성</option>
@@ -287,49 +287,49 @@ function ScenarioSetting() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-400 mb-2">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               위험 단계
             </label>
             <select
               value={filters.riskLevel}
               onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
-              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="전체">전체</option>
-              <option value="LOW">낮음</option>
-              <option value="MEDIUM">보통</option>
-              <option value="HIGH">높음</option>
-              <option value="CRITICAL">긴급</option>
+              <option value="LOW" className="bg-cp-card">낮음</option>
+              <option value="MEDIUM" className="bg-cp-card">보통</option>
+              <option value="HIGH" className="bg-cp-card">높음</option>
+              <option value="CRITICAL" className="bg-cp-card">긴급</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-400 mb-2">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               카테고리
             </label>
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange("category", e.target.value)}
-              className="h-9 px-3 w-full border border-slate-700 rounded-none bg-slate-900 text-slate-200 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="전체">전체</option>
-              <option value="정기 모니터링">정기 모니터링</option>
-              <option value="긴급 상황">긴급 상황</option>
-              <option value="질병별 모니터링">질병별 모니터링</option>
+              <option value="정기 모니터링" className="bg-cp-card">정기 모니터링</option>
+              <option value="긴급 상황" className="bg-cp-card">긴급 상황</option>
+              <option value="질병별 모니터링" className="bg-cp-card">질병별 모니터링</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* 테이블 */}
-      <div className="bg-slate-800 border border-slate-700 rounded-none overflow-hidden shadow-lg">
+      <div className="bg-cp-card border border-cp-border rounded-none overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="text-slate-500">로딩 중...</div>
+            <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-900">
+          <table className="min-w-full divide-y divide-cp-border">
+            <thead className="bg-cp-header">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
                   시나리오명
@@ -348,29 +348,29 @@ function ScenarioSetting() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-cp-border">
               {scenarios.length === 0 ? (
                 <tr>
                   <td
                     colSpan="5"
-                    className="px-6 py-4 text-center text-slate-500"
+                    className="px-6 py-4 text-center text-cp-muted"
                   >
                     등록된 시나리오가 없습니다.
                   </td>
                 </tr>
               ) : (
                 scenarios.map((scenario) => (
-                  <tr key={scenario.scenarioId} className="hover:bg-slate-700/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-100">
+                  <tr key={scenario.scenarioId} className="hover:bg-cp-bg/50 transition">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
                       {scenario.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-300 max-w-md truncate">
+                    <td className="px-6 py-4 text-sm text-cp-text max-w-md truncate">
                       {scenario.description}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
                       {getRiskLevelLabel(scenario.riskLevel)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -383,7 +383,7 @@ function ScenarioSetting() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-slate-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-200 after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                        <div className="w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-cp-bg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
@@ -391,7 +391,7 @@ function ScenarioSetting() {
                         onClick={() =>
                           handleOpenDetailModal(scenario.scenarioId)
                         }
-                        className="cp-link-slate"
+                        className="cp-link-muted"
                       >
                         상세
                       </button>
@@ -419,10 +419,10 @@ function ScenarioSetting() {
       {/* 등록/수정 모달 */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
             {/* 헤더 */}
-            <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+              <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
                 {editingScenario ? (
                   <FileText size={24} className="text-teal-400" />
                 ) : (
@@ -432,7 +432,7 @@ function ScenarioSetting() {
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+                className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
               >
                 <X size={24} />
               </button>
@@ -441,7 +441,7 @@ function ScenarioSetting() {
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
               <div className="grid grid-cols-2 gap-5">
                 {/* 섹션 1: 시나리오 기본 정보 */}
-                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <ClipboardList size={16} /> 시나리오 기본 정보
                 </div>
 
@@ -495,15 +495,15 @@ function ScenarioSetting() {
                     required
                     className={selectClass}
                   >
-                    <option value="LOW" className="bg-slate-900">낮음</option>
-                    <option value="MEDIUM" className="bg-slate-900">보통</option>
-                    <option value="HIGH" className="bg-slate-900">높음</option>
-                    <option value="CRITICAL" className="bg-slate-900">긴급</option>
+                    <option value="LOW" className="bg-cp-card">낮음</option>
+                    <option value="MEDIUM" className="bg-cp-card">보통</option>
+                    <option value="HIGH" className="bg-cp-card">높음</option>
+                    <option value="CRITICAL" className="bg-cp-card">긴급</option>
                   </select>
                 </div>
 
                 {/* 섹션 2: 위험 기준 정보 */}
-                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <ShieldCheck size={16} /> 위험 기준 설정
                 </div>
 
@@ -521,7 +521,7 @@ function ScenarioSetting() {
                 </div>
 
                 {/* 섹션 3: 질문 리스트 */}
-                <div className="col-span-2 flex items-center justify-between mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center justify-between mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <div className="flex items-center gap-2">
                     <HelpCircle size={16} /> 질문 구성
                   </div>
@@ -536,14 +536,14 @@ function ScenarioSetting() {
 
                 <div className="col-span-2 space-y-3">
                   {formData.questions.length === 0 ? (
-                    <div className="text-center py-8 border border-dashed border-slate-700 rounded-sm bg-slate-900/50 text-slate-500 text-sm">
+                    <div className="text-center py-8 border border-dashed border-cp-border rounded-sm bg-cp-bg/50 text-cp-muted text-sm">
                       등록된 질문이 없습니다. 질문을 추가해주세요.
                     </div>
                   ) : (
                     formData.questions.map((question, index) => (
                       <div
                         key={index}
-                        className="p-4 border border-slate-700 rounded-sm bg-slate-900/50 space-y-3 relative group"
+                        className="p-4 border border-cp-border rounded-sm bg-cp-bg/50 space-y-3 relative group"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-teal-500/70 bg-teal-500/5 px-2 py-0.5 rounded-sm border border-teal-500/20">
@@ -552,7 +552,7 @@ function ScenarioSetting() {
                           <button
                             type="button"
                             onClick={() => removeQuestion(index)}
-                            className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                            className="p-1 text-cp-muted hover:text-red-400 transition-colors"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -574,7 +574,7 @@ function ScenarioSetting() {
 
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
-                            <label className="text-xs font-semibold text-slate-400">정렬 순서</label>
+                            <label className="text-xs font-semibold text-cp-muted">정렬 순서</label>
                             <input
                               type="number"
                               value={question.questionOrder}
@@ -585,7 +585,7 @@ function ScenarioSetting() {
                                   parseInt(e.target.value) || 0,
                                 )
                               }
-                              className="w-16 p-1 text-xs border border-slate-600 rounded-sm bg-slate-900 text-slate-200 outline-none focus:border-teal-500"
+                              className="w-16 p-1 text-xs border border-cp-border rounded-sm bg-cp-input text-cp-text outline-none focus:border-teal-500"
                             />
                           </div>
                           
@@ -603,9 +603,9 @@ function ScenarioSetting() {
                                 }
                                 className="sr-only peer"
                               />
-                              <div className="w-8 h-4 bg-slate-700 rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                              <div className="w-8 h-4 bg-cp-bg border border-cp-border rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
                             </div>
-                            <span className="text-xs font-semibold text-slate-400 group-hover/label:text-slate-200 transition-colors">필수 답변</span>
+                            <span className="text-xs font-semibold text-cp-muted group-hover/label:text-cp-text transition-colors">필수 답변</span>
                           </label>
                         </div>
                       </div>
@@ -618,14 +618,14 @@ function ScenarioSetting() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
+                  className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:from-slate-700 disabled:to-slate-800 disabled:border-slate-600 disabled:text-slate-400 transition-all shadow-md"
+                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
                 >
                   {loading ? "저장 중..." : (editingScenario ? "저장 완료" : "시나리오 등록 완료")}
                 </button>
@@ -638,16 +638,16 @@ function ScenarioSetting() {
       {/* 상세 모달 */}
       {showDetailModal && selectedScenario && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
             {/* 헤더 */}
-            <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+              <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
                 <FileText size={24} className="text-teal-400" />
                 시나리오 상세 정보
               </h3>
               <button
                 onClick={handleCloseDetailModal}
-                className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+                className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
               >
                 <X size={24} />
               </button>
@@ -656,54 +656,54 @@ function ScenarioSetting() {
             <div className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
               <div className="grid grid-cols-2 gap-5">
                 {/* 섹션 1: 시나리오 기본 정보 */}
-                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <ClipboardList size={16} /> 시나리오 기본 정보
                 </div>
 
                 <div className="col-span-2">
                   <label className={labelClass}>시나리오명</label>
-                  <p className="p-2.5 border border-slate-700/50 rounded-sm bg-slate-900/30 text-slate-100">
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text">
                     {selectedScenario.name}
                   </p>
                 </div>
 
                 <div className="col-span-2">
                   <label className={labelClass}>설명</label>
-                  <p className="p-2.5 border border-slate-700/50 rounded-sm bg-slate-900/30 text-slate-300 min-h-[3rem]">
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text min-h-[3rem]">
                     {selectedScenario.description || "설명이 없습니다."}
                   </p>
                 </div>
 
                 <div>
                   <label className={labelClass}>카테고리</label>
-                  <p className="p-2.5 border border-slate-700/50 rounded-sm bg-slate-900/30 text-slate-300">
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text">
                     {selectedScenario.category || "-"}
                   </p>
                 </div>
 
                 <div>
                   <label className={labelClass}>위험 레벨</label>
-                  <div className="p-2.5 border border-slate-700/50 rounded-sm bg-slate-900/30">
-                    <span className="text-slate-300">
+                  <div className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30">
+                    <span className="text-cp-text">
                       {getRiskLevelLabel(selectedScenario.riskLevel)}
                     </span>
                   </div>
                 </div>
 
                 {/* 섹션 2: 위험 기준 정보 */}
-                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <ShieldCheck size={16} /> 위험 기준 설정
                 </div>
 
                 <div className="col-span-2">
                   <label className={labelClass}>위험 판정 기준</label>
-                  <p className="p-2.5 border border-slate-700/50 rounded-sm bg-slate-900/30 text-slate-300 min-h-[3rem]">
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text min-h-[3rem]">
                     {selectedScenario.riskCriteria || "-"}
                   </p>
                 </div>
 
                 {/* 섹션 3: 질문 리스트 */}
-                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
                   <HelpCircle size={16} /> 질문 리스트
                 </div>
 
@@ -712,7 +712,7 @@ function ScenarioSetting() {
                     selectedScenario.questions.map((question, index) => (
                       <div
                         key={question.questionId || index}
-                        className="p-4 border border-slate-700 rounded-sm bg-slate-900/30 space-y-2"
+                        className="p-4 border border-cp-border rounded-sm bg-cp-bg/30 space-y-2"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-teal-500/70 bg-teal-500/5 px-2 py-0.5 rounded-sm border border-teal-500/20">
@@ -724,16 +724,16 @@ function ScenarioSetting() {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-slate-100 leading-relaxed">
+                        <p className="text-sm text-cp-text leading-relaxed">
                           {question.questionText}
                         </p>
-                        <div className="text-[10px] text-slate-500 font-medium">
+                        <div className="text-[10px] text-cp-muted font-medium">
                           정렬 순서: {question.questionOrder}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-8 border border-dashed border-slate-700 rounded-sm bg-slate-900/50 text-slate-500 text-sm">
+                    <div className="text-center py-8 border border-dashed border-cp-border rounded-sm bg-cp-bg/50 text-cp-muted text-sm">
                       등록된 질문이 없습니다.
                     </div>
                   )}
@@ -743,7 +743,7 @@ function ScenarioSetting() {
               <div className="flex justify-end pt-10">
                 <button
                   onClick={handleCloseDetailModal}
-                  className="px-8 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md"
+                  className="px-8 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                 >
                   닫기
                 </button>

@@ -10,7 +10,7 @@ const getAITaskStatusStyle = (status) => {
     case "FAILED":
       return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
     default:
-      return "bg-gradient-to-br from-slate-500/20 to-slate-600/20 text-slate-400 border border-slate-500/50";
+      return "bg-cp-bg/50 text-cp-muted border border-cp-border/50";
   }
 };
 
@@ -32,17 +32,17 @@ const formatDateTime = (dateString) => {
 const AITaskTable = ({ aiTaskList, onDetail }) => {
   if (!aiTaskList || aiTaskList.length === 0) {
     return (
-      <div className="bg-slate-800 border border-slate-700 p-12 text-center rounded-sm">
-        <p className="text-slate-400 text-sm">AI 처리 내역이 없습니다.</p>
+      <div className="bg-cp-card border border-cp-border p-12 text-center rounded-sm">
+        <p className="text-cp-muted text-sm">AI 처리 내역이 없습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden">
+    <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-xl">
       <div className="overflow-x-auto">
         <table className="w-full table-fixed text-sm">
-          <thead className="bg-slate-900 border-b-2 border-teal-500/30">
+          <thead className="bg-cp-header border-b-2 border-teal-500/30">
             <tr>
               <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[15%]">
                 유형
@@ -67,13 +67,13 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-cp-border">
             {aiTaskList.map((row) => (
               <tr
                 key={row.taskId}
-                className="bg-slate-800/30 hover:bg-slate-700/50 transition-colors"
+                className="bg-cp-card/30 hover:bg-cp-bg/50 transition-colors"
               >
-                <td className="px-4 py-3 text-slate-300">
+                <td className="px-4 py-3 text-cp-text">
                   {getAITaskTypeLabel(row.type)}
                 </td>
                 <td className="px-4 py-3">
@@ -85,23 +85,23 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
                     {getAITaskStatusLabel(row.status)}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-slate-400 truncate">
+                <td className="px-4 py-3 text-cp-muted truncate">
                   {row.careTargetName || "-"}
                 </td>
-                <td className="px-4 py-3 text-slate-400 truncate" title={row.resultSummary}>
+                <td className="px-4 py-3 text-cp-muted truncate" title={row.resultSummary}>
                   {row.resultSummary || "-"}
                 </td>
-                <td className="px-4 py-3 text-slate-400 whitespace-nowrap text-xs">
+                <td className="px-4 py-3 text-cp-muted whitespace-nowrap text-xs">
                   {formatDateTime(row.startedAt)}
                 </td>
-                <td className="px-4 py-3 text-slate-400 whitespace-nowrap text-xs">
+                <td className="px-4 py-3 text-cp-muted whitespace-nowrap text-xs">
                   {formatDateTime(row.completedAt)}
                 </td>
                 <td className="px-4 py-3">
                   <button
                     type="button"
                     onClick={() => onDetail && onDetail(row.taskId)}
-                    className="cp-link-slate"
+                    className="cp-link-muted"
                   >
                     상세
                   </button>

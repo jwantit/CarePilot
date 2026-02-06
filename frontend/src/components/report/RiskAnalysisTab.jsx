@@ -43,8 +43,8 @@ function RiskAnalysisTab({ statistics }) {
   return (
     <div className="space-y-6">
       {/* 위험 점수 추이 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-        <h2 className="text-xl font-bold text-slate-100 mb-4">위험 점수 추이</h2>
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+        <h2 className="text-xl font-bold text-cp-text mb-4">위험 점수 추이</h2>
         <LineChart
           labels={riskScoreTrendLabels}
           datasets={riskScoreTrendDatasets}
@@ -52,8 +52,8 @@ function RiskAnalysisTab({ statistics }) {
       </div>
 
       {/* 위험 레벨 분포 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-        <h2 className="text-xl font-bold text-slate-100 mb-4">위험 레벨 분포</h2>
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+        <h2 className="text-xl font-bold text-cp-text mb-4">위험 레벨 분포</h2>
         <DoughnutChart
           data={riskLevelValues}
           labels={riskLevelLabels}
@@ -63,8 +63,8 @@ function RiskAnalysisTab({ statistics }) {
 
         {/* 위험 시그널 분석 */}
         {topRiskSignals.length > 0 && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-none shadow-lg p-6">
-            <h2 className="text-xl font-bold text-slate-100 mb-4">위험 시그널 분석</h2>
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
+            <h2 className="text-xl font-bold text-cp-text mb-4">위험 시그널 분석</h2>
           <BarChart
             title="위험 시그널"
             data={riskSignalValues}
@@ -78,4 +78,3 @@ function RiskAnalysisTab({ statistics }) {
 }
 
 export default RiskAnalysisTab;
-

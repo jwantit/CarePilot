@@ -374,16 +374,16 @@ const ScheduleModal = ({
   if (viewOnly && s) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
-          <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-            <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+        <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+            <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
               <CalendarClock size={24} className="text-teal-400" />
               통화 일정 상세
             </h3>
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+              className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
             >
               <X size={24} />
             </button>
@@ -391,50 +391,50 @@ const ScheduleModal = ({
           <div className="p-6 overflow-y-auto flex-1">
             <dl className="space-y-4 text-sm">
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                   대상자
                 </dt>
-                <dd className="text-slate-200">
+                <dd className="text-cp-text">
                   {s.targetType === "GROUP"
                     ? `그룹: ${s.targetGroupName ?? "이름 없음"}`
                     : (s.careTargetName ?? "-")}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                   예정 시간
                 </dt>
-                <dd className="text-slate-200">
+                <dd className="text-cp-text">
                   {s.nextRunAt || s.scheduledTime || "-"}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                   유형
                 </dt>
-                <dd className="text-slate-200">{s.typeLabel || typeLabel}</dd>
+                <dd className="text-cp-text">{s.typeLabel || typeLabel}</dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                   우선순위
                 </dt>
                 <dd>
                   <span
-                    className={`inline-block px-2 py-1 text-xs font-semibold rounded-sm border ${s.status === "CANCELLED" ? "bg-slate-500 text-white" : getPriorityStyle(s.priority)}`}
+                    className={`inline-block px-2 py-1 text-xs font-semibold rounded-sm border ${s.status === "CANCELLED" ? "bg-cp-muted text-white" : getPriorityStyle(s.priority)}`}
                   >
                     {s.priorityLabel || s.priority || "-"}
                   </span>
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                   상태
                 </dt>
                 <dd>
                   <span
                     className={
                       s.status === "CANCELLED"
-                        ? "text-slate-500"
+                        ? "text-cp-muted"
                         : "text-emerald-400"
                     }
                   >
@@ -445,37 +445,37 @@ const ScheduleModal = ({
               {s.type === "RECURRING" && (
                 <>
                   <div>
-                    <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                    <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                       반복 주기
                     </dt>
-                    <dd className="text-slate-200">{recurrenceLabel}</dd>
+                    <dd className="text-cp-text">{recurrenceLabel}</dd>
                   </div>
                   {s.recurrenceEndDate && (
                     <div>
-                      <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                      <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                         반복 종료일
                       </dt>
-                      <dd className="text-slate-200">{s.recurrenceEndDate}</dd>
+                      <dd className="text-cp-text">{s.recurrenceEndDate}</dd>
                     </div>
                   )}
                 </>
               )}
               <div>
-                <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                <dt className="text-xs font-semibold text-cp-muted uppercase tracking-wider mb-0.5">
                   메모
                 </dt>
-                <dd className="text-slate-200 mt-1 p-3 bg-slate-900/50 rounded-sm border border-slate-600 whitespace-pre-wrap break-words">
+                <dd className="text-cp-text mt-1 p-3 bg-cp-bg/50 rounded-sm border border-cp-border whitespace-pre-wrap break-words">
                   {s.memo || "-"}
                 </dd>
               </div>
             </dl>
           </div>
-          <div className="p-5 border-t border-slate-700 flex-shrink-0 flex gap-3 justify-end bg-gradient-to-r from-slate-800/80 to-slate-900/80">
+          <div className="p-5 border-t border-cp-border flex-shrink-0 flex gap-3 justify-end bg-gradient-to-r from-cp-card/80 to-cp-bg/80">
             {s.status !== "CANCELLED" && onSwitchToEdit && (
               <button
                 type="button"
                 onClick={() => onSwitchToEdit(s)}
-                className="px-4 py-2.5 rounded-sm font-semibold text-sm bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all"
+                className="px-4 py-2.5 rounded-sm font-semibold text-sm bg-cp-input border border-cp-border text-cp-text hover:bg-cp-bg transition-all"
               >
                 수정
               </button>
@@ -501,24 +501,24 @@ const ScheduleModal = ({
   });
 
   const inputClass =
-    "w-full p-2.5 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
-  const labelClass = "block text-sm font-semibold text-slate-200 mb-1.5";
+    "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+  const labelClass = "block text-sm font-semibold text-cp-text mb-1.5";
   const selectClass =
-    "w-full p-2.5 border border-slate-600 rounded-sm bg-slate-900 text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer";
+    "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="flex justify-between items-center p-5 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900 shrink-0">
-          <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+        <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+          <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
             <CalendarPlus size={24} className="text-teal-400" />
             {editingSchedule ? "통화 일정 수정" : "새 통화 일정 등록"}
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"
+            className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
           >
             <X size={24} />
           </button>
@@ -537,7 +537,7 @@ const ScheduleModal = ({
           <div>
             <label className={labelClass}>대상자 타입</label>
             <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-700/50 transition-colors">
+              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-cp-bg/50 transition-colors">
                 <input
                   type="radio"
                   name="targetType"
@@ -546,9 +546,9 @@ const ScheduleModal = ({
                   onChange={(e) => setTargetType(e.target.value)}
                   className="text-teal-500 focus:ring-teal-500"
                 />
-                <span className="text-sm text-slate-200">개인 대상자</span>
+                <span className="text-sm text-cp-text">개인 대상자</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-700/50 transition-colors">
+              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-cp-bg/50 transition-colors">
                 <input
                   type="radio"
                   name="targetType"
@@ -557,7 +557,7 @@ const ScheduleModal = ({
                   onChange={(e) => setTargetType(e.target.value)}
                   className="text-teal-500 focus:ring-teal-500"
                 />
-                <span className="text-sm text-slate-200">그룹</span>
+                <span className="text-sm text-cp-text">그룹</span>
               </label>
             </div>
           </div>
@@ -576,11 +576,11 @@ const ScheduleModal = ({
                 autoComplete="off"
               />
               {showCareTargetDropdown && (
-                <ul className="absolute z-20 w-full mt-1 bg-slate-800 border border-slate-600 rounded-sm shadow-xl max-h-52 overflow-y-auto">
+                <ul className="absolute z-20 w-full mt-1 bg-cp-card border border-cp-border rounded-sm shadow-xl max-h-52 overflow-y-auto">
                   {loadingCareTargets ? (
-                    <li className="p-3 text-sm text-slate-400">로딩 중...</li>
+                    <li className="p-3 text-sm text-cp-muted">로딩 중...</li>
                   ) : filteredList.length === 0 ? (
-                    <li className="p-3 text-sm text-slate-400">
+                    <li className="p-3 text-sm text-cp-muted">
                       검색 결과가 없습니다.
                     </li>
                   ) : (
@@ -589,7 +589,7 @@ const ScheduleModal = ({
                         key={item.careTargetId}
                         role="button"
                         onClick={() => handleCareTargetSelect(item)}
-                        className="px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 cursor-pointer border-b border-slate-700/50 last:border-0 transition-colors"
+                        className="px-3 py-2 text-sm text-cp-text hover:bg-cp-bg cursor-pointer border-b border-cp-border/50 last:border-0 transition-colors"
                       >
                         {item.name} ({item.careTargetId})
                       </li>
@@ -624,11 +624,11 @@ const ScheduleModal = ({
                 autoComplete="off"
               />
               {showGroupDropdown && (
-                <ul className="absolute z-20 w-full mt-1 bg-slate-800 border border-slate-600 rounded-sm shadow-xl max-h-52 overflow-y-auto">
+                <ul className="absolute z-20 w-full mt-1 bg-cp-card border border-cp-border rounded-sm shadow-xl max-h-52 overflow-y-auto">
                   {loadingGroups ? (
-                    <li className="p-3 text-sm text-slate-400">로딩 중...</li>
+                    <li className="p-3 text-sm text-cp-muted">로딩 중...</li>
                   ) : groupList.length === 0 ? (
-                    <li className="p-3 text-sm text-slate-400">
+                    <li className="p-3 text-sm text-cp-muted">
                       검색 결과가 없습니다.
                     </li>
                   ) : (
@@ -655,7 +655,7 @@ const ScheduleModal = ({
                             setGroupSearch("");
                             setShowGroupDropdown(false);
                           }}
-                          className="px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 cursor-pointer border-b border-slate-700/50 last:border-0 transition-colors"
+                          className="px-3 py-2 text-sm text-cp-text hover:bg-cp-bg cursor-pointer border-b border-cp-border/50 last:border-0 transition-colors"
                         >
                           {item.groupName}
                         </li>
@@ -669,8 +669,8 @@ const ScheduleModal = ({
           {/* 해당 업체 시나리오 선택 */}
           <div>
             <label className={labelClass}>시나리오 선택 (통화 시 사용)</label>
-            <div className="max-h-32 overflow-y-auto border border-slate-600 rounded-sm p-2 bg-slate-900/50 space-y-1">
-              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-700/50 transition-colors">
+            <div className="max-h-32 overflow-y-auto border border-cp-border rounded-sm p-2 bg-cp-bg/50 space-y-1">
+              <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-cp-bg/50 transition-colors">
                 <input
                   type="radio"
                   name="scenarioId"
@@ -680,12 +680,12 @@ const ScheduleModal = ({
                   }
                   className="text-teal-500 focus:ring-teal-500"
                 />
-                <span className="text-sm text-slate-300">미지정</span>
+                <span className="text-sm text-cp-text">미지정</span>
               </label>
               {scenarios.map((sc) => (
                 <label
                   key={sc.scenarioId}
-                  className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-700/50 transition-colors"
+                  className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-cp-bg/50 transition-colors"
                 >
                   <input
                     type="radio"
@@ -700,11 +700,11 @@ const ScheduleModal = ({
                     className="text-teal-500 focus:ring-teal-500"
                   />
                   <div>
-                    <span className="text-sm font-medium text-slate-200">
+                    <span className="text-sm font-medium text-cp-text">
                       {sc.scenarioName}
                     </span>
                     {sc.scenarioDescription && (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-cp-muted">
                         {sc.scenarioDescription}
                       </p>
                     )}
@@ -712,7 +712,7 @@ const ScheduleModal = ({
                 </label>
               ))}
               {scenarios.length === 0 && (
-                <p className="text-xs text-slate-500 p-2">
+                <p className="text-xs text-cp-muted p-2">
                   사용 가능한 시나리오가 없습니다.
                 </p>
               )}
@@ -720,7 +720,7 @@ const ScheduleModal = ({
           </div>
 
           {/* 예정 시간 / 유형·우선순위 */}
-          <div className="flex items-center gap-2 pb-1 border-b border-slate-700 text-teal-400 font-bold text-sm">
+          <div className="flex items-center gap-2 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
             <Clock size={16} />
             일정 설정
           </div>
@@ -732,7 +732,7 @@ const ScheduleModal = ({
               required
               value={formData.scheduledTime}
               onChange={handleChange}
-              className={`${inputClass} [color-scheme:dark]`}
+              className={`${inputClass}`}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -744,10 +744,10 @@ const ScheduleModal = ({
                 onChange={handleChange}
                 className={selectClass}
               >
-                <option value="ONE_TIME" className="bg-slate-900">
+                <option value="ONE_TIME" className="bg-cp-card">
                   일회성
                 </option>
-                <option value="RECURRING" className="bg-slate-900">
+                <option value="RECURRING" className="bg-cp-card">
                   반복
                 </option>
               </select>
@@ -760,16 +760,16 @@ const ScheduleModal = ({
                 onChange={handleChange}
                 className={selectClass}
               >
-                <option value="LOW" className="bg-slate-900">
+                <option value="LOW" className="bg-cp-card">
                   낮음
                 </option>
-                <option value="MEDIUM" className="bg-slate-900">
+                <option value="MEDIUM" className="bg-cp-card">
                   보통
                 </option>
-                <option value="HIGH" className="bg-slate-900">
+                <option value="HIGH" className="bg-cp-card">
                   높음
                 </option>
-                <option value="URGENT" className="bg-slate-900">
+                <option value="URGENT" className="bg-cp-card">
                   긴급
                 </option>
               </select>
@@ -786,16 +786,16 @@ const ScheduleModal = ({
                   onChange={handleChange}
                   className={selectClass}
                 >
-                  <option value="" className="bg-slate-900">
+                  <option value="" className="bg-cp-card">
                     선택
                   </option>
-                  <option value="DAILY" className="bg-slate-900">
+                  <option value="DAILY" className="bg-cp-card">
                     일일
                   </option>
-                  <option value="WEEKLY" className="bg-slate-900">
+                  <option value="WEEKLY" className="bg-cp-card">
                     주간
                   </option>
-                  <option value="MONTHLY" className="bg-slate-900">
+                  <option value="MONTHLY" className="bg-cp-card">
                     월간
                   </option>
                 </select>
@@ -808,10 +808,10 @@ const ScheduleModal = ({
                     name="recurrenceEndDate"
                     value={formData.recurrenceEndDate}
                     onChange={handleChange}
-                    className={`${inputClass} [color-scheme:dark]`}
+                    className={`${inputClass}`}
                     min={formData.scheduledTime || undefined}
                   />
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-cp-muted">
                     반복 일정이 종료될 날짜와 시간을 선택하세요. 선택하지 않으면
                     무기한 반복됩니다.
                   </p>
@@ -840,14 +840,14 @@ const ScheduleModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-text rounded-sm font-semibold hover:bg-cp-bg transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               취소
             </button>
             <button
               type="submit"
               disabled={!orgId}
-              className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:from-slate-700 disabled:to-slate-800 disabled:border-slate-600 disabled:text-slate-400 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
+              className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:hover:translate-y-0"
             >
               {editingSchedule ? "수정하기" : "등록하기"}
             </button>

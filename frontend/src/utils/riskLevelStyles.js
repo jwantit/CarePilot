@@ -52,7 +52,7 @@ export const getRiskLevelStyle = (level) => {
  * @returns {object} { label: string, color: string }
  */
 export const getSeverityBadge = (severity) => {
-  return SEVERITY_STYLE[severity] ?? { label: severity || "-", color: "bg-slate-600/50 text-slate-300 border-slate-500" };
+  return SEVERITY_STYLE[severity] ?? { label: severity || "-", color: "bg-cp-bg/50 text-cp-text border border-cp-border" };
 };
 
 /**

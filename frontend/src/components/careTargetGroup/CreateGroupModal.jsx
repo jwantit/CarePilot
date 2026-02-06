@@ -119,19 +119,19 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
   const isDataLoading = loading || reduxLoading;
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 w-full max-w-2xl rounded-sm shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border w-full max-w-2xl rounded-sm shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
         
-        <div className="relative px-6 py-4 text-slate-800 bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700">
-          <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-sm text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all"><X size={20} /></button>
+        <div className="relative px-6 py-4 bg-cp-bg/30 border-b border-cp-border">
+          <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"><X size={20} /></button>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
               <UserPlus size={20} />
             </div>
             <div className="text-left">
-              <h2 className="text-xl font-bold text-slate-100 tracking-tight leading-tight">새 그룹 구성</h2>
-              <p className="text-xs font-semibold text-slate-400 mt-0.5">모든 항목을 입력하고 대상자를 선택해주세요.</p>
+              <h2 className="text-xl font-bold text-cp-text tracking-tight leading-tight">새 그룹 구성</h2>
+              <p className="text-xs font-semibold text-cp-muted mt-0.5">모든 항목을 입력하고 대상자를 선택해주세요.</p>
             </div>
           </div>
         </div>
@@ -140,28 +140,28 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-200 ml-1">그룹 이름 *</label>
+              <label className="block text-sm font-semibold text-cp-text ml-1">그룹 이름 *</label>
               <input 
                 type="text" value={formData.groupName} 
                 onChange={(e) => setFormData({...formData, groupName: e.target.value})}
                 placeholder="그룹 이름을 입력하세요"
-                className="w-full px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
+                className="w-full px-5 py-2.5 bg-cp-input border border-cp-border rounded-sm text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-200 ml-1">그룹 설명 *</label>
+              <label className="block text-sm font-semibold text-cp-text ml-1">그룹 설명 *</label>
               <input 
                 type="text" value={formData.groupDescription}
                 onChange={(e) => setFormData({...formData, groupDescription: e.target.value})}
                 placeholder="그룹 설명을 입력하세요"
-                className="w-full px-5 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
+                className="w-full px-5 py-2.5 bg-cp-input border border-cp-border rounded-sm text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-sm"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-200 ml-1">시나리오 선택 *</label>
-            <div className="max-h-32 overflow-y-auto pr-1 space-y-2 modal-scrollbar border border-slate-700 rounded-sm p-2 bg-gradient-to-br from-slate-900 to-slate-950">
+            <label className="block text-sm font-semibold text-cp-text ml-1">시나리오 선택 *</label>
+            <div className="max-h-32 overflow-y-auto pr-1 space-y-2 modal-scrollbar border border-cp-border rounded-sm p-2 bg-cp-input">
               {scenarios && scenarios.length > 0 ? (
                 scenarios.map((sc) => (
                   <div
@@ -170,38 +170,38 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                     className={`p-3 px-4 rounded-sm cursor-pointer transition-all border flex justify-between items-center shadow-sm ${
                       formData.scenarioId === sc.scenarioId 
                         ? 'border-teal-500 bg-gradient-to-br from-teal-500/20 to-teal-600/20 hover:from-teal-500/30 hover:to-teal-600/30' 
-                        : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-600 hover:border-slate-500'
+                        : 'bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border-cp-border hover:border-cp-muted'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className={`text-sm font-bold ${formData.scenarioId === sc.scenarioId ? 'text-teal-400' : 'text-slate-200'}`}>{sc.scenarioName}</p>
-                      <p className="text-xs text-slate-400 font-medium">{sc.scenarioDescription}</p>
+                      <p className={`text-sm font-bold ${formData.scenarioId === sc.scenarioId ? 'text-teal-400' : 'text-cp-text'}`}>{sc.scenarioName}</p>
+                      <p className="text-xs text-cp-muted font-medium">{sc.scenarioDescription}</p>
                     </div>
                     {formData.scenarioId === sc.scenarioId && <CheckCircle2 size={16} className="text-teal-400" />}
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-slate-400 text-center py-2">사용 가능한 시나리오가 없습니다.</p>
+                <p className="text-xs text-cp-muted text-center py-2">사용 가능한 시나리오가 없습니다.</p>
               )}
             </div>
           </div>
 
           <div className="space-y-3 pt-2">
-            <label className="block text-sm font-semibold text-slate-200 ml-1">대상자 선택 * ({selectedPatients.length}명 선택됨)</label>
+            <label className="block text-sm font-semibold text-cp-text ml-1">대상자 선택 * ({selectedPatients.length}명 선택됨)</label>
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-cp-muted" size={16} />
               <input 
                 type="text" 
                 placeholder="이름, 나이, 위험도, 질환명 검색..."
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-600 rounded-sm text-sm font-medium text-slate-200 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all shadow-sm"
+                className="w-full pl-11 pr-4 py-2.5 bg-cp-input border border-cp-border rounded-sm text-sm font-medium text-cp-text placeholder:text-cp-muted outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all shadow-sm"
               />
             </div>
 
-            <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border-t border-slate-700 modal-scrollbar">
+            <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border-t border-cp-border modal-scrollbar">
               {isDataLoading ? (
-                <div className="py-10 flex flex-col items-center text-slate-400 gap-2">
+                <div className="py-10 flex flex-col items-center text-cp-muted gap-2">
                   <Loader2 size={24} className="animate-spin text-teal-400" />
                   <p className="text-xs font-semibold">로딩 중...</p>
                 </div>
@@ -227,13 +227,13 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                       className={`flex items-center p-3 px-5 rounded-sm cursor-pointer transition-all border shadow-sm ${
                         isSelected 
                           ? 'bg-gradient-to-r from-teal-500/20 to-teal-600/20 border-teal-500/50 hover:from-teal-500/30 hover:to-teal-600/30' 
-                          : 'bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-slate-700 hover:from-slate-700/50 hover:to-slate-800/50'
+                          : 'bg-cp-card/50 border-cp-border hover:bg-cp-bg/50'
                       }`}
                     >
                       <div className="flex-1 grid grid-cols-4 items-center gap-4">
-                        <p className={`text-sm font-bold ${isSelected ? 'text-teal-400' : 'text-slate-200'}`}>{patient.name}</p>
-                        <p className="text-[11px] text-slate-400 font-medium">{patient.gender === 'M' || patient.gender === '남성' ? '남성' : '여성'} · {patient.age}세</p>
-                        <p className="text-[11px] text-slate-400 font-medium truncate pr-2">{patient.disease || '-'}</p>
+                        <p className={`text-sm font-bold ${isSelected ? 'text-teal-400' : 'text-cp-text'}`}>{patient.name}</p>
+                        <p className="text-[11px] text-cp-muted font-medium">{patient.gender === 'M' || patient.gender === '남성' ? '남성' : '여성'} · {patient.age}세</p>
+                        <p className="text-[11px] text-cp-muted font-medium truncate pr-2">{patient.disease || '-'}</p>
                         <div className="flex items-center">
                           <span className={`px-2 py-0.5 rounded-sm text-[10px] font-black uppercase ${riskBadgeClasses}`}>
                             {getRiskLevelLabel(patient.riskLevel) || '보통'}
@@ -243,7 +243,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                       <div className={`w-6 h-6 rounded-sm flex items-center justify-center transition-all shadow-sm ${
                         isSelected 
                           ? 'bg-gradient-to-br from-teal-500 to-teal-600 border border-teal-500' 
-                          : 'bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-600'
+                          : 'bg-cp-input border-2 border-cp-border'
                       }`}>
                         {isSelected && <CheckCircle2 size={16} className="text-white" />}
                       </div>
@@ -251,18 +251,18 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                   );
                 })
               ) : (
-                <div className="text-center py-10 text-slate-400 text-sm font-medium">검색 결과가 없습니다.</div>
+                <div className="text-center py-10 text-cp-muted text-sm font-medium">검색 결과가 없습니다.</div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="p-6 bg-gradient-to-r from-slate-800 to-slate-900 border-t border-slate-700 shrink-0">
+        <div className="p-6 bg-cp-bg/30 border-t border-cp-border shrink-0">
           <div className="min-h-[32px] flex flex-wrap gap-1.5 mb-4">
             {selectedPatients.map(p => (
-              <span key={p.careTargetId} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-black border bg-gradient-to-br from-slate-900 to-slate-950 text-teal-400 border-teal-500/50 shadow-md">
+              <span key={p.careTargetId} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-black border bg-cp-input text-teal-400 border-teal-500/50 shadow-md">
                 {p.name}
-                <X size={12} className="cursor-pointer text-slate-400 hover:text-white" onClick={() => togglePatient(p)} />
+                <X size={12} className="cursor-pointer text-cp-muted hover:text-cp-text" onClick={() => togglePatient(p)} />
               </span>
             ))}
           </div>
@@ -277,7 +277,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
               <button 
                 onClick={onClose} 
                 disabled={isSubmitting} 
-                className="flex-1 py-2.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 border border-slate-600 text-slate-300 rounded-sm font-semibold hover:border-slate-500 hover:text-slate-100 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="flex-1 py-2.5 bg-cp-input hover:bg-cp-bg border border-cp-border text-cp-muted rounded-sm font-semibold hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 취소
               </button>
@@ -286,7 +286,7 @@ const CreateGroupModal = ({ isOpen, onClose, organizationId}) => {
                 onClick={handleSubmit}
                 className={`flex-[2] py-2.5 rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 ${
                   !isFormValid || isDataLoading || isSubmitting 
-                    ? 'bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 text-slate-400 cursor-not-allowed' 
+                    ? 'bg-cp-bg/50 border border-cp-border text-cp-muted cursor-not-allowed' 
                     : 'bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white hover:from-teal-500 hover:to-teal-600'
                 }`}
               >

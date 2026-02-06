@@ -21,9 +21,9 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
       ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
       WAITING: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
       DENIED: 'bg-red-500/10 text-red-400 border-red-500/30',
-      DISABLED: 'bg-slate-700/50 text-slate-400 border-slate-600'
+      DISABLED: 'bg-cp-bg/50 text-cp-muted border-cp-border'
     };
-    return colorMap[status] || 'bg-slate-700 text-slate-300 border-slate-600';
+    return colorMap[status] || 'bg-cp-bg text-cp-text border-cp-border';
   };
 
   // 권한 한글 변환
@@ -86,65 +86,65 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
 
   if (!staff || staff.length === 0) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-sm p-20 text-center shadow-lg">
-        <div className="text-slate-600 mb-4 flex justify-center">
+      <div className="bg-cp-card border border-cp-border rounded-sm p-20 text-center shadow-lg">
+        <div className="text-cp-muted mb-4 flex justify-center">
           <Users size={64} className="opacity-20" />
         </div>
-        <p className="text-slate-400 text-lg font-bold">등록된 직원이 없습니다.</p>
+        <p className="text-cp-muted text-lg font-bold">등록된 직원이 없습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-sm shadow-xl overflow-hidden animate-in fade-in duration-500">
+    <div className="bg-cp-card border border-cp-border rounded-sm shadow-xl overflow-hidden animate-in fade-in duration-500">
       <div className="overflow-x-auto max-h-[70vh] overflow-y-auto modal-scrollbar">
         <table className="w-full table-fixed border-separate border-spacing-0">
-          <thead className="bg-slate-900 border-b-2 border-teal-500/30 sticky top-0 z-10">
+          <thead className="bg-cp-header border-b-2 border-teal-500/30 sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[10%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[10%] bg-cp-header border-b-2 border-teal-500/30">
                 이름
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[18%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[18%] bg-cp-header border-b-2 border-teal-500/30">
                 이메일
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
                 연락처
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
                 권한
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[8%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[8%] bg-cp-header border-b-2 border-teal-500/30">
                 상태
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-cp-header border-b-2 border-teal-500/30">
                 신청일
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-cp-header border-b-2 border-teal-500/30">
                 처리일
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-slate-900 border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
                 관리
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-cp-border">
             {staff.map((member) => (
               <tr 
                 key={member.userId} 
-                className="hover:bg-slate-700/30 transition-colors bg-slate-800/30"
+                className="hover:bg-cp-bg/30 transition-colors bg-cp-card/30"
               >
                 <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
-                  <div className="text-sm font-bold text-slate-100 truncate">
+                  <div className="text-sm font-bold text-cp-text truncate">
                     {member.name}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
-                  <div className="text-sm text-slate-400 truncate font-mono" title={member.email}>
+                  <div className="text-sm text-cp-muted truncate font-mono" title={member.email}>
                     {member.email}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
-                  <div className="text-sm text-slate-300 truncate font-mono">
+                  <div className="text-sm text-cp-text truncate font-mono">
                     {member.phone || '-'}
                   </div>
                 </td>
@@ -161,7 +161,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                             cancelRoleEdit(member.userId);
                           }
                         }}
-                        className="bg-slate-900 border border-slate-600 rounded-sm px-2 py-1 text-xs text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                        className="bg-cp-input border border-cp-border rounded-sm px-2 py-1 text-xs text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                         autoFocus
                         onBlur={() => cancelRoleEdit(member.userId)}
                       >
@@ -170,7 +170,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                       </select>
                       <button
                         onClick={() => cancelRoleEdit(member.userId)}
-                        className="text-slate-500 hover:text-slate-300 transition-colors"
+                        className="text-cp-muted hover:text-cp-text transition-colors"
                         title="취소"
                       >
                         <X size={14} />
@@ -178,7 +178,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center gap-2">
-                      <span className="text-sm text-slate-300 font-bold whitespace-nowrap">{getRoleLabel(member.role)}</span>
+                      <span className="text-sm text-cp-text font-bold whitespace-nowrap">{getRoleLabel(member.role)}</span>
                       {member.role !== 'ADMIN' && (
                         <button
                           onClick={() => setEditingRole({ ...editingRole, [member.userId]: true })}
@@ -197,12 +197,12 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
-                  <div className="text-xs text-slate-500 truncate font-mono">
+                  <div className="text-xs text-cp-muted truncate font-mono">
                     {formatDateTime(member.approvalRequestedAt)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
-                  <div className="text-xs text-slate-500 truncate font-mono">
+                  <div className="text-xs text-cp-muted truncate font-mono">
                     {formatDateTime(member.approvalProcessedAt)}
                   </div>
                 </td>
@@ -220,7 +220,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                         </button>
                         <button
                           onClick={() => handleDenyClick(member.userId)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-red-400 text-xs font-bold rounded-sm border border-red-500/30 hover:border-red-500 transition-all shadow-md active:scale-95"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-cp-bg hover:bg-cp-card text-red-400 text-xs font-bold rounded-sm border border-red-500/30 hover:border-red-500 transition-all shadow-md active:scale-95"
                           title="거부"
                         >
                           <XCircle size={14} />
@@ -231,7 +231,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {member.status === 'ACTIVE' && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-amber-400 text-xs font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-cp-bg hover:bg-cp-card text-amber-400 text-xs font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
                         title="중지"
                       >
                         <PauseCircle size={14} />

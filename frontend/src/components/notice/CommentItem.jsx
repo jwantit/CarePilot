@@ -54,21 +54,21 @@ const CommentItem = ({
 
   return (
     <div
-      className={`${comment.parentCommentId ? "ml-8 pl-5 border-l-2 border-slate-700 mt-4" : "border-b border-slate-700/50 pb-6 mb-6 last:border-0"}`}
+      className={`${comment.parentCommentId ? "ml-8 pl-5 border-l-2 border-cp-border mt-4" : "border-b border-cp-border/50 pb-6 mb-6 last:border-0"}`}
     >
       {isDeleted ? (
-        <div className="text-slate-500 text-base italic py-3 bg-slate-900/40 px-5 rounded-sm border border-slate-800">
+        <div className="text-cp-muted text-base italic py-3 bg-cp-bg/40 px-5 rounded-sm border border-cp-border">
           {comment.content}
         </div>
       ) : (
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <User size={20} className="text-slate-300" />
+          <div className="w-10 h-10 rounded-full bg-cp-bg border-2 border-cp-border flex items-center justify-center flex-shrink-0 shadow-lg">
+            <User size={20} className="text-cp-text" />
           </div>
 
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
-              <span className="font-bold text-slate-100 text-base tracking-tight">
+              <span className="font-bold text-cp-text text-base tracking-tight">
                 {displayName || "익명"}
               </span>
               {comment.userId === currentUserId && (
@@ -76,21 +76,21 @@ const CommentItem = ({
                   Author
                 </span>
               )}
-              <span className="text-xs text-slate-400 font-mono font-medium">
+              <span className="text-xs text-cp-muted font-mono font-medium">
                 {formatDateTime(comment.createdAt)}
               </span>
               {comment.userId === currentUserId && !isEditing && (
                 <div className="flex gap-3 ml-auto">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="text-slate-400 hover:text-teal-400 transition-all transform hover:scale-110"
+                    className="text-cp-muted hover:text-teal-400 transition-all transform hover:scale-110"
                     title="수정"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="text-slate-400 hover:text-red-400 transition-all transform hover:scale-110"
+                    className="text-cp-muted hover:text-red-400 transition-all transform hover:scale-110"
                     title="삭제"
                   >
                     <Trash2 size={16} />
@@ -102,14 +102,14 @@ const CommentItem = ({
             {isEditing ? (
               <div className="mb-5 animate-in fade-in slide-in-from-top-2 duration-200">
                 <textarea
-                  className="w-full p-4 border border-slate-500 rounded-sm bg-slate-950 text-slate-100 text-base outline-none focus:ring-2 focus:ring-teal-500/50 resize-none h-28 shadow-inner leading-relaxed"
+                  className="w-full p-4 border border-cp-border rounded-sm bg-cp-input text-cp-text text-base outline-none focus:ring-2 focus:ring-teal-500/50 resize-none h-28 shadow-inner leading-relaxed"
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                 />
                 <div className="flex justify-end gap-3 mt-2.5">
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="text-xs font-bold text-slate-400 hover:text-slate-200 px-3 py-1.5 transition-colors"
+                    className="text-xs font-bold text-cp-muted hover:text-cp-text px-3 py-1.5 transition-colors"
                   >
                     취소하기
                   </button>
@@ -123,7 +123,7 @@ const CommentItem = ({
               </div>
             ) : (
               <div className="mb-4 text-left">
-                <p className="text-slate-200 text-lg leading-relaxed whitespace-pre-wrap font-medium tracking-wide">
+                <p className="text-cp-text text-lg leading-relaxed whitespace-pre-wrap font-medium tracking-wide">
                   {(() => {
                     const renderContentWithMentions = (text) => {
                       if (!text) return text;
@@ -165,7 +165,7 @@ const CommentItem = ({
             <div className="text-left">
               <button
                 onClick={() => setReplyTo(comment)}
-                className="flex items-center gap-1.5 text-xs font-black text-slate-400 hover:text-teal-400 transition-all bg-slate-800/80 px-3 py-1.5 rounded-sm border border-slate-700 hover:border-teal-500/50 shadow-sm"
+                className="flex items-center gap-1.5 text-xs font-black text-cp-muted hover:text-teal-400 transition-all bg-cp-bg/80 px-3 py-1.5 rounded-sm border border-cp-border hover:border-teal-500/50 shadow-sm"
               >
                 <Reply size={12} className="rotate-180" />
                 답글 달기

@@ -4,10 +4,10 @@ function Loading() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
       <Loader2
-        className="animate-spin border-4 border-slate-700 border-t-teal-400 rounded-full"
+        className="animate-spin border-4 border-cp-border border-t-teal-400 rounded-full"
         size={40}
       />
-      <p className="text-slate-400 text-sm font-mono">로딩 중...</p>
+      <p className="text-cp-muted text-sm font-mono">로딩 중...</p>
     </div>
   );
 }

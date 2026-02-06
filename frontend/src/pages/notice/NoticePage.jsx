@@ -7,15 +7,17 @@ import NoticeDetail from "../../components/notice/NoticeDetail";
 import { useAuth } from "../../hooks/useAuth";
 import useCustomMove from "../../hooks/useCustomMove";
 import Breadcrumb from "../../components/common/Breadcrumb";
-import { PlusCircle, X } from "lucide-react";
+import { PlusCircle, X, Search, RotateCcw } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 function NoticePage() {
   const { user } = useAuth();
   const currentUserId = user?.userId || null;
   const currentOrgId = user?.organizationId || null;
+  const [searchParams] = useSearchParams();
 
-  // useCustomMove 훅 사용 (projectId와 filter는 null로 전달)
-  const { moveToList, page, size, refresh } = useCustomMove(null, null);
+  // useCustomMove 훅 사용
+  const { moveToList, page, size } = useCustomMove(null, null);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -25,7 +27,7 @@ function NoticePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
-  const [noticeType, setNoticeType] = useState("NORMAL"); // "NORMAL", "NOTICE", "MANUAL"
+  const [noticeType, setNoticeType] = useState("NORMAL");
 
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState("");
@@ -35,15 +37,17 @@ function NoticePage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [existingFiles, setExistingFiles] = useState([]); // 기존 파일 목록
-  const [deletedFileIds, setDeletedFileIds] = useState([]); // 삭제할 파일 ID 목록
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [deletedFileIds, setDeletedFileIds] = useState([]);
 
-  // useCustomMove는 1-based 페이지를 사용하므로 0-based로 변환
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+
   const pageIndex = page - 1;
 
-  const loadNotices = async (pageNum = 0) => {
+  const loadNotices = async (pageNum = 0, keyword = "") => {
     try {
-      const response = await noticeApi.getNotices(pageNum, size);
+      const response = await noticeApi.getNotices(pageNum, size, keyword);
       const { content, totalPages, number } = response.data;
 
       setNotices(Array.isArray(content) ? content : []);
@@ -55,31 +59,24 @@ function NoticePage() {
     }
   };
 
-  // 페이지 변경 핸들러
+  const handleSearch = () => {
+    setSearchKeyword(searchInput);
+    moveToList({ page: 1, size });
+  };
+
+  const handleReset = () => {
+    setSearchInput("");
+    setSearchKeyword("");
+    moveToList({ page: 1, size });
+  };
+
   const handlePageChange = (newPage) => {
-    // newPage는 0-based이므로 1-based로 변환하여 moveToList 호출
-    // URL 업데이트와 동시에 데이터도 즉시 로드
     moveToList({ page: newPage + 1, size });
-    loadNotices(newPage);
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
-    }
-  };
-
-  const clearFiles = () => {
-    setSelectedFiles([]);
-    setExistingFiles([]);
-    setDeletedFileIds([]);
-  };
-
-  // 초기 로드 및 URL 파라미터 변경 시 데이터 로드
   useEffect(() => {
-    loadNotices(pageIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+    loadNotices(pageIndex, searchKeyword);
+  }, [page, searchKeyword]);
 
   // 답글 작성 시 자동으로 "@유저이름 " 추가
   useEffect(() => {
@@ -180,6 +177,20 @@ function NoticePage() {
     window.scrollTo(0, 0);
   };
 
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    if (files?.length) {
+      setSelectedFiles((prev) => [...prev, ...Array.from(files)]);
+    }
+    e.target.value = "";
+  };
+
+  const clearFiles = () => {
+    setSelectedFiles([]);
+    setExistingFiles([]);
+    setDeletedFileIds([]);
+  };
+
   const handleDeleteExistingFile = (fileId) => {
     setDeletedFileIds([...deletedFileIds, fileId]);
     setExistingFiles(existingFiles.filter((file) => file.fileId !== fileId));
@@ -240,11 +251,40 @@ function NoticePage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={["공지사항"]} />
-      <header className="flex justify-between items-center bg-slate-800/50 p-4 rounded-sm border border-slate-700">
-        <div>
-          <h1 className="text-xl font-bold text-slate-100">공지사항</h1>
-          <p className="text-sm text-slate-500">CarePilot의 주요 공지 및 안내 사항을 확인하세요.</p>
+      
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 flex flex-wrap items-center gap-3 shadow-lg">
+        {/* 검색 영역 */}
+        <div className="relative flex-1 min-w-[300px]">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-cp-muted">
+            <Search size={18} />
+          </span>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2.5 border border-cp-border bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all placeholder:text-cp-muted shadow-md focus:shadow-lg"
+            placeholder="공지사항 검색 (제목 / 내용)"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
         </div>
+
+        <button
+          onClick={handleSearch}
+          className="bg-cp-input hover:bg-cp-bg text-teal-400 px-6 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+        >
+          <span className="font-mono text-teal-400">&gt;</span> 검색
+        </button>
+
+        <button
+          onClick={handleReset}
+          className="flex items-center gap-1.5 px-5 py-2.5 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+        >
+          <RotateCcw size={14} />
+          전체보기
+        </button>
+
+        <div className="w-px h-8 bg-cp-border mx-2 hidden md:block"></div>
+
         <button
           onClick={() => {
             setShowForm(!showForm);
@@ -252,16 +292,16 @@ function NoticePage() {
             setTitle("");
             setContent("");
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-sm font-bold transition shadow-lg border text-center ${
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-sm font-black text-sm transition-all shadow-md border text-center ${
             showForm 
-              ? "bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600" 
-              : "bg-teal-600 text-white border-teal-500 hover:bg-teal-500"
+              ? "bg-cp-bg text-cp-muted border-cp-border hover:bg-cp-card hover:text-cp-text" 
+              : "bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 hover:from-teal-500 hover:to-teal-600"
           }`}
         >
           {showForm ? <X size={18} /> : <PlusCircle size={18} />}
           {showForm ? "닫기" : "공지 등록"}
         </button>
-      </header>
+      </div>
 
       {showForm && (
         <NoticeForm

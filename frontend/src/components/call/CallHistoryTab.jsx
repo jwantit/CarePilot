@@ -179,39 +179,39 @@ const CallHistoryTab = () => {
   return (
     <div className="relative space-y-6">
       {isListLoading ? (
-        <div className="flex min-h-[320px] items-center justify-center rounded-none border border-slate-600 bg-slate-800/50">
+        <div className="flex min-h-[320px] items-center justify-center rounded-none border border-cp-border bg-cp-bg/50">
           <Loading />
         </div>
       ) : (
         <>
           {/* 필터 바 */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 mb-2 space-y-4 shadow-lg">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 mb-2 space-y-4 shadow-lg">
             <div className="flex flex-wrap items-end gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
                   시간
                 </span>
                 <div className="flex gap-2">
                   <input
                     type="date"
-                    className="h-9 w-[150px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none [color-scheme:dark]"
+                    className="h-9 w-[150px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                     value={filterTimeFrom}
                     onChange={(e) => setFilterTimeFrom(e.target.value)}
                   />
                   <input
                     type="date"
-                    className="h-9 w-[150px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none [color-scheme:dark]"
+                    className="h-9 w-[150px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                     value={filterTimeTo}
                     onChange={(e) => setFilterTimeTo(e.target.value)}
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
                   유형
                 </span>
                 <select
-                  className="h-9 min-w-[100px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  className="h-9 min-w-[100px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
                 >
@@ -221,23 +221,23 @@ const CallHistoryTab = () => {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
                   케어 대상
                 </span>
                 <input
                   type="text"
-                  className="h-9 min-w-[140px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  className="h-9 min-w-[140px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                   placeholder="이름 검색"
                   value={filterPatient}
                   onChange={(e) => setFilterPatient(e.target.value)}
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
                   결과
                 </span>
                 <select
-                  className="h-9 min-w-[110px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  className="h-9 min-w-[110px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                   value={filterResult}
                   onChange={(e) => setFilterResult(e.target.value)}
                 >
@@ -249,11 +249,11 @@ const CallHistoryTab = () => {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
                   위험도
                 </span>
                 <select
-                  className="h-9 min-w-[110px] rounded border border-slate-600 bg-slate-900 px-2 text-sm text-slate-200 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                  className="h-9 min-w-[110px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                   value={filterRiskLevel}
                   onChange={(e) => setFilterRiskLevel(e.target.value)}
                 >
@@ -274,7 +274,7 @@ const CallHistoryTab = () => {
                   setFilterResult("");
                   setFilterRiskLevel("");
                 }}
-                className="h-9 flex items-center gap-1.5 px-4 bg-gradient-to-br from-slate-900 to-slate-950 hover:from-slate-800 hover:to-slate-900 text-slate-300 text-sm font-semibold border border-slate-600 hover:border-slate-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="h-9 flex items-center gap-1.5 px-4 bg-cp-input hover:bg-cp-bg text-cp-muted text-sm font-semibold border border-cp-border hover:border-cp-border hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 초기화
               </button>
@@ -282,9 +282,9 @@ const CallHistoryTab = () => {
           </div>
 
           {/* 테이블 */}
-          <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden">
+          <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
             <table className="w-full text-left">
-              <thead className="bg-slate-900 text-slate-400 uppercase text-sm border-b-2 border-teal-500/30">
+              <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
                 <tr>
                   <th className="px-3 py-2 text-teal-400">시간</th>
                   <th className="px-3 py-2 text-teal-400">ID</th>
@@ -298,34 +298,34 @@ const CallHistoryTab = () => {
                   <th className="px-3 py-2 text-teal-400">관리</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700">
+              <tbody className="divide-y divide-cp-border">
                 {filteredHistory.map((item) => (
                   <tr
                     key={item.callId}
-                    className="hover:bg-slate-700/50 transition bg-slate-800/30"
+                    className="hover:bg-cp-bg/50 transition bg-cp-card/30"
                   >
-                    <td className="px-3 py-2 text-sm text-slate-300">
+                    <td className="px-3 py-2 text-sm text-cp-text">
                       {item.startTime}
                     </td>
-                    <td className="px-3 py-2 text-sm text-slate-300">
+                    <td className="px-3 py-2 text-sm text-cp-text">
                       {item.callId}
                     </td>
-                    <td className="px-3 py-2 text-sm text-slate-200">
+                    <td className="px-3 py-2 text-sm text-cp-text">
                       {item.careTargetName}
                     </td>
-                    <td className="px-3 py-2 text-sm text-slate-300">
+                    <td className="px-3 py-2 text-sm text-cp-text">
                       {item.direction}
                     </td>
-                    <td className="px-3 py-2 text-sm text-slate-300">
-                      {item.duration || "-"}
+                    <td className="px-3 py-2 text-sm text-cp-text">
+                      {item.duration}
                     </td>
-                    <td className="px-3 py-2 text-sm text-slate-300">
+                    <td className="px-3 py-2 text-sm text-cp-text">
                       {item.statusLabel || item.status}
                     </td>
                     <td className="px-3 py-2 text-sm">
                       <div className="flex items-center justify-start gap-2 pl-4">
                         {getRiskLevelDisplay(item.riskLevel)}
-                        <span className="text-slate-500 text-xs min-w-[45px]">
+                        <span className="text-cp-muted text-xs min-w-[45px]">
                           ({item.riskScore ?? 0}점)
                         </span>
                       </div>
@@ -333,7 +333,7 @@ const CallHistoryTab = () => {
                     <td className="px-3 py-2 text-sm">
                       <button
                         type="button"
-                        className="cp-link-slate"
+                        className="cp-link-muted"
                         onClick={() => openDetailModal(item.callId)}
                       >
                         상세
@@ -344,7 +344,7 @@ const CallHistoryTab = () => {
                 {filteredHistory.length === 0 && (
                   <tr>
                     <td
-                      className="px-3 py-10 text-center text-sm text-slate-500"
+                      className="px-3 py-10 text-center text-sm text-cp-muted"
                       colSpan={8}
                     >
                       표시할 통화 기록이 없습니다.
@@ -363,8 +363,8 @@ const CallHistoryTab = () => {
                 disabled={!pageData.prev}
                 className={`px-3 py-1.5 rounded border text-sm font-medium ${
                   !pageData.prev
-                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
                 }`}
               >
                 처음
@@ -375,8 +375,8 @@ const CallHistoryTab = () => {
                 disabled={!pageData.prev}
                 className={`px-3 py-1.5 rounded border text-sm font-medium ${
                   !pageData.prev
-                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
                 }`}
               >
                 이전
@@ -392,7 +392,7 @@ const CallHistoryTab = () => {
                   className={`px-3 py-1.5 rounded border text-sm font-medium ${
                     pageNum === currentPage
                       ? "bg-teal-600 text-white border-teal-500"
-                      : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                      : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
                   }`}
                 >
                   {pageNum}
@@ -404,8 +404,8 @@ const CallHistoryTab = () => {
                 disabled={!pageData.next}
                 className={`px-3 py-1.5 rounded border text-sm font-medium ${
                   !pageData.next
-                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
                 }`}
               >
                 다음
@@ -416,8 +416,8 @@ const CallHistoryTab = () => {
                 disabled={!pageData.next}
                 className={`px-3 py-1.5 rounded border text-sm font-medium ${
                   !pageData.next
-                    ? "bg-slate-800 text-slate-500 border-slate-600 cursor-not-allowed"
-                    : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
                 }`}
               >
                 마지막
@@ -430,14 +430,14 @@ const CallHistoryTab = () => {
       {/* 상세 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-none border border-slate-600 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-none border border-cp-border bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg p-6 shadow-xl">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-100">
+              <h3 className="text-lg font-semibold text-cp-text">
                 통화 상세
               </h3>
               <button
                 type="button"
-                className="text-slate-400 hover:text-slate-200 text-sm font-medium"
+                className="text-cp-muted hover:text-cp-text text-sm font-medium"
                 onClick={closeModal}
               >
                 닫기
@@ -453,17 +453,17 @@ const CallHistoryTab = () => {
             ) : (
               detail && (
                 <>
-                  <div className="mb-4 grid grid-cols-2 gap-4 text-sm text-slate-300">
+                  <div className="mb-4 grid grid-cols-2 gap-4 text-sm text-cp-text">
                     <p>
-                      <strong className="text-slate-400">케어 대상:</strong>{" "}
+                      <strong className="text-cp-muted">케어 대상:</strong>{" "}
                       {detail.patientName ?? detail.careTargetName}
                     </p>
                     <p>
-                      <strong className="text-slate-400">통화 ID:</strong>{" "}
+                      <strong className="text-cp-muted">통화 ID:</strong>{" "}
                       {detail.callId}
                     </p>
                     <p>
-                      <strong className="text-slate-400">통화 시작:</strong>{" "}
+                      <strong className="text-cp-muted">통화 시간:</strong>{" "}
                       {detail.startTime}
                     </p>
                     {detail.endTime && (
@@ -479,14 +479,14 @@ const CallHistoryTab = () => {
                         : "-"}
                     </p>
                     <p>
-                      <strong className="text-slate-400">상태:</strong>{" "}
+                      <strong className="text-cp-muted">상태:</strong>{" "}
                       {detail.statusLabel || detail.status}
                     </p>
                     <p>
-                      <strong className="text-slate-400">위험도:</strong>{" "}
+                      <strong className="text-cp-muted">위험도:</strong>{" "}
                       <span className="inline-flex items-center gap-2">
                         {getRiskLevelDisplay(detail.riskLevel)}
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-cp-muted">
                           ({detail.riskScore ?? 0}점)
                         </span>
                       </span>
@@ -494,10 +494,10 @@ const CallHistoryTab = () => {
                   </div>
 
                   <div className="mb-4 space-y-2">
-                    <p className="text-sm font-medium text-slate-400">
+                    <p className="text-sm font-medium text-cp-muted">
                       AI 요약
                     </p>
-                    <p className="rounded border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm text-slate-200">
+                    <p className="rounded border border-cp-border bg-cp-bg/50 px-3 py-2 text-sm text-cp-text">
                       {detail.aiMemo ||
                         detail.summary ||
                         "요약 정보가 없습니다."}
@@ -505,26 +505,26 @@ const CallHistoryTab = () => {
                   </div>
 
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-slate-400">
+                    <p className="text-sm font-medium text-cp-muted">
                       통화 전문
                     </p>
-                    <div className="h-52 overflow-y-auto rounded border border-slate-600 bg-slate-900/50 p-3 text-sm leading-relaxed text-slate-200 whitespace-pre-line">
+                    <div className="h-52 overflow-y-auto rounded border border-cp-border bg-cp-bg/50 p-3 text-sm leading-relaxed text-cp-text whitespace-pre-line">
                       {detail.transcript || "통화 전문이 없습니다."}
                     </div>
                   </div>
 
                   {recordingUrl && (
                     <div className="mb-4">
-                      <p className="text-sm font-medium text-slate-400">
+                      <p className="text-sm font-medium text-cp-muted">
                         녹취 파일
                       </p>
                       <audio
                         controls
                         src={recordingUrl}
-                        className="audio-dark w-full rounded border border-slate-600 bg-slate-900"
+                        className="audio-dark w-full rounded border border-cp-border bg-cp-bg"
                       />
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                        <span className="font-medium text-slate-300">
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-cp-muted">
+                        <span className="font-medium text-cp-text">
                           {detail.recordingFileName}
                         </span>
                         <span>{formatFileSize(detail.recordingFileSize)}</span>

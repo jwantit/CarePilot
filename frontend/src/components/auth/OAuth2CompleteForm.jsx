@@ -72,10 +72,10 @@ function OAuth2CompleteForm() {
   if (!email || !name) {
     return (
       <div className="text-center">
-        <p className="text-red-600 mb-4">카카오 로그인 정보가 없습니다.</p>
+        <p className="text-red-400 mb-4">카카오 로그인 정보가 없습니다.</p>
         <button
           onClick={() => navigate('/login')}
-          className="text-blue-600 hover:text-blue-500 font-medium"
+          className="text-teal-400 hover:text-teal-300 font-medium"
         >
           로그인 페이지로 이동
         </button>
@@ -87,21 +87,21 @@ function OAuth2CompleteForm() {
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
       <div className="space-y-4">
         {/* 카카오에서 가져온 정보 표시 (읽기 전용) */}
-        <div className="bg-gray-50 p-4 rounded-md">
-          <p className="text-sm text-gray-600 mb-2">카카오 계정 정보</p>
+        <div className="bg-cp-input p-4 rounded-sm border border-cp-border">
+          <p className="text-sm text-cp-muted mb-2">카카오 계정 정보</p>
           <div className="space-y-1">
-            <p className="text-sm">
-              <span className="font-medium">이메일:</span> {email}
+            <p className="text-sm text-cp-text">
+              <span className="font-medium text-cp-muted">이메일:</span> {email}
             </p>
-            <p className="text-sm">
-              <span className="font-medium">이름:</span> {name}
+            <p className="text-sm text-cp-text">
+              <span className="font-medium text-cp-muted">이름:</span> {name}
             </p>
           </div>
         </div>
 
         {/* 비밀번호 설정 */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="password" title="비밀번호" className="block text-sm font-medium text-cp-text">
             비밀번호 <span className="text-red-500">*</span>
           </label>
           <input
@@ -111,13 +111,13 @@ function OAuth2CompleteForm() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full px-3 py-2 bg-cp-input border border-cp-border text-cp-text rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 placeholder:text-cp-muted"
             placeholder="비밀번호를 입력하세요"
           />
         </div>
 
         <div>
-          <label htmlFor="passwordConfirm" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="passwordConfirm" title="비밀번호 확인" className="block text-sm font-medium text-cp-text">
             비밀번호 확인 <span className="text-red-500">*</span>
           </label>
           <input
@@ -127,14 +127,14 @@ function OAuth2CompleteForm() {
             required
             value={formData.passwordConfirm}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full px-3 py-2 bg-cp-input border border-cp-border text-cp-text rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 placeholder:text-cp-muted"
             placeholder="비밀번호를 다시 입력하세요"
           />
         </div>
 
         {/* 업체 번호 입력 */}
         <div>
-          <label htmlFor="organizationNumber" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="organizationNumber" title="업체 번호" className="block text-sm font-medium text-cp-text">
             업체 번호 <span className="text-red-500">*</span>
           </label>
           <input
@@ -144,10 +144,10 @@ function OAuth2CompleteForm() {
             required
             value={formData.organizationNumber}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full px-3 py-2 bg-cp-input border border-cp-border text-cp-text rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 placeholder:text-cp-muted"
             placeholder="업체 번호를 입력하세요 (예: ABC-12345)"
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-cp-muted">
             관리자 승인 후 로그인할 수 있습니다
           </p>
         </div>
@@ -157,18 +157,18 @@ function OAuth2CompleteForm() {
         <button
           type="submit"
           disabled={loading || !formData.password.trim() || !formData.passwordConfirm.trim() || !formData.organizationNumber.trim()}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-3 px-4 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:bg-cp-bg/50 disabled:border-cp-border disabled:text-cp-muted disabled:hover:translate-y-0"
         >
           {loading ? '가입 중...' : '회원가입 완료'}
         </button>
       </div>
 
       <div className="text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-cp-muted">
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="text-blue-600 hover:text-blue-500 font-medium"
+            className="text-teal-400 hover:text-teal-300 font-medium"
           >
             로그인으로 돌아가기
           </button>
@@ -179,4 +179,3 @@ function OAuth2CompleteForm() {
 }
 
 export default OAuth2CompleteForm;
-

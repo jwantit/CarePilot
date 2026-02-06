@@ -243,11 +243,10 @@ const CallScheduleTab = () => {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-sm border border-slate-700 bg-slate-800/50 p-4 shadow-sm">
+      <div className="rounded-sm border border-cp-border bg-cp-bg/50 p-4 shadow-sm">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div>
-            {/* <p className="text-sm text-slate-500">캘린더</p> */}
-            <h3 className="text-lg font-semibold text-slate-100">
+            <h3 className="text-lg font-semibold text-cp-text">
               {monthLabel}
             </h3>
           </div>
@@ -259,14 +258,14 @@ const CallScheduleTab = () => {
             <div className="flex items-center gap-1 text-sm ml-1">
               <button
                 type="button"
-                className="h-9 rounded-sm border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 px-4 text-slate-400 font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md"
+                className="h-9 rounded-sm border border-cp-border bg-cp-input px-4 text-cp-muted font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                 onClick={() => moveMonth(-1)}
               >
                 이전
               </button>
               <button
                 type="button"
-                className="h-9 rounded-sm border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-950 px-4 text-slate-400 font-semibold hover:from-slate-800 hover:to-slate-900 hover:border-slate-500 hover:text-slate-200 transition-all shadow-md"
+                className="h-9 rounded-sm border border-cp-border bg-cp-input px-4 text-cp-muted font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                 onClick={() => moveMonth(1)}
               >
                 다음
@@ -281,7 +280,7 @@ const CallScheduleTab = () => {
             </div>
           </div>
         </div>
-        <div className="mb-2 grid grid-cols-7 gap-2 text-xs font-semibold uppercase text-slate-300">
+        <div className="mb-2 grid grid-cols-7 gap-2 text-xs font-semibold uppercase text-cp-muted">
           {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
             <div key={label} className="py-1 text-center">
               {label}
@@ -306,10 +305,10 @@ const CallScheduleTab = () => {
 
             const baseClasses =
               "flex h-24 flex-col items-start justify-start rounded border px-2 py-1 transition relative overflow-hidden";
-            const bgClass = cell.date ? "bg-slate-800" : "bg-slate-800/50";
+            const bgClass = cell.date ? "bg-cp-card" : "bg-cp-bg/50";
             const borderClass = hasSchedule
               ? "border-teal-500/30"
-              : "border-slate-700";
+              : "border-cp-border";
             const selectedClass = isSelected
               ? "border-teal-500 bg-teal-500/10"
               : "";
@@ -328,7 +327,7 @@ const CallScheduleTab = () => {
                   }
                 }}
               >
-                <span className="text-sm font-semibold text-slate-100 mb-1">
+                <span className="text-sm font-semibold text-cp-text mb-1">
                   {cell.dayNumber ?? ""}
                 </span>
                 <div className="flex flex-col gap-1 w-full overflow-y-auto calendar-cell-scrollbar">
@@ -356,10 +355,10 @@ const CallScheduleTab = () => {
                         }}
                       >
                         <span
-                          className={`shrink-0 w-2 h-2 rounded-full ${dotColor} group-hover:ring-2 group-hover:ring-slate-400/50`}
+                          className={`shrink-0 w-2 h-2 rounded-full ${dotColor} group-hover:ring-2 group-hover:ring-cp-muted/50`}
                           aria-hidden
                         />
-                        <span className="text-[10px] text-slate-200 truncate min-w-0">
+                        <span className="text-[10px] text-cp-text truncate min-w-0">
                           {targetName} / {timeStr || "시간 미정"}
                         </span>
                       </div>
@@ -384,21 +383,21 @@ const CallScheduleTab = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-sm border border-slate-700">
+      <div className="flex justify-between items-center bg-cp-bg/50 p-4 rounded-sm border border-cp-border">
         <div>
-          <h2 className="text-lg font-bold text-slate-100">통화 예정 일정</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-bold text-cp-text">통화 예정 일정</h2>
+          <p className="text-sm text-cp-muted">
             AI가 자동으로 전화를 걸거나 상담원 연결이 예정된 목록입니다.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-sm bg-slate-800 px-2 py-1 border border-slate-600">
+          <div className="flex items-center gap-2 rounded-sm bg-cp-card px-2 py-1 border border-cp-border">
             <button
               type="button"
               className={`h-8 rounded-sm px-3 text-xs font-medium transition ${
                 sortCriterion === "TIME"
                   ? "bg-teal-600 text-white border border-teal-500"
-                  : "bg-transparent text-slate-400 hover:text-teal-400 border border-transparent"
+                  : "bg-transparent text-cp-muted hover:text-teal-400 border border-transparent"
               }`}
               onClick={() => setSortCriterion("TIME")}
             >
@@ -409,7 +408,7 @@ const CallScheduleTab = () => {
               className={`h-8 rounded-sm px-3 text-xs font-medium transition ${
                 sortCriterion === "PRIORITY"
                   ? "bg-teal-600 text-white border border-teal-500"
-                  : "bg-transparent text-slate-400 hover:text-teal-400 border border-transparent"
+                  : "bg-transparent text-cp-muted hover:text-teal-400 border border-transparent"
               }`}
               onClick={() => setSortCriterion("PRIORITY")}
             >
@@ -425,9 +424,9 @@ const CallScheduleTab = () => {
         </div>
       </div>
 
-      <div className="bg-slate-800 border border-slate-700 rounded-sm overflow-hidden">
+      <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-slate-900 text-slate-400 uppercase text-sm border-b-2 border-teal-500/30">
+          <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
               <th className="p-3 text-teal-400">대상자</th>
               <th className="p-3 text-teal-400">예정 시간</th>
@@ -438,10 +437,10 @@ const CallScheduleTab = () => {
               <th className="p-3 text-teal-400">관리</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-cp-border">
             {loading ? (
               <tr>
-                <td colSpan="7" className="p-10 text-center text-slate-400">
+                <td colSpan="7" className="p-10 text-center text-cp-muted">
                   로딩 중...
                 </td>
               </tr>
@@ -451,18 +450,18 @@ const CallScheduleTab = () => {
                 return (
                   <tr
                     key={s.scheduleId}
-                    className={`hover:bg-slate-700/50 transition ${isCancelled ? "bg-slate-800/70" : "bg-slate-800/30"}`}
+                    className={`hover:bg-cp-bg/50 transition ${isCancelled ? "bg-cp-card/70" : "bg-cp-card/30"}`}
                   >
-                    <td className="p-3 font-medium text-slate-200">
+                    <td className="p-3 font-medium text-cp-text">
                       {s.targetType === "GROUP"
                         ? `${s.targetGroupName ?? "이름 없음"}`
                         : s.careTargetName}
                     </td>
-                    <td className="p-3 text-slate-400">
+                    <td className="p-3 text-cp-muted">
                       {s.nextRunAt || s.scheduledTime}
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded-sm border border-slate-600">
+                      <span className="px-2 py-1 bg-cp-bg text-cp-text text-xs rounded-sm border border-cp-border">
                         {s.typeLabel || s.type}
                       </span>
                     </td>
@@ -470,7 +469,7 @@ const CallScheduleTab = () => {
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded-sm border shadow-sm ${
                           s.status === "CANCELLED"
-                            ? "bg-slate-500 text-white"
+                            ? "bg-cp-muted text-white"
                             : getPriorityStyle(s.priority)
                         }`}
                       >
@@ -479,19 +478,19 @@ const CallScheduleTab = () => {
                     </td>
                     <td className="p-3">
                       <span
-                        className={`${s.status === "CANCELLED" ? "text-slate-500" : "text-emerald-400"}`}
+                        className={`${s.status === "CANCELLED" ? "text-cp-muted" : "text-emerald-400"}`}
                       >
                         ● {s.statusLabel || s.status}
                       </span>
                     </td>
-                    <td className="p-3 text-sm text-slate-300">
+                    <td className="p-3 text-sm text-cp-text">
                       {s.memo || "-"}
                     </td>
                     <td className="p-3">
                       <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={() => handleOpenDetail(s)}
-                          className="text-slate-400 hover:text-slate-200 underline text-sm font-medium"
+                          className="text-cp-muted hover:text-cp-text underline text-sm font-medium"
                         >
                           상세
                         </button>
@@ -525,7 +524,7 @@ const CallScheduleTab = () => {
               })
             ) : (
               <tr>
-                <td colSpan="7" className="p-10 text-center text-slate-500">
+                <td colSpan="7" className="p-10 text-center text-cp-muted">
                   예정된 일정이 없습니다.
                 </td>
               </tr>

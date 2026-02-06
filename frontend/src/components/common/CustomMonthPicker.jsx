@@ -42,7 +42,7 @@ const CustomMonthPicker = ({ value, onChange, className = "" }) => {
     <div className={`relative ${className}`} ref={containerRef}>
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between h-9 px-4 border border-slate-600 rounded-sm bg-gradient-to-br from-slate-900 to-slate-950 text-slate-200 text-sm cursor-pointer hover:border-slate-500 transition-all shadow-md min-w-[140px]"
+        className="flex items-center justify-between h-9 px-4 border border-cp-border rounded-sm bg-cp-input text-cp-text text-sm cursor-pointer hover:border-cp-border transition-all shadow-md min-w-[140px]"
       >
         <span className="font-semibold tracking-wide">
           {value ? `${value.split("-")[0]}년 ${value.split("-")[1]}월` : "연월 선택"}
@@ -51,20 +51,20 @@ const CustomMonthPicker = ({ value, onChange, className = "" }) => {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 z-[100] bg-slate-800 border border-slate-700 rounded-sm shadow-2xl p-4 w-64 animate-in fade-in zoom-in duration-200">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+        <div className="absolute top-full right-0 mt-2 z-[100] bg-cp-card border border-cp-border rounded-sm shadow-2xl p-4 w-64 animate-in fade-in zoom-in duration-200">
+          <div className="flex items-center justify-between mb-4 border-b border-cp-border pb-3">
             <button 
               type="button"
               onClick={() => setDisplayYear(displayYear - 1)}
-              className="p-1.5 hover:bg-slate-700 rounded-sm text-slate-400 transition-colors"
+              className="p-1.5 hover:bg-cp-bg rounded-sm text-cp-muted transition-colors"
             >
               <ChevronLeft size={20} />
             </button>
-            <span className="text-lg font-bold text-slate-100 tracking-tight">{displayYear}년</span>
+            <span className="text-lg font-bold text-cp-text tracking-tight">{displayYear}년</span>
             <button 
               type="button"
               onClick={() => setDisplayYear(displayYear + 1)}
-              className="p-1.5 hover:bg-slate-700 rounded-sm text-slate-400 transition-colors"
+              className="p-1.5 hover:bg-cp-bg rounded-sm text-cp-muted transition-colors"
             >
               <ChevronRight size={20} />
             </button>
@@ -80,7 +80,7 @@ const CustomMonthPicker = ({ value, onChange, className = "" }) => {
                   className={`py-2.5 text-sm rounded-sm font-medium transition-all ${
                     isSelected 
                       ? "bg-teal-600 text-white shadow-lg shadow-teal-900/20" 
-                      : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-200"
+                      : "text-cp-muted hover:bg-cp-bg/50 hover:text-cp-text"
                   }`}
                 >
                   {m}
