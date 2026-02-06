@@ -353,8 +353,11 @@ public class CareServiceImpl implements CareService {
                 .orElseThrow(() -> new IllegalArgumentException("대상자가 없습니다."));
 
         log.info("케어대상자" + target.getName());
-        Doctor doctor = doctorRepository.findById(updateDTO.getDoctorId())
-                .orElseThrow(() -> new IllegalArgumentException("의료진이 없습니다."));
+        Doctor doctor = null;
+        if (updateDTO.getDoctorId() != null){
+            doctor = doctorRepository.findById(updateDTO.getDoctorId())
+                    .orElse(null);
+        }
 
         target.changeDetailInfo(updateDTO, doctor);
 

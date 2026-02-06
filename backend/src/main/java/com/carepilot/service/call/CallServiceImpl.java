@@ -248,6 +248,8 @@ public class CallServiceImpl implements CallService {
             throw new EntityNotFoundException("Schedule not found for this organization");
         }
 
+        LocalDateTime originalScheduledTime = existing.getScheduledTime();
+
         // 개인 대상자 또는 그룹 업데이트
         CareTarget careTarget = existing.getCareTarget();
         CareTargetGroup group = existing.getGroup();
@@ -288,11 +290,17 @@ public class CallServiceImpl implements CallService {
             existing.rescheduleNextRunAt(dto.getScheduledTime());
         }
 
+        boolean isOnlyDateChanged = dto.getScheduledTime() != null
+                && !dto.getScheduledTime().equals(originalScheduledTime);
+
         callScheduleRepository.save(existing);
-        try {
-            scheduleNotificationService.sendScheduleConfirmationSms(existing);
-        } catch (Exception e) {
-            log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", scheduleId, e.getMessage());
+
+        if (isOnlyDateChanged && dto.getScheduledTime().isAfter(LocalDateTime.now())) {
+            try {
+                scheduleNotificationService.sendScheduleConfirmationSms(existing);
+            } catch (Exception e) {
+                log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", scheduleId, e.getMessage());
+            }
         }
     }
 
