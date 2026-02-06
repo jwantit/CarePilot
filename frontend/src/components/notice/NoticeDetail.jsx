@@ -18,13 +18,12 @@ const NoticeDetail = ({
   onEdit,
   onDelete,
 }) => {
-  if (!isDetailOpen || !selectedNotice) return null;
+  if (!selectedNotice) return null;
 
   const isWriter = currentUserId && selectedNotice.writerId === currentUserId;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+    <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-2xl w-full overflow-hidden flex flex-col">
         {/* 헤더 */}
         <div className="flex justify-between items-center p-6 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
           <div className="flex items-center gap-3">
@@ -43,7 +42,7 @@ const NoticeDetail = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto modal-scrollbar p-8">
+        <div className="flex-1 overflow-y-auto p-8">
           {/* 정보 바 */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-cp-border/50 text-xs text-cp-muted">
             <div className="flex items-center gap-6">
@@ -72,7 +71,7 @@ const NoticeDetail = ({
                 <button
                   onClick={() => {
                     setIsDetailOpen(false);
-                    onEdit(selectedNotice);
+                    onEdit();
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-cp-border text-cp-text hover:bg-cp-bg hover:text-teal-400 hover:border-teal-500/50 transition-all font-bold text-xs"
                 >
@@ -230,7 +229,6 @@ const NoticeDetail = ({
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
