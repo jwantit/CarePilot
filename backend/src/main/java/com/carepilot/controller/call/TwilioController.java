@@ -3,8 +3,11 @@ package com.carepilot.controller.call;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallDirection;
 import com.carepilot.domain.call.CallRecording;
+import com.carepilot.domain.call.CallSchedule;
 import com.carepilot.domain.call.CallStatus;
 import com.carepilot.domain.call.CallType;
+import com.carepilot.domain.call.ScheduleStatus;
+import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.file.UploadFile;
 import com.carepilot.domain.file.UploadFileType;
@@ -15,6 +18,7 @@ import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.domain.sms.SmsType;
 import com.carepilot.repository.call.CallRecordingRepository;
 import com.carepilot.repository.call.CallRepository;
+import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.repository.config.ScenarioRepository;
@@ -89,6 +93,7 @@ public class TwilioController {
 
     private final CallRepository callRepository;
     private final CallRecordingRepository callRecordingRepository;
+    private final CallScheduleRepository callScheduleRepository;
     private final CareTargetRepository careTargetRepository;
     private final OrganizationRepository organizationRepository;
     private final UploadFileRepository uploadFileRepository;
@@ -531,6 +536,50 @@ public class TwilioController {
             c.completeCall();
             callRepository.save(c);
             log.info("통화 종료 처리 완료: callId={}, duration={}초", c.getCallId(), c.getDuration());
+            
+            // 통화가 성공적으로 완료된 경우, 연결된 CallSchedule을 완료 처리
+            if (c.getCallSchedule() != null) {
+                CallSchedule callSchedule = c.getCallSchedule();
+                // 이미 완료 상태가 아니고, SCHEDULED 또는 RUNNING 상태인 경우에만 처리
+                if (callSchedule.getStatus() != ScheduleStatus.COMPLETED 
+                        && (callSchedule.getStatus() == ScheduleStatus.SCHEDULED 
+                            || callSchedule.getStatus() == ScheduleStatus.RUNNING)) {
+                    
+                    LocalDateTime now = LocalDateTime.now();
+                    
+                    // 일회성 스케줄은 바로 완료 처리
+                    if (callSchedule.getType() == ScheduleType.ONE_TIME) {
+                        callSchedule.completeOneTime(now);
+                        callScheduleRepository.save(callSchedule);
+                        log.info("CallSchedule 완료 처리 (일회성): scheduleId={}, callId={}", 
+                                callSchedule.getScheduleId(), c.getCallId());
+                    } 
+                    // 반복 스케줄은 completedAt(종료 시점) 확인
+                    else if (callSchedule.getType() == ScheduleType.RECURRING) {
+                        // completedAt이 null이면 무기한 반복이므로 SCHEDULED 유지
+                        if (callSchedule.getCompletedAt() == null) {
+                            callSchedule.restore(); // SCHEDULED 상태로 변경
+                            callScheduleRepository.save(callSchedule);
+                            log.info("CallSchedule SCHEDULED 유지 (반복, 무기한): scheduleId={}, callId={}", 
+                                    callSchedule.getScheduleId(), c.getCallId());
+                        }
+                        // completedAt이 현재 시간보다 이후면 아직 종료 시점이 안 왔으므로 SCHEDULED 유지
+                        else if (callSchedule.getCompletedAt().isAfter(now)) {
+                            callSchedule.restore(); // SCHEDULED 상태로 변경
+                            callScheduleRepository.save(callSchedule);
+                            log.info("CallSchedule SCHEDULED 유지 (반복, 종료 시점 이후): scheduleId={}, completedAt={}, callId={}", 
+                                    callSchedule.getScheduleId(), callSchedule.getCompletedAt(), c.getCallId());
+                        } 
+                        // completedAt이 현재 시간보다 이전이면 종료 시점이 지났으므로 완료 처리
+                        else {
+                            callSchedule.completeOneTime(now);
+                            callScheduleRepository.save(callSchedule);
+                            log.info("CallSchedule 완료 처리 (반복, 종료 시점 도래): scheduleId={}, completedAt={}, callId={}", 
+                                    callSchedule.getScheduleId(), callSchedule.getCompletedAt(), c.getCallId());
+                        }
+                    }
+                }
+            }
         });
 
         // 종료 메시지
@@ -585,10 +634,69 @@ public class TwilioController {
                 call.updateStatus(newStatus);
                 callRepository.save(call);
                 log.info("통화 상태 업데이트 완료: callId={}, newStatus={}", call.getCallId(), newStatus);
+                
+                // 통화가 성공적으로 완료된 경우, 연결된 CallSchedule을 완료 처리
+                if (newStatus == CallStatus.SUCCESS && call.getCallSchedule() != null) {
+                    CallSchedule callSchedule = call.getCallSchedule();
+                    // 이미 완료 상태가 아니고, SCHEDULED 또는 RUNNING 상태인 경우에만 처리
+                    if (callSchedule.getStatus() != ScheduleStatus.COMPLETED 
+                            && (callSchedule.getStatus() == ScheduleStatus.SCHEDULED 
+                                || callSchedule.getStatus() == ScheduleStatus.RUNNING)) {
+                        
+                        LocalDateTime now = LocalDateTime.now();
+                        
+                        // 일회성 스케줄은 바로 완료 처리
+                        if (callSchedule.getType() == ScheduleType.ONE_TIME) {
+                            callSchedule.completeOneTime(now);
+                            callScheduleRepository.save(callSchedule);
+                            log.info("CallSchedule 완료 처리 (일회성): scheduleId={}, callId={}", 
+                                    callSchedule.getScheduleId(), call.getCallId());
+                        } 
+                        // 반복 스케줄은 completedAt(종료 시점) 확인
+                        else if (callSchedule.getType() == ScheduleType.RECURRING) {
+                            // completedAt이 null이면 무기한 반복이므로 SCHEDULED 유지
+                            if (callSchedule.getCompletedAt() == null) {
+                                callSchedule.restore(); // SCHEDULED 상태로 변경
+                                callScheduleRepository.save(callSchedule);
+                                log.info("CallSchedule SCHEDULED 유지 (반복, 무기한): scheduleId={}, callId={}", 
+                                        callSchedule.getScheduleId(), call.getCallId());
+                            }
+                            // completedAt이 현재 시간보다 이후면 아직 종료 시점이 안 왔으므로 SCHEDULED 유지
+                            else if (callSchedule.getCompletedAt().isAfter(now)) {
+                                callSchedule.restore(); // SCHEDULED 상태로 변경
+                                callScheduleRepository.save(callSchedule);
+                                log.info("CallSchedule SCHEDULED 유지 (반복, 종료 시점 이후): scheduleId={}, completedAt={}, callId={}", 
+                                        callSchedule.getScheduleId(), callSchedule.getCompletedAt(), call.getCallId());
+                            } 
+                            // completedAt이 현재 시간보다 이전이면 종료 시점이 지났으므로 완료 처리
+                            else {
+                                callSchedule.completeOneTime(now);
+                                callScheduleRepository.save(callSchedule);
+                                log.info("CallSchedule 완료 처리 (반복, 종료 시점 도래): scheduleId={}, completedAt={}, callId={}", 
+                                        callSchedule.getScheduleId(), callSchedule.getCompletedAt(), call.getCallId());
+                            }
+                        }
+                    }
+                }
+                
+                // 통화 실패 시, 연결된 CallSchedule을 실패 처리
+                if ((newStatus == CallStatus.FAILED || newStatus == CallStatus.NO_ANSWER || newStatus == CallStatus.CANCELLED) 
+                        && call.getCallSchedule() != null) {
+                    CallSchedule callSchedule = call.getCallSchedule();
+                    // 이미 완료/실패 상태가 아니고, SCHEDULED 또는 RUNNING 상태인 경우에만 실패 처리
+                    if (callSchedule.getStatus() != ScheduleStatus.COMPLETED 
+                            && callSchedule.getStatus() != ScheduleStatus.FAILED
+                            && (callSchedule.getStatus() == ScheduleStatus.SCHEDULED 
+                                || callSchedule.getStatus() == ScheduleStatus.RUNNING)) {
+                        callSchedule.markAsFailed(LocalDateTime.now());
+                        callScheduleRepository.save(callSchedule);
+                        log.info("CallSchedule 실패 처리: scheduleId={}, callId={}, callStatus={}", 
+                                callSchedule.getScheduleId(), call.getCallId(), newStatus);
+                    }
+                }
             }
 
             // 통화 실패 알림 생성 (상태 변경 여부와 관계없이 실패/무응답/취소 상태면 확인)
-            // 주의: 상태가 변경되지 않았어도 이미 NO_ANSWER로 저장된 경우 알림이 없을 수 있으므로 확인 필요
             if (newStatus == CallStatus.FAILED || newStatus == CallStatus.NO_ANSWER || newStatus == CallStatus.CANCELLED) {
                 try {
                     // 중복 생성 방지

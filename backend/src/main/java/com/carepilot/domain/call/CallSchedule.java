@@ -218,6 +218,12 @@ public class CallSchedule extends BaseEntity {
         this.status = ScheduleStatus.COMPLETED;
     }
 
+    /** 통화 실패 시 스케줄 실패 처리 */
+    public void markAsFailed(LocalDateTime failedAt) {
+        this.status = ScheduleStatus.FAILED;
+        this.completedAt = null; // 실패 시에는 completedAt을 null로 설정
+    }
+
     /** 스케줄 수정 시 다음 실행 시각만 갱신 (예: 사용자가 scheduledTime 변경 시) */
     public void rescheduleNextRunAt(LocalDateTime nextRunAt) {
         this.nextRunAt = nextRunAt;
