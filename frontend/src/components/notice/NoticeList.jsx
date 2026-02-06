@@ -6,12 +6,12 @@ const NoticeList = ({ notices, onDetail }) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     const today = new Date();
-    
-    const isToday = 
+
+    const isToday =
       date.getFullYear() === today.getFullYear() &&
       date.getMonth() === today.getMonth() &&
       date.getDate() === today.getDate();
-    
+
     if (isToday) {
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
@@ -32,9 +32,15 @@ const NoticeList = ({ notices, onDetail }) => {
             <tr>
               <th className="px-4 py-3 text-teal-400 w-20 text-center">종류</th>
               <th className="px-4 py-3 text-teal-400">제목</th>
-              <th className="px-4 py-3 text-teal-400 w-32 text-center">작성자</th>
-              <th className="px-4 py-3 text-teal-400 w-32 text-center">작성 시간</th>
-              <th className="px-4 py-3 text-teal-400 w-24 text-center">조회수</th>
+              <th className="px-4 py-3 text-teal-400 w-32 text-center">
+                작성자
+              </th>
+              <th className="px-4 py-3 text-teal-400 w-32 text-center">
+                작성 시간
+              </th>
+              <th className="px-4 py-3 text-teal-400 w-24 text-center">
+                조회수
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
@@ -73,18 +79,26 @@ const NoticeList = ({ notices, onDetail }) => {
                   <td className="px-4 py-5">
                     <div className="flex items-center gap-3">
                       {isPinned && (
-                        <Pin size={16} className="text-teal-400 fill-teal-400/20 rotate-45 shrink-0" />
+                        <Pin
+                          size={16}
+                          className="text-teal-400 fill-teal-400/20 rotate-45 shrink-0"
+                        />
                       )}
                       <span className="text-slate-100 font-bold text-base truncate max-w-lg group-hover:text-teal-400 transition-colors">
                         {notice.title}
                       </span>
                       {notice.files && notice.files.length > 0 && (
-                        <FileText size={16} className="text-slate-500 shrink-0" />
+                        <FileText
+                          size={16}
+                          className="text-slate-500 shrink-0"
+                        />
                       )}
                       {notice.commentCount > 0 && (
                         <div className="flex items-center gap-1.5 text-teal-500 bg-teal-500/10 px-2 py-0.5 rounded-sm border border-teal-500/20">
                           <MessageSquare size={14} />
-                          <span className="text-xs font-black font-mono">{notice.commentCount}</span>
+                          <span className="text-xs font-black font-mono">
+                            {notice.commentCount}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -93,8 +107,8 @@ const NoticeList = ({ notices, onDetail }) => {
                     {notice.writerName || "익명"}
                   </td>
                   <td className="px-4 py-5 text-center text-sm text-slate-400 whitespace-nowrap font-mono tracking-tighter">
-                    {notice.updatedAt && notice.updatedAt !== notice.createdAt 
-                      ? formatDate(notice.updatedAt) 
+                    {notice.updatedAt && notice.updatedAt !== notice.createdAt
+                      ? formatDate(notice.updatedAt)
                       : formatDate(notice.createdAt)}
                   </td>
                   <td className="px-4 py-5 text-center text-base text-slate-400 font-mono font-bold">
