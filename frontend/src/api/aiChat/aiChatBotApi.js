@@ -3,7 +3,7 @@ const host = `/ai`;
 
 export const sendAiChatMessage = async (data) => {
     try {
-      // data는 { message: string, fileId: Long | null } 형태
+      // data는 { message: string, fileId: Long | null, providerKey: Long } 형태
       console.log("sendAiChatMessage 호출 - 전송 데이터:", data);
       const response = await apiClient.post(`${host}/chat`, data); 
       console.log("sendAiChatMessage 응답:", response.data);

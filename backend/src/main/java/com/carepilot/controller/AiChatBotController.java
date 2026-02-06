@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class AiChatBotController {
 
     private final UserUtil userUtil;
-    private final ChatClient chatgpt;
+    private final Map<String, ChatClient> chatClients;
     private final ChatMemory chatMemory;
     private final VectorStore vectorStore; //백터 임베딩
     private final CarePilotToolsService carePilotToolsService; // 실제 행동을 수행할 도구
@@ -49,7 +50,7 @@ public class AiChatBotController {
 
     public AiChatBotController(
             UserUtil userUtil,
-            @Qualifier("openaiChatClient") ChatClient chatgpt,
+            Map<String, ChatClient> chatClients,
             ChatMemory chatMemory,
             @Qualifier("ChatBotVectorStore") VectorStore chatBotVectorStore,
             CarePilotToolsService carePilotToolsService,
@@ -59,7 +60,7 @@ public class AiChatBotController {
             ChatLogService chatLogService
     ) {
         this.userUtil = userUtil;
-        this.chatgpt = chatgpt;
+        this.chatClients = chatClients;
         this.chatMemory = chatMemory;
         this.vectorStore = chatBotVectorStore;
         this.carePilotToolsService = carePilotToolsService;
@@ -105,6 +106,14 @@ public class AiChatBotController {
         String userName = userDTO.getName();
         Long fileId = request.getFileId();
 
+        //토글키 클라우드0 온디바이스1-------------------------------------------------
+        String providerKey = (request.getProviderKey() == 0) ? "openaiChatClient" : "ollamaChatClient";
+        ChatClient client = chatClients.get(providerKey);
+        if (client == null) {
+                throw new IllegalArgumentException("지원하지 않는 AI 모델입니다: " + providerKey);
+        }
+        //-----------------------------------------------------
+
         log.info("fileId아이디 컨트롤러 진입({})",fileId);
         log.info("유저({}) 질문: {}", userIdMemory, userMessage);
 
@@ -141,7 +150,7 @@ public class AiChatBotController {
         String finalSystemPrompt = dynamicPrompt.replace("{question_answer_context}", contextBuilder);
 
         // 4. ChatClient 실행 (QuestionAnswerAdvisor 제거)
-        String aiResponse = chatgpt.prompt()
+        String aiResponse = client.prompt()
                 .advisors(
                         // [기능 1] 단기 기억 유지
                         new MessageChatMemoryAdvisor(chatMemory, userIdMemory, 10)

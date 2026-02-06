@@ -10,6 +10,7 @@ const AiChatBot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null); // { fileName, previewUrl, fileId, isUploading, isDeleting }
+  const [providerKey, setProviderKey] = useState(0); // 0: Cloud, 1: On-device
 
   const { user } = useAuth();
   const organizationId = user?.organizationId;
@@ -199,7 +200,7 @@ const AiChatBot = () => {
   
     const userMessage = input;
     
-    // 백엔드 스펙: { message: string, fileId: Long | null }
+    // 백엔드 스펙: { message: string, fileId: Long | null, providerKey: Long }
     // fileId가 있으면 숫자로 변환 (백엔드 Long 타입에 맞춤)
     const fileId = selectedImage?.fileId 
       ? (typeof selectedImage.fileId === 'string' ? Number(selectedImage.fileId) : selectedImage.fileId)
@@ -208,6 +209,7 @@ const AiChatBot = () => {
     const requestPayload = {
       message: userMessage,
       fileId: fileId, // 파일이 선택된 상태면 id, 아니면 null
+      providerKey: providerKey, // 0: Cloud, 1: On-device
     };
   
     // 디버깅: 전송되는 데이터 확인
@@ -404,6 +406,8 @@ const AiChatBot = () => {
       closePanel={() => setIsOpen(false)}
       size={size}
       handleResizeStart={handleResizeStart}
+      providerKey={providerKey}
+      setProviderKey={setProviderKey}
     />
   );
 };

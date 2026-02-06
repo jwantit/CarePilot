@@ -25,6 +25,8 @@ const AiChatPanel = ({
   closePanel,
   size,
   handleResizeStart,
+  providerKey,
+  setProviderKey,
 }) => {
   const edges = [
     { key: 'top', className: 'absolute left-0 top-0 right-0 h-2 cursor-n-resize z-10', edge: 'top' },
@@ -73,6 +75,31 @@ const AiChatPanel = ({
             })}
           </span>
         </div>
+        
+        {/* 클라우드 / 온디바이스 토글 */}
+        <div className="flex items-center bg-slate-800 rounded-full p-1 border border-slate-600 mx-4">
+          <button
+            onClick={() => setProviderKey(0)}
+            className={`px-3 py-1 text-[10px] font-medium rounded-full transition-all ${
+              providerKey === 0 
+                ? 'bg-teal-600 text-white shadow-sm' 
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            클라우드
+          </button>
+          <button
+            onClick={() => setProviderKey(1)}
+            className={`px-3 py-1 text-[10px] font-medium rounded-full transition-all ${
+              providerKey === 1 
+                ? 'bg-teal-600 text-white shadow-sm' 
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            온디바이스
+          </button>
+        </div>
+
         <button onClick={closePanel} className="p-1 hover:bg-slate-600 text-slate-300 hover:text-slate-100 transition-colors">
           <X className="h-5 w-5" />
         </button>

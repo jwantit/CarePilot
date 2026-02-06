@@ -503,6 +503,7 @@ public class CareServiceImpl implements CareService {
                     m.put("name", name);
                     m.put("latest", latest);
                     m.put("avg", avg);
+                    m.put("trendList", list); // 급상승 계산을 위해 리스트도 저장
                     return m;
                 }).toList();
 
@@ -521,10 +522,34 @@ public class CareServiceImpl implements CareService {
                 .toList();
         log.info("   - 평균 점수 상위 3명 추출 완료");
 
-        // 최종 결과 조립
+        // 급상승 중인 대상자 top3 계산 (최근 점수와 이전 점수 비교)
+        List<String> top3ByRising = grouped.values().stream()
+                .filter(list -> list.size() >= 2) // 최소 2개 데이터 필요
+                .map(list -> {
+                    int recentScore = list.get(list.size() - 1).getScore(); // 최근 점수
+                    int previousScore = list.get(list.size() - 2).getScore(); // 이전 점수
+                    int increase = recentScore - previousScore; // 증가량
+                    String name = list.getFirst().getTargetName();
+                    // Map으로 타입 안전하게 반환
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("name", name);
+                    result.put("increase", increase);
+                    result.put("recentScore", recentScore);
+                    return result;
+                })
+                .filter(m -> (int)m.get("increase") > 0)
+                .sorted((a, b) -> Integer.compare((int)b.get("increase"), (int)a.get("increase"))) // 증가량 큰 순
+                .limit(3)
+                .map(m -> String.format("이름:%s (증가:%d점, 최근:%d점)", 
+                        (String)m.get("name"), 
+                        (int)m.get("increase"), 
+                        (int)m.get("recentScore")))
+                .toList();
+
         Map<String, Object> result = new HashMap<>();
         result.put("최근_위험_점수_상위3명", top3ByLatest);
         result.put("평균_위험_점수_상위3명", top3ByAverage);
+        result.put("급상승_중인_대상자_상위3명", top3ByRising);
 
         log.info("[분석 종료] 최종 결과 리턴 직전: {}", result);
         return result;
