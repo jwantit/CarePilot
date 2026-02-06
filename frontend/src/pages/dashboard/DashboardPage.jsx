@@ -80,6 +80,35 @@ function DashboardPage() {
   const notificationStats = dashboardStats?.notificationStats || {};
   const bannerStats = dashboardStats?.bannerStats || {};
 
+  // 시간 포맷팅 헬퍼 함수들
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return "";
+    try {
+      const date = new Date(dateTime);
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${month}.${day} ${hours}:${minutes}`;
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    try {
+      const [datePart, timePart] = timeStr.split(" ");
+      const [hours, minutes] = timePart.split(":");
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? "오후" : "오전";
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      return `${ampm} ${displayHour}:${minutes}`;
+    } catch (e) {
+      return timeStr;
+    }
+  };
+
   // 로딩 중이거나 데이터가 없을 때 (hooks 이후에 early return)
   if (loading || !dashboardStats) {
     return (
@@ -156,14 +185,14 @@ function DashboardPage() {
             </div>
             <div className="flex-1 min-w-0">
               {/* 오늘 총 건수만 출력 */}
-              <div className="text-2xl font-bold text-gray-800 mb-2">
+              <div className="text-2xl font-bold text-slate-100 mb-2">
                 {loading ? "로딩 중..." : `통화 ${callStats.todayTotal || 0}건`}
               </div>
 
-              <div className="text-sm text-green-600 mb-1">오늘 성공률</div>
+              <div className="text-sm text-slate-400 mb-1">오늘 성공률</div>
 
               {/* 오늘 성공률 수치만 출력 */}
-              <div className="text-sm font-semibold text-green-600">
+              <div className="text-sm font-semibold text-teal-400">
                 {loading ? "..." : `${callStats.todaySuccessRate || 0}%`}
               </div>
 
@@ -285,36 +314,21 @@ function DashboardPage() {
           <div className="space-y-3 min-h-[340px]">
             {/* 긴급 항목 목록 (최대 5개, 각 종류 최소 1개씩) */}
             {urgentItems.map((item, index) => {
-              // 시간 포맷팅 함수 (MM.dd HH:mm 형식)
-              const formatDateTime = (dateTime) => {
-                if (!dateTime) return "";
-                try {
-                  const date = new Date(dateTime);
-                  const month = String(date.getMonth() + 1).padStart(2, "0");
-                  const day = String(date.getDate()).padStart(2, "0");
-                  const hours = String(date.getHours()).padStart(2, "0");
-                  const minutes = String(date.getMinutes()).padStart(2, "0");
-                  return `${month}.${day} ${hours}:${minutes}`;
-                } catch (e) {
-                  return "";
-                }
-              };
-
               if (item.type === "patient") {
                 const patient = item.data;
                 const timeStr = formatDateTime(patient.riskCalculatedAt);
                 return (
                   <div
                     key={`patient-${patient.careTargetId}`}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-gray-800 truncate">
+                      <span className="text-sm text-slate-200 truncate">
                         긴급 환자: {patient.name} ({patient.age}세)
                       </span>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         {timeStr && (
-                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
                             {timeStr}
                           </span>
                         )}
@@ -323,13 +337,13 @@ function DashboardPage() {
                             onClick={() =>
                               navigateToCareTargetDetail(patient.careTargetId)
                             }
-                            className="text-sm text-gray-800 hover:text-blue-600 underline"
+                            className="text-sm text-teal-400 hover:text-teal-300 underline"
                           >
                             [상세보기]
                           </button>
                           <button
                             onClick={navigateToCareTarget}
-                            className="text-sm text-gray-800 hover:text-blue-600 underline"
+                            className="text-sm text-teal-400 hover:text-teal-300 underline"
                           >
                             [통화하기]
                           </button>
@@ -344,22 +358,22 @@ function DashboardPage() {
                 return (
                   <div
                     key={`task-${task.taskId}`}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-gray-800 truncate">
+                      <span className="text-sm text-slate-200 truncate">
                         대기 중인 작업: {task.title || "작업 제목 없음"}
                       </span>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         {timeStr && (
-                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
                             {timeStr}
                           </span>
                         )}
                         <div className="flex items-center gap-2">
                           <button
                             onClick={navigateToTask}
-                            className="text-sm text-gray-800 hover:text-blue-600 underline"
+                            className="text-sm text-teal-400 hover:text-teal-300 underline"
                           >
                             [처리하기]
                           </button>
@@ -374,10 +388,10 @@ function DashboardPage() {
                 return (
                   <div
                     key={`notification-${notification.notificationId}`}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-gray-800 truncate">
+                      <span className="text-sm text-slate-200 truncate">
                         긴급 알림:{" "}
                         {notification.title ||
                           notification.description ||
@@ -385,14 +399,14 @@ function DashboardPage() {
                       </span>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         {timeStr && (
-                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
                             {timeStr}
                           </span>
                         )}
                         <div className="flex items-center gap-2">
                           <button
                             onClick={navigateToNotification}
-                            className="text-sm text-gray-800 hover:text-blue-600 underline"
+                            className="text-sm text-teal-400 hover:text-teal-300 underline"
                           >
                             [알림확인]
                           </button>
@@ -407,7 +421,7 @@ function DashboardPage() {
           </div>
 
           {urgentItems.length === 0 && !loading && (
-            <div className="text-sm text-gray-500 text-center py-8">
+            <div className="text-sm text-slate-500 text-center py-8">
               즉시 조치가 필요한 항목이 없습니다.
             </div>
           )}
@@ -435,21 +449,6 @@ function DashboardPage() {
           <div className="space-y-3 flex-1 min-h-[340px]">
             {/* 정기 통화 일정 (최대 5개) */}
             {todaySchedules.map((schedule) => {
-              const formatTime = (timeStr) => {
-                if (!timeStr) return "";
-                try {
-                  const [datePart, timePart] = timeStr.split(" ");
-                  const [hours, minutes] = timePart.split(":");
-                  const hour = parseInt(hours);
-                  const ampm = hour >= 12 ? "오후" : "오전";
-                  const displayHour =
-                    hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                  return `${ampm} ${displayHour}:${minutes}`;
-                } catch (e) {
-                  return timeStr;
-                }
-              };
-
               const getScheduleStatus = () => {
                 if (!schedule.scheduledTime) return "[예정]";
                 const now = new Date();
@@ -473,14 +472,14 @@ function DashboardPage() {
                   className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-gray-800 truncate">
+                    <span className="text-sm text-slate-200 truncate">
                       정기 통화 {timeStr}{" "}
                       {schedule.careTargetName ||
                         schedule.targetGroupName ||
                         "대상자 없음"}
                     </span>
                     <span
-                      className={`text-sm flex-shrink-0 ${isCompleted ? "text-teal-600" : isInProgress ? "text-gray-600" : "text-gray-800"}`}
+                      className={`text-sm flex-shrink-0 ${isCompleted ? "text-teal-400" : isInProgress ? "text-yellow-400" : "text-slate-400"}`}
                     >
                       {statusStr}
                     </span>
@@ -507,10 +506,10 @@ function DashboardPage() {
         </div>
 
         {/* 5번 박스: 최근 활동 (왼쪽 하단) */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 min-h-[400px]">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px] flex flex-col">
           <div className="flex items-center gap-2 mb-6">
             <svg
-              className="w-5 h-5 text-gray-600"
+              className="w-5 h-5 text-teal-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -519,58 +518,71 @@ function DashboardPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <h3 className="text-lg font-bold text-gray-800">최근 활동</h3>
+            <h3 className="text-lg font-bold text-slate-200">최근 활동</h3>
           </div>
 
-          <div className="space-y-3 min-h-[340px]">
+          <div className="space-y-3 flex-1 min-h-[340px]">
             {/* 최근 활동 목록 (최대 5개, 각 종류 최소 1개씩) */}
             {recentItems.map((item) => {
               if (item.type === "notification") {
                 const notification = item.data;
+                const timeStr = formatDateTime(notification.occurredAt);
                 return (
                   <div
                     key={`notification-${notification.notificationId}`}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-gray-800 truncate">
-                        [최근 알림]:{" "}
-                        {notification.title ||
-                          notification.description ||
-                          "알림 내용 없음"}
+                      <span className="text-sm text-slate-200 truncate">
+                        [최근 알림] {notification.title || notification.description || "알림 내용 없음"}
                       </span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                          onClick={navigateToNotification}
-                          className="text-sm text-gray-800 hover:text-blue-600 underline whitespace-nowrap"
-                        >
-                          [처리하기]
-                        </button>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        {timeStr && (
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
+                            {timeStr}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={navigateToNotification}
+                            className="text-sm text-teal-400 hover:text-teal-300 underline whitespace-nowrap"
+                          >
+                            [처리하기]
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               } else if (item.type === "task") {
                 const task = item.data;
+                const timeStr = formatDateTime(task.createdAt);
                 return (
                   <div
                     key={`task-${task.taskId}`}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    className="bg-slate-700/30 rounded-sm p-4 border border-slate-600"
                   >
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm text-gray-800 truncate">
-                        [최근 작업]: {task.title || "작업 제목 없음"}
+                      <span className="text-sm text-slate-200 truncate">
+                        [최근 작업] {task.title || "작업 제목 없음"}
                       </span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                          onClick={navigateToTask}
-                          className="text-sm text-gray-800 hover:text-blue-600 underline whitespace-nowrap"
-                        >
-                          [처리하기]
-                        </button>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        {timeStr && (
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
+                            {timeStr}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={navigateToTask}
+                            className="text-sm text-teal-400 hover:text-teal-300 underline whitespace-nowrap"
+                          >
+                            [처리하기]
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -581,15 +593,20 @@ function DashboardPage() {
           </div>
 
           {recentItems.length === 0 && !loading && (
-            <div className="text-sm text-gray-500 text-center py-8">
+            <div className="text-sm text-slate-500 text-center py-8 flex-1 flex items-center justify-center">
               최근 활동이 없습니다.
             </div>
           )}
         </div>
 
         {/* 6번 박스: 오른쪽 하단 */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px]">
-          {/* 여기에 내용이 들어갈 예정 */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-sm p-6 shadow-lg hover:shadow-xl transition-shadow min-h-[400px] flex flex-col items-center justify-center">
+          <div className="text-slate-600 flex flex-col items-center gap-2 opacity-30">
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span className="text-sm font-semibold tracking-wider uppercase">Future Content</span>
+          </div>
         </div>
       </div>
     </div>
