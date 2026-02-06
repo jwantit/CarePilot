@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom"; // 작업 필터 로직 임포트
 import { useTaskList } from "../../hooks/task/useTaskList";
 import { getCareTargetAllList } from "../../api/caretarget/careTargetApi";
 import { getTask } from "../../api/task/taskApi";
@@ -14,6 +15,7 @@ import { ListTodo, Clock, Play, CheckCircle } from "lucide-react";
 const TaskListTab = () => {
   const auth = useSelector((state) => state.auth);
   const organizationId = auth?.user?.organizationId;
+  const [searchParams] = useSearchParams(); // 작업 필터 로직
 
   const {
     taskList,
@@ -29,6 +31,35 @@ const TaskListTab = () => {
     handleDeleteTask,
   } = useTaskList();
 
+  // URL 파라미터에서 필터 상태 읽기
+  const filterStatusParam = searchParams.get('filterStatus');
+
+  // URL 파라미터로부터 필터 초기화
+  useEffect(() => {
+    if (filterStatusParam) {
+      // 콤마로 구분된 상태들을 파싱
+      const statuses = filterStatusParam.split(',').map(s => s.trim());
+      // 필터에 적용 (여러 상태를 지원하기 위해 필터링 로직 사용)
+      // updateFilter는 단일 값만 받을 수 있으므로, 필터링은 filteredTaskList에서 처리
+    }
+  }, [filterStatusParam]);
+
+  // 필터링된 작업 목록 (URL 파라미터 기반)
+  const filteredTaskList = useMemo(() => {
+    if (!filterStatusParam) return taskList;
+    
+    const statuses = filterStatusParam.split(',').map(s => s.trim().toUpperCase());
+    return taskList.filter(task => {
+      if (!task.status) return false;
+      // IN_PROGRESS, INPROGRESS, PROGRESS 모두 처리
+      const normalizedStatus = task.status.toUpperCase();
+      if (normalizedStatus === 'INPROGRESS' || normalizedStatus === 'PROGRESS') {
+        return statuses.includes('IN_PROGRESS') || statuses.includes('INPROGRESS') || statuses.includes('PROGRESS');
+      }
+      return statuses.includes(normalizedStatus);
+    });
+  }, [taskList, filterStatusParam]);
+// 까지 작업 필터링 로직
   const [careTargetList, setCareTargetList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -95,14 +126,14 @@ const TaskListTab = () => {
   };
 
   const taskStats = useMemo(() => {
-    const list = taskList || [];
+    const list = filteredTaskList || [];
     return {
       total: list.length,
       waiting: list.filter((t) => t.status === "WAITING").length,
-      progress: list.filter((t) => t.status === "PROGRESS").length,
+      progress: list.filter((t) => t.status === "PROGRESS" || t.status === "IN_PROGRESS" || t.status === "INPROGRESS").length,
       done: list.filter((t) => t.status === "DONE").length,
     };
-  }, [taskList]);
+  }, [filteredTaskList]);
 
   const statCards = useMemo(
     () => [
@@ -131,7 +162,7 @@ const TaskListTab = () => {
         onAddClick={handleOpenCreate}
       />
       <TaskTable
-        taskList={taskList}
+        taskList={filteredTaskList}
         staffList={staffList}
         onStart={(task) => handleStart(task)}
         onComplete={(taskId) => handleUpdateStatus(taskId, 'DONE')}

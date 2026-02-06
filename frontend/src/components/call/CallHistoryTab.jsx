@@ -38,6 +38,22 @@ const CallHistoryTab = () => {
   const [filterResult, setFilterResult] = useState("");
   const [filterRiskLevel, setFilterRiskLevel] = useState("");
 
+  // URL 파라미터 읽기
+  const dateFrom = searchParams.get('dateFrom');
+  const dateTo = searchParams.get('dateTo');
+
+  // URL 파라미터로부터 필터 초기화
+  useEffect(() => {
+    if (dateFrom && dateTo) {
+      setFilterTimeFrom(dateFrom);
+      setFilterTimeTo(dateTo);
+    } else {
+      // 파라미터가 없으면 빈 문자열로 초기화
+      setFilterTimeFrom('');
+      setFilterTimeTo('');
+    }
+  }, [dateFrom, dateTo]);
+// 까지 URL 파라미터 로직, 통화 0건 클릭 시 오늘로 필터해서 데이터 검색
   useEffect(() => {
     const loadHistory = async () => {
       if (!organizationId) return;

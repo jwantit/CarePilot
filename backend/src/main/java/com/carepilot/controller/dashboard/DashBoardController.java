@@ -19,8 +19,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -71,10 +73,6 @@ public class DashBoardController {
                 Map<String, Object> notificationStats = calculateNotificationStats(userId);
                 stats.put("notificationStats", notificationStats);
             }
-            
-            // 배너 통계
-            Map<String, Object> bannerStats = calculateBannerStats(organizationId, userId);
-            stats.put("bannerStats", bannerStats);
             
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
@@ -233,63 +231,6 @@ public class DashBoardController {
         notificationStats.put("unprocessed", (int) unprocessedNotifications);
         
         return notificationStats;
-    }
-
-    /**
-     * 배너 통계 계산 (오늘 생성된 데이터만)
-     */
-    private Map<String, Object> calculateBannerStats(Long organizationId, Long userId) {
-        Map<String, Object> bannerStats = new HashMap<>();
-        
-        // 오늘 날짜 범위 설정
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startOfDay = now.withHour(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime endOfDay = now.withHour(23).withMinute(59).withSecond(59).withNano(999999999);
-        
-        // 통화 실패 건수 (오늘 발생한 실패한 통화만)
-        List<CallResponseDTO> callHistory = callService.getCallHistory(organizationId);
-        long failedCalls = callHistory.stream()
-                .filter(call -> {
-                    if (!"FAILED".equals(call.getStatus())) return false;
-                    if (call.getStartTime() == null) return false;
-                    LocalDateTime callTime = parseDateTime(call.getStartTime());
-                    if (callTime == null) return false;
-                    return !callTime.isBefore(startOfDay) && !callTime.isAfter(endOfDay);
-                })
-                .count();
-        bannerStats.put("failedCalls", (int) failedCalls);
-        
-        // 위험 환자 수 (현재 상태 기준, 날짜 필터링 없음)
-        List<CareTargetListResponseDTO> careTargets = careService.getCareTargetList(organizationId, "");
-        long riskPatients = careTargets.stream()
-                .filter(patient -> {
-                    if (patient.getRiskLevel() == null) return false;
-                    String riskLevel = patient.getRiskLevel().name();
-                    return "HIGH".equals(riskLevel) || "CRITICAL".equals(riskLevel);
-                })
-                .count();
-        bannerStats.put("riskPatients", (int) riskPatients);
-        
-        // 긴급 알림 건수 (오늘 발생한 긴급 알림만)
-        if (userId != null) {
-            List<Notification> notifications = notificationService.getNotificationsByUserId(userId);
-            long urgentAlerts = notifications.stream()
-                    .filter(notif -> {
-                        if (notif.getSeverity() == null) return false;
-                        String severity = notif.getSeverity().name();
-                        if (!"CRITICAL".equals(severity) && !"HIGH".equals(severity)) return false;
-                        // 오늘 발생한 알림만 필터링
-                        if (notif.getOccurredAt() == null) return false;
-                        LocalDateTime occurredAt = notif.getOccurredAt();
-                        return !occurredAt.isBefore(startOfDay) && !occurredAt.isAfter(endOfDay);
-                    })
-                    .count();
-            bannerStats.put("urgentAlerts", (int) urgentAlerts);
-        } else {
-            bannerStats.put("urgentAlerts", 0);
-        }
-        
-        return bannerStats;
     }
 
     /**
@@ -855,11 +796,11 @@ public class DashBoardController {
     }
 
     /**
-     * 최근 활동 통합 조회 (알림+작업, 각 종류 최소 1개씩, 최대 5개)
+     * 최근 활동 통합 조회 (작업만, 마감일 기준 정렬, 최대 5개)
      * 
      * @param organizationId 조직 ID
      * @param userId 사용자 ID
-     * @return 최근 활동 목록 (각 종류 최소 1개씩, 최대 5개)
+     * @return 최근 활동 목록 (작업만, 마감일 기준 정렬, 최대 5개)
      */
     @GetMapping("/{organizationId}/recent-items")
     public ResponseEntity<List<Map<String, Object>>> getRecentItems(
@@ -870,100 +811,81 @@ public class DashBoardController {
         try {
             List<Map<String, Object>> items = new ArrayList<>();
             
-            // 최근 알림 목록 (내부 로직 직접 사용)
-            List<Notification> allNotifications = new ArrayList<>();
-            if (userId != null) {
-                allNotifications = notificationService.getNotificationsByUserId(userId);
-            }
-            List<Notification> recentNotifications = allNotifications.stream()
-                    .filter(notif -> {
-                        if (notif.getSeverity() == null || notif.getStatus() == null) return false;
-                        String severity = notif.getSeverity().name();
-                        String status = notif.getStatus().name();
-                        return !"CRITICAL".equals(severity) && !"HIGH".equals(severity)
-                                && "ACTIVE".equals(status);
-                    })
-                    .sorted((a, b) -> {
-                        if (a.getOccurredAt() == null && b.getOccurredAt() == null) return 0;
-                        if (a.getOccurredAt() == null) return 1;
-                        if (b.getOccurredAt() == null) return -1;
-                        return b.getOccurredAt().compareTo(a.getOccurredAt());
-                    })
-                    .collect(Collectors.toList());
+            // 대기 상태 작업만 먼저 조회
+            List<TaskListResponseDTO> waitingTasks = taskService.getTaskList(null, "WAITING", null, null, null);
+            // 진행중 상태 작업만 먼저 조회
+            List<TaskListResponseDTO> inProgressTasks = taskService.getTaskList(null, "IN_PROGRESS", null, null, null);
             
-            if (recentNotifications != null && !recentNotifications.isEmpty()) {
-                // 최소 1개 추가
-                Map<String, Object> item = new HashMap<>();
-                item.put("type", "notification");
-                item.put("data", recentNotifications.get(0));
-                items.add(item);
-            }
+            // 두 리스트를 합치고 URGENT 제외 필터링
+            List<TaskListResponseDTO> recentTasks = new ArrayList<>();
+            recentTasks.addAll(waitingTasks);
+            recentTasks.addAll(inProgressTasks);
             
-            // 최근 작업 목록 (내부 로직 직접 사용)
-            List<TaskListResponseDTO> allTasks = taskService.getTaskList(null, null, null, null, null);
-            List<TaskListResponseDTO> recentTasks = allTasks.stream()
+            // URGENT 우선순위 제외
+            recentTasks = recentTasks.stream()
                     .filter(task -> {
-                        if (task.getStatus() == null) return false;
-                        String status = task.getStatus();
-                        String priority = task.getPriority();
-                        return !"URGENT".equals(priority)
-                                && !"DONE".equals(status) && !"SUCCESS".equals(status) && !"FAILED".equals(status);
-                    })
-                    .sorted((a, b) -> {
-                        if (a.getDueDate() == null && b.getDueDate() == null) return 0;
-                        if (a.getDueDate() == null) return 1;
-                        if (b.getDueDate() == null) return -1;
-                        return a.getDueDate().compareTo(b.getDueDate());
+                        if (task.getPriority() == null) return true;
+                        return !"URGENT".equals(task.getPriority());
                     })
                     .collect(Collectors.toList());
             
-            if (recentTasks != null && !recentTasks.isEmpty()) {
-                // 최소 1개 추가
+            // 작업을 Map으로 변환 (동일 taskId 중복 방지)
+            Set<Long> processedTaskIds = new HashSet<>();
+            for (TaskListResponseDTO task : recentTasks) {
+                // 이미 처리한 taskId는 건너뛰기
+                if (task.getTaskId() != null && processedTaskIds.contains(task.getTaskId())) {
+                    continue;
+                }
+                
                 Map<String, Object> item = new HashMap<>();
                 item.put("type", "task");
-                item.put("data", recentTasks.get(0));
+                item.put("data", task);
                 items.add(item);
+                
+                // 처리한 taskId 기록
+                if (task.getTaskId() != null) {
+                    processedTaskIds.add(task.getTaskId());
+                }
             }
             
-            log.info("최근 활동 항목 수집: 알림 {}개, 작업 {}개, 총 {}개", 
-                    recentNotifications != null ? recentNotifications.size() : 0,
-                    recentTasks != null ? recentTasks.size() : 0,
-                    items.size());
-            
-            // 나머지 데이터를 순서대로 추가하여 총 5개까지
-            int notificationIdx = 1;
-            int taskIdx = 1;
-            
-            while (items.size() < 5) {
-                boolean added = false;
+            // 마감일 기준 정렬 (과거는 오래된 순, 미래는 가까운 순)
+            LocalDateTime now = LocalDateTime.now();
+            items.sort((a, b) -> {
+                TaskListResponseDTO taskA = (TaskListResponseDTO) a.get("data");
+                TaskListResponseDTO taskB = (TaskListResponseDTO) b.get("data");
                 
-                if (recentNotifications != null && notificationIdx < recentNotifications.size()) {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("type", "notification");
-                    item.put("data", recentNotifications.get(notificationIdx));
-                    items.add(item);
-                    notificationIdx++;
-                    added = true;
+                LocalDateTime dueDateA = taskA.getDueDate();
+                LocalDateTime dueDateB = taskB.getDueDate();
+                
+                // null 처리
+                if (dueDateA == null && dueDateB == null) return 0;
+                if (dueDateA == null) return 1;
+                if (dueDateB == null) return -1;
+                
+                // 오늘과의 관계 확인
+                boolean isPastA = dueDateA.isBefore(now);
+                boolean isPastB = dueDateB.isBefore(now);
+                
+                // 둘 다 과거인 경우: 더 오래된 것부터 (오름차순)
+                if (isPastA && isPastB) {
+                    return dueDateA.compareTo(dueDateB);
                 }
-                
-                if (items.size() >= 5) break;
-                
-                if (recentTasks != null && taskIdx < recentTasks.size()) {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("type", "task");
-                    item.put("data", recentTasks.get(taskIdx));
-                    items.add(item);
-                    taskIdx++;
-                    added = true;
+                // 둘 다 미래인 경우: 더 가까운 것부터 (오름차순)
+                if (!isPastA && !isPastB) {
+                    return dueDateA.compareTo(dueDateB);
                 }
-                
-                if (items.size() >= 5) break;
-                
-                if (!added) break; // 더 이상 추가할 데이터가 없으면 종료
-            }
+                // 하나는 과거, 하나는 미래: 과거를 먼저
+                if (isPastA) return -1;
+                return 1;
+            });
             
-            log.info("최근 활동 항목 최종 반환: {}개", items.size());
-            return ResponseEntity.ok(items);
+            // 최대 5개로 제한
+            List<Map<String, Object>> limitedItems = items.stream()
+                    .limit(5)
+                    .collect(Collectors.toList());
+            
+            log.info("최근 활동 항목 최종 반환: 작업 {}개", limitedItems.size());
+            return ResponseEntity.ok(limitedItems);
         } catch (Exception e) {
             log.error("최근 활동 조회 실패: {}", e.getMessage(), e);
             e.printStackTrace();
