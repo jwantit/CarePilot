@@ -20,6 +20,7 @@ import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.service.call.CallService;
 import com.carepilot.service.call.TwilioService;
 import com.carepilot.service.callanalysis.CallAnalysisService;
+import com.carepilot.util.PhoneNumberUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -135,7 +136,7 @@ public class CallController {
         log.info("입력 전화번호: {}", phoneNumber);
         
         // 전화번호 정규화
-        String normalizedPhone = normalizePhoneNumber(phoneNumber);
+        String normalizedPhone = PhoneNumberUtil.normalizePhoneNumber(phoneNumber);
         result.put("inputPhone", phoneNumber);
         result.put("normalizedPhone", normalizedPhone);
         log.info("정규화된 전화번호: {}", normalizedPhone);
@@ -230,10 +231,10 @@ public class CallController {
     @Transactional
     public ResponseEntity<MakeCallResponseDTO> makeCall(@RequestBody MakeCallRequestDTO request) {
         // 010-0000-0000 형식을 +8210... 형식으로 파싱
-        String parsedPhoneNumber = parsePhoneNumber(request.getTo());
+        String parsedPhoneNumber = PhoneNumberUtil.parsePhoneNumber(request.getTo());
         
         // 전화번호 정규화 (010-0000-0000 -> 01000000000)
-        String normalizedPhone = normalizePhoneNumber(request.getTo());
+        String normalizedPhone = PhoneNumberUtil.normalizePhoneNumber(request.getTo());
         
         // 전화번호로 CareTarget 찾기
         CareTarget careTarget = findCareTargetByPhone(normalizedPhone);
@@ -279,51 +280,6 @@ public class CallController {
                 .callSid(callSid)
                 .build();
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * 한국 전화번호를 Twilio 형식으로 파싱
-     * 010-0000-0000 → +82100000000
-     * 
-     * @param phoneNumber 입력 전화번호 (010-0000-0000, 01000000000 등)
-     * @return Twilio 형식 전화번호 (+82100000000)
-     */
-    private String parsePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("전화번호가 입력되지 않았습니다.");
-        }
-
-        // 하이픈, 공백 제거
-        String cleaned = phoneNumber.replaceAll("[\\s-]", "");
-        
-        // 이미 +82로 시작하면 그대로 반환
-        if (cleaned.startsWith("+82")) {
-            return cleaned;
-        }
-        
-        // 010으로 시작하면 0을 제거하고 +82 추가
-        if (cleaned.startsWith("010")) {
-            return "+82" + cleaned.substring(1);
-        }
-        
-        // 0으로 시작하면 0을 제거하고 +82 추가
-        if (cleaned.startsWith("0")) {
-            return "+82" + cleaned.substring(1);
-        }
-        
-        // 그 외의 경우는 +82를 앞에 추가
-        return "+82" + cleaned;
-    }
-
-    /**
-     * 전화번호 정규화 (하이픈, 공백 제거)
-     * 010-0000-0000 → 01000000000
-     */
-    private String normalizePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            return "";
-        }
-        return phoneNumber.replaceAll("[\\s-]", "");
     }
 
     /**
