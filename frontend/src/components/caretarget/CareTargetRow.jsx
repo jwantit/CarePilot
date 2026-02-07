@@ -100,7 +100,7 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
       {/* 위험 레벨 열 */}
       <div className="flex items-center justify-center h-full">
         <span
-          className={`px-3 py-1 text-xs font-bold border ${getRiskLevelStyle(displayRiskLevel)} shadow-sm`}
+          className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(displayRiskLevel)}`}
         >
           {getRiskLevelLabel(displayRiskLevel)}
         </span>

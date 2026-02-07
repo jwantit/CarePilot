@@ -57,19 +57,19 @@ const NoticeList = ({ notices, onDetail }) => {
                       const type = notice.noticeType || "NORMAL";
                       if (type === "NOTICE") {
                         return (
-                          <span className="inline-block bg-red-500/20 text-red-400 border border-red-500/50 text-xs px-2.5 py-1 rounded-sm font-black whitespace-nowrap uppercase">
+                          <span className="inline-block bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50 text-sm px-4 py-1.5 rounded-sm font-bold shadow-sm whitespace-nowrap uppercase">
                             공지
                           </span>
                         );
                       } else if (type === "MANUAL") {
                         return (
-                          <span className="inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 text-xs px-2.5 py-1 rounded-sm font-black whitespace-nowrap uppercase">
+                          <span className="inline-block bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50 text-sm px-4 py-1.5 rounded-sm font-bold shadow-sm whitespace-nowrap uppercase">
                             매뉴얼
                           </span>
                         );
                       } else {
                         return (
-                          <span className="inline-block bg-cp-bg text-cp-text border border-cp-border text-xs px-2.5 py-1 rounded-sm font-bold whitespace-nowrap uppercase">
+                          <span className="inline-block bg-cp-bg text-cp-text border border-cp-border text-sm px-4 py-1.5 rounded-sm font-bold shadow-sm whitespace-nowrap uppercase">
                             일반
                           </span>
                         );

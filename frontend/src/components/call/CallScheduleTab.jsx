@@ -12,13 +12,13 @@ import CustomMonthPicker from "../common/CustomMonthPicker";
 // 우선순위별 스타일 (위험도와 동일)
 const getPriorityStyle = (priority) => {
   const p = priority?.toUpperCase();
-  if (p === "URGENT")
-    return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
-  if (p === "HIGH")
-    return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50";
-  if (p === "MEDIUM")
-    return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
-  return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
+  if (p === "URGENT" || p === "CRITICAL" || p === "긴급")
+    return "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50";
+  if (p === "HIGH" || p === "위험")
+    return "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50";
+  if (p === "MEDIUM" || p === "보통")
+    return "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50";
+  return "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50";
 };
 const getPriorityDotColor = (priority) => {
   const p = priority?.toUpperCase();
@@ -469,7 +469,7 @@ const CallScheduleTab = () => {
                     </td>
                     <td className="p-4">
                       <span
-                        className={`px-2.5 py-1 text-xs font-semibold rounded-sm border shadow-sm ${
+                        className={`px-4 py-1.5 text-sm font-bold rounded-sm border shadow-sm ${
                           s.status === "CANCELLED"
                             ? "bg-cp-muted text-white"
                             : getPriorityStyle(s.priority)

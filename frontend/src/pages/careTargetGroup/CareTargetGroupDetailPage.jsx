@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   UserPlus,
   Activity,
+  AlertCircle,
   Loader2,
   Shield,
   AlertTriangle,
@@ -196,36 +197,36 @@ const CareTargetGroupDetailPage = () => {
   const statCards = useMemo(
     () => [
       {
-        value: formData?.low || 0,
-        label: "일반 대상자",
-        icon: Shield,
-        iconColor: "text-emerald-400",
-        valueColor: "text-emerald-400",
-        hoverBorderColor: "hover:border-emerald-500/50",
-      },
-      {
-        value: formData?.medium || 0,
-        label: "주의 대상자",
+        value: formData?.critical || 0,
+        label: "긴급",
         icon: AlertTriangle,
-        iconColor: "text-yellow-400",
-        valueColor: "text-yellow-400",
-        hoverBorderColor: "hover:border-yellow-500/50",
+        iconColor: "text-red-400",
+        valueColor: "text-red-400",
+        hoverBorderColor: "hover:border-red-500/50",
       },
       {
         value: formData?.high || 0,
-        label: "위험 대상자",
-        icon: AlertTriangle,
+        label: "위험",
+        icon: AlertCircle,
         iconColor: "text-orange-400",
         valueColor: "text-orange-400",
         hoverBorderColor: "hover:border-orange-500/50",
       },
       {
-        value: formData?.critical || 0,
-        label: "긴급 대상자",
-        icon: AlertTriangle,
-        iconColor: "text-red-400",
-        valueColor: "text-red-400",
-        hoverBorderColor: "hover:border-red-500/50",
+        value: formData?.medium || 0,
+        label: "보통",
+        icon: Activity,
+        iconColor: "text-yellow-400",
+        valueColor: "text-yellow-400",
+        hoverBorderColor: "hover:border-yellow-500/50",
+      },
+      {
+        value: formData?.low || 0,
+        label: "낮음",
+        icon: Shield,
+        iconColor: "text-emerald-400",
+        valueColor: "text-emerald-400",
+        hoverBorderColor: "hover:border-emerald-500/50",
       },
     ],
     [formData?.low, formData?.medium, formData?.high, formData?.critical],
@@ -455,7 +456,7 @@ const CareTargetGroupDetailPage = () => {
                   {/* 위험도 열 */}
                   <div className="flex items-center justify-center h-full">
                     <span
-                      className={`px-3 py-1 text-xs font-bold border ${getRiskLevelStyle(p.riskLevel)} shadow-sm`}
+                      className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(p.riskLevel)}`}
                     >
                       {getRiskLevelLabel(p.riskLevel) || "보통"}
                     </span>

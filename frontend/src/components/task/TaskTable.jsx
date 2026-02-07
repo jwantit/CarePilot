@@ -8,19 +8,19 @@ import { AlertCircle, Calendar, User, Tag, Activity, CheckSquare, Edit, FileText
 
 const getPriorityStyle = (priority) => {
   switch (priority) {
-    case "URGENT": return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
-    case "HIGH": return "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50";
-    case "MEDIUM": return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
+    case "URGENT": return "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50";
+    case "HIGH": return "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50";
+    case "MEDIUM": return "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50";
     case "LOW":
-    default: return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
+    default: return "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50";
   }
 };
 const getTaskStatusStyle = (status) => {
   switch (status) {
-    case "WAITING": return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
-    case "PROGRESS": return "bg-gradient-to-br from-blue-500/20 to-blue-600/20 text-blue-400 border border-blue-500/50";
-    case "DONE": return "bg-cp-bg/50 text-cp-muted border border-cp-border/50";
-    default: return "bg-cp-bg/50 text-cp-muted border border-cp-border/50";
+    case "WAITING": return "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50";
+    case "PROGRESS": return "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/50";
+    case "DONE": return "bg-cp-bg text-cp-muted border-cp-border/50 dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border/50";
+    default: return "bg-cp-bg text-cp-muted border-cp-border/50 dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border/50";
   }
 };
 
@@ -76,7 +76,7 @@ const TaskTable = ({
             {/* 우선순위 */}
             <div className="flex items-center justify-center h-full">
               <span
-                className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${getPriorityStyle(
+                className={`inline-block px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getPriorityStyle(
                   task.priority
                 )}`}
               >
@@ -116,7 +116,7 @@ const TaskTable = ({
                     onAssignChange(task.taskId, v === '' ? null : Number(v));
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-cp-input border border-cp-border rounded-sm px-2 py-1.5 w-full max-w-[100px] text-sm text-cp-text focus:ring-1 focus:ring-teal-500 outline-none cursor-pointer"
+                className="bg-cp-input border border-cp-border rounded-sm px-2 py-1.5 w-full max-w-[120px] text-base text-cp-text focus:ring-1 focus:ring-teal-500 outline-none cursor-pointer"
               >
                 <option value="">미할당</option>
                 {Array.isArray(staffList) &&
@@ -138,7 +138,7 @@ const TaskTable = ({
             {/* 상태 */}
             <div className="flex items-center justify-center h-full">
               <span
-                className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${getTaskStatusStyle(
+                className={`inline-block px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getTaskStatusStyle(
                   task.status
                 )}`}
               >

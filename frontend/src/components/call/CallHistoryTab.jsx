@@ -95,9 +95,9 @@ const CallHistoryTab = () => {
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
     return (
-      <div className="flex justify-start items-center">
+      <div className="flex justify-center items-center">
         <span
-          className={`w-9 inline-flex justify-center px-0 py-0.5 rounded-sm text-[10px] font-black border ${getRiskLevelStyle(displayLevel)}`}
+          className={`inline-flex justify-center px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getRiskLevelStyle(displayLevel)}`}
         >
           {getRiskLevelLabel(displayLevel)}
         </span>

@@ -63,11 +63,19 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case '예약됨': return 'bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50';
-      case '완료됨': return 'bg-gradient-to-br from-blue-500/20 to-blue-600/20 text-blue-400 border border-blue-500/50';
-      case '취소됨': return 'bg-cp-bg/50 text-cp-muted border border-cp-border/50';
-      default: return 'bg-gradient-to-br from-amber-500/20 to-amber-600/20 text-amber-400 border border-amber-500/50';
+      case '예약됨': return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50';
+      case '완료됨': return 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/50';
+      case '취소됨': return 'bg-cp-bg text-cp-muted border-cp-border/50 dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border/50';
+      default: return 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/50';
     }
+  };
+
+  const getPriorityStyle = (priority) => {
+    const p = priority?.toUpperCase();
+    if (p === 'CRITICAL' || p === 'URGENT' || p === '긴급') return 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50';
+    if (p === 'HIGH' || p === '위험') return 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50';
+    if (p === 'MEDIUM' || p === '보통') return 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50';
+    return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50';
   };
 
   const getRecurrenceLabel = (s) => {
@@ -153,7 +161,7 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
 
                     {/* 우선도 */}
                     <div className="flex items-center justify-center h-full">
-                      <span className="text-[13px] text-cp-text bg-cp-input px-3 py-1.5 rounded-sm border border-cp-border shadow-sm">
+                      <span className={`px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getPriorityStyle(s.priority)}`}>
                         {s.priority}
                       </span>
                     </div>
@@ -167,7 +175,7 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
 
                     {/* 상태 */}
                     <div className="flex items-center justify-center h-full">
-                      <span className={`px-3 py-1.5 rounded-sm text-[13px] border ${getStatusStyle(s.scheduleStatus)} shadow-sm`}>
+                      <span className={`px-4 py-1.5 rounded-sm text-sm font-bold border ${getStatusStyle(s.scheduleStatus)} shadow-sm`}>
                         {s.scheduleStatus}
                       </span>
                     </div>

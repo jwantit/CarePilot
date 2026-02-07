@@ -4,13 +4,13 @@ import { getAITaskTypeLabel, getAITaskStatusLabel } from "../../utils/taskLabel"
 const getAITaskStatusStyle = (status) => {
   switch (status) {
     case "WAITING":
-      return "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50";
+      return "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50";
     case "SUCCESS":
-      return "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50";
+      return "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50";
     case "FAILED":
-      return "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50";
+      return "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50";
     default:
-      return "bg-cp-bg/50 text-cp-muted border border-cp-border/50";
+      return "bg-cp-bg text-cp-muted border-cp-border/50 dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border/50";
   }
 };
 
@@ -68,9 +68,9 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
             {/* 상태 */}
             <div className="flex items-center justify-center h-full">
               <span
-                className={`inline-block px-2.5 py-1 rounded text-[11px] font-bold border ${getAITaskStatusStyle(
+                className={`inline-block px-4 py-1.5 rounded-sm text-sm font-bold border ${getAITaskStatusStyle(
                   row.status
-                )}`}
+                )} shadow-sm`}
               >
                 {getAITaskStatusLabel(row.status)}
               </span>
