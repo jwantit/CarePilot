@@ -15,11 +15,8 @@ const ProfileComponent = ({ formData, handleChange, handleSave }) => {
   const labelClass = "flex items-center gap-2 text-sm font-bold text-cp-text mb-1.5 ml-1";
 
   return (
-    <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in duration-500 relative">
-      {/* 배경 장식 아이콘 */}
-      <User size={200} className="absolute -right-20 -bottom-20 text-cp-text/5 -rotate-12 pointer-events-none" />
-      
-      <div className="p-10 space-y-10 relative z-10">
+    <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in duration-500">
+      <div className="p-10 space-y-10">
         <div className="text-center space-y-2 mb-4">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-500/10 border border-teal-500/20 mb-2">
             <User size={32} className="text-teal-400" />

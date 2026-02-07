@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { CheckCircle2, XCircle, PauseCircle, PlayCircle, Edit2, X, Check, Users } from 'lucide-react';
+import React from 'react';
+import { CheckCircle2, XCircle, Users } from 'lucide-react';
 
 const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
-  const [editingRole, setEditingRole] = useState({});
 
   // 상태 한글 변환
   const getStatusLabel = (status) => {
@@ -10,7 +9,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
       ACTIVE: '활성',
       WAITING: '대기',
       DENIED: '거부',
-      DISABLED: '비활성'
+      DISABLED: '탈퇴'
     };
     return statusMap[status] || status;
   };
@@ -62,7 +61,15 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
       newStatus = 'ACTIVE';
     }
     
-    if (newStatus && window.confirm(`상태를 "${getStatusLabel(newStatus)}"로 변경하시겠습니까?`)) {
+    let confirmMsg = `상태를 "${getStatusLabel(newStatus)}"로 변경하시겠습니까?`;
+    if (currentStatus === 'ACTIVE' && newStatus === 'DISABLED') {
+      confirmMsg = '이 직원을 탈퇴 처리하시겠습니까?';
+    } else if ((currentStatus === 'DENIED' || currentStatus === 'DISABLED') && newStatus === 'ACTIVE') {
+      confirmMsg = '이 직원을 복구하시겠습니까?';
+    } else if (currentStatus === 'WAITING' && newStatus === 'ACTIVE') {
+      confirmMsg = '이 직원을 승인하시겠습니까?';
+    }
+    if (newStatus && window.confirm(confirmMsg)) {
       onStatusUpdate(userId, newStatus);
     }
   };
@@ -73,15 +80,11 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
     }
   };
 
-  const handleRoleChange = (userId, newRole) => {
+  const handleRoleChange = (userId, newRole, currentRole) => {
+    if (newRole === currentRole) return;
     if (window.confirm(`권한을 "${getRoleLabel(newRole)}"로 변경하시겠습니까?`)) {
       onRoleUpdate(userId, newRole);
-      setEditingRole({ ...editingRole, [userId]: false });
     }
-  };
-
-  const cancelRoleEdit = (userId) => {
-    setEditingRole({ ...editingRole, [userId]: false });
   };
 
   if (!staff || staff.length === 0) {
@@ -149,46 +152,17 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-center">
-                  {editingRole[member.userId] ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <select
-                        defaultValue={member.role}
-                        onChange={(e) => {
-                          const newRole = e.target.value;
-                          if (newRole !== member.role) {
-                            handleRoleChange(member.userId, newRole);
-                          } else {
-                            cancelRoleEdit(member.userId);
-                          }
-                        }}
-                        className="bg-cp-input border border-cp-border rounded-sm px-2 py-1 text-xs text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                        autoFocus
-                        onBlur={() => cancelRoleEdit(member.userId)}
-                      >
-                        <option value="USER">일반 사용자</option>
-                        <option value="MANAGER">매니저</option>
-                      </select>
-                      <button
-                        onClick={() => cancelRoleEdit(member.userId)}
-                        className="text-cp-muted hover:text-cp-text transition-colors"
-                        title="취소"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
+                  {member.role === 'ADMIN' ? (
+                    <span className="text-sm text-cp-text font-bold whitespace-nowrap">{getRoleLabel(member.role)}</span>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-sm text-cp-text font-bold whitespace-nowrap">{getRoleLabel(member.role)}</span>
-                      {member.role !== 'ADMIN' && (
-                        <button
-                          onClick={() => setEditingRole({ ...editingRole, [member.userId]: true })}
-                          className="text-teal-400 hover:text-teal-300 transition-colors p-1 rounded hover:bg-teal-500/10 flex-shrink-0"
-                          title="권한 변경"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                      )}
-                    </div>
+                    <select
+                      value={member.role}
+                      onChange={(e) => handleRoleChange(member.userId, e.target.value, member.role)}
+                      className="bg-cp-input border border-cp-border rounded-sm px-3 py-1.5 text-xs text-cp-text font-bold focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    >
+                      <option value="USER">일반 사용자</option>
+                      <option value="MANAGER">매니저</option>
+                    </select>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -231,21 +205,19 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {member.status === 'ACTIVE' && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-cp-bg hover:bg-cp-card text-amber-400 text-xs font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
-                        title="중지"
+                        className="px-3 py-1.5 bg-cp-bg hover:bg-cp-card text-amber-400 text-xs font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
+                        title="탈퇴 처리"
                       >
-                        <PauseCircle size={14} />
-                        중지
+                        탈퇴 처리
                       </button>
                     )}
                     {(member.status === 'DENIED' || member.status === 'DISABLED') && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-black rounded-sm border border-teal-500 transition-all shadow-md active:scale-95"
-                        title="활성화"
+                        className="px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-black rounded-sm border border-teal-500 transition-all shadow-md active:scale-95"
+                        title="복구"
                       >
-                        <PlayCircle size={14} />
-                        활성화
+                        복구
                       </button>
                     )}
                   </div>
