@@ -125,22 +125,6 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     );
   };
 
-  const statusCellRenderer = ({ rowData }) => {
-    if (!rowData) return null;
-    const isUnread = rowData.status === 'ACTIVE';
-    return (
-      <div className="px-4 py-3 text-sm whitespace-nowrap h-full flex items-center">
-        <span className={`inline-block px-2.5 py-1 rounded-sm text-[11px] font-black border ${
-          isUnread 
-            ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-        }`}>
-          {getStatusLabel(rowData.status)}
-        </span>
-      </div>
-    );
-  };
-
   const actionCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     const isUnread = rowData.status === 'ACTIVE';
@@ -287,13 +271,6 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
                 dataKey="occurredAt"
                 width={200}
                 cellRenderer={occurredAtCellRenderer}
-                headerRenderer={headerRenderer}
-              />
-              <Column
-                label="상태"
-                dataKey="status"
-                width={100}
-                cellRenderer={statusCellRenderer}
                 headerRenderer={headerRenderer}
               />
               <Column
