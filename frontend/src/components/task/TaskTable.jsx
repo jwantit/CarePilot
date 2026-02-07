@@ -58,53 +58,39 @@ const TaskTable = ({
           {/* 테이블 헤더 - CareTarget 스타일 적용 */}
           <thead className="bg-cp-header border-b-2 border-teal-500/30">
             <tr>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[10%]">
-                <div className="flex items-center justify-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>우선순위</span>
-                </div>
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[10%]">
+                우선순위
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[20%]">
-                <div className="flex items-center justify-center gap-1">
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>제목</span>
-                </div>
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[20%]">
+                제목
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
-                <div className="flex items-center justify-center gap-1">
-                  <User className="w-3.5 h-3.5" />
-                  <span>케어 대상</span>
-                </div>
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[12%]">
+                케어 대상
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
-                <div className="flex items-center justify-center gap-1">
-                  <Activity className="w-3.5 h-3.5" />
-                  <span>유형</span>
-                </div>
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[12%]">
+                유형
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
-                <div className="flex items-center justify-center gap-1">
-                  <User className="w-3.5 h-3.5" />
-                  <span>할당자</span>
-                </div>
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[12%]">
+                할당자
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[10%]">
-                <div className="flex items-center justify-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>마감일</span>
-                </div>
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[10%]">
+                마감일
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[8%]">
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[8%]">
                 상태
               </th>
-              <th className="px-4 py-3.5 text-center text-xs font-semibold text-teal-400 uppercase tracking-wider w-[16%]">
+              <th className="px-4 py-3.5 text-center text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[16%]">
                 관리
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-cp-border/50">
             {taskList.map((task) => (
-              <tr key={task.taskId} className="hover:bg-cp-bg/30 transition-colors">
+              <tr 
+                key={task.taskId} 
+                className="hover:bg-cp-bg/30 transition-colors cursor-pointer"
+                onClick={() => onDetail && onDetail(task)}
+              >
                 {/* 우선순위 */}
                 <td className="px-4 py-3 text-center">
                   <span
@@ -134,10 +120,12 @@ const TaskTable = ({
                   <select
                     value={task.assignedToUserId ?? ''}
                     onChange={(e) => {
+                      e.stopPropagation();
                       const v = e.target.value;
                       onAssignChange &&
                         onAssignChange(task.taskId, v === '' ? null : Number(v));
                     }}
+                    onClick={(e) => e.stopPropagation()}
                     className="bg-cp-input border border-cp-border text-cp-text text-xs rounded px-2 py-1 w-full max-w-[120px] focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
                   >
                     <option value="">미할당</option>
@@ -169,7 +157,7 @@ const TaskTable = ({
                     {task.status === 'WAITING' && (
                       <button
                         type="button"
-                        onClick={() => onStart && onStart(task)}
+                        onClick={(e) => { e.stopPropagation(); onStart && onStart(task); }}
                         className="cp-link-blue"
                       >
                         시작
@@ -178,7 +166,7 @@ const TaskTable = ({
                     {task.status === 'PROGRESS' && (
                       <button
                         type="button"
-                        onClick={() => onComplete && onComplete(task.taskId)}
+                        onClick={(e) => { e.stopPropagation(); onComplete && onComplete(task.taskId); }}
                         className="cp-link-blue"
                       >
                         완료
@@ -186,7 +174,7 @@ const TaskTable = ({
                     )}
                     <button
                       type="button"
-                      onClick={() => onDetail && onDetail(task)}
+                      onClick={(e) => { e.stopPropagation(); onDetail && onDetail(task); }}
                       className="cp-link-muted"
                     >
                       상세
@@ -194,7 +182,7 @@ const TaskTable = ({
                     {task.status !== 'DONE' && (
                       <button
                         type="button"
-                        onClick={() => onEdit && onEdit(task)}
+                        onClick={(e) => { e.stopPropagation(); onEdit && onEdit(task); }}
                         className="cp-link-blue"
                       >
                         수정

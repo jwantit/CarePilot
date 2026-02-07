@@ -426,15 +426,15 @@ const CallScheduleTab = () => {
 
       <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
+          <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
-              <th className="p-3 text-teal-400">대상자</th>
-              <th className="p-3 text-teal-400">예정 시간</th>
-              <th className="p-3 text-teal-400">유형</th>
-              <th className="p-3 text-teal-400">우선순위</th>
-              <th className="p-3 text-teal-400">상태</th>
-              <th className="p-3 text-teal-400">메모</th>
-              <th className="p-3 text-teal-400">관리</th>
+              <th className="p-3 text-white dark:text-teal-400">대상자</th>
+              <th className="p-3 text-white dark:text-teal-400">예정 시간</th>
+              <th className="p-3 text-white dark:text-teal-400">유형</th>
+              <th className="p-3 text-white dark:text-teal-400">우선순위</th>
+              <th className="p-3 text-white dark:text-teal-400">상태</th>
+              <th className="p-3 text-white dark:text-teal-400">메모</th>
+              <th className="p-3 text-white dark:text-teal-400">관리</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-cp-border">
@@ -450,7 +450,8 @@ const CallScheduleTab = () => {
                 return (
                   <tr
                     key={s.scheduleId}
-                    className={`hover:bg-cp-bg/50 transition ${isCancelled ? "bg-cp-card/70" : "bg-cp-card/30"}`}
+                    onClick={() => !isCancelled && handleEdit(s)}
+                    className={`hover:bg-cp-bg/50 transition cursor-pointer ${isCancelled ? "bg-cp-card/70" : "bg-cp-card/30"}`}
                   >
                     <td className="p-3 font-medium text-cp-text">
                       {s.targetType === "GROUP"
@@ -496,7 +497,7 @@ const CallScheduleTab = () => {
                         </button>
                         {isCancelled ? (
                           <button
-                            onClick={() => handleRestore(s.scheduleId)}
+                            onClick={(e) => { e.stopPropagation(); handleRestore(s.scheduleId); }}
                             className="text-emerald-400 hover:text-emerald-300 underline text-sm font-medium"
                           >
                             복구
@@ -504,13 +505,13 @@ const CallScheduleTab = () => {
                         ) : (
                           <>
                             <button
-                              onClick={() => handleEdit(s)}
+                              onClick={(e) => { e.stopPropagation(); handleEdit(s); }}
                               className="text-teal-400 hover:text-teal-300 underline text-sm font-medium"
                             >
                               수정
                             </button>
                             <button
-                              onClick={() => handleDelete(s.scheduleId)}
+                              onClick={(e) => { e.stopPropagation(); handleDelete(s.scheduleId); }}
                               className="text-red-400 hover:text-red-300 underline text-sm font-medium"
                             >
                               삭제

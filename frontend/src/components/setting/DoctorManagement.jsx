@@ -284,22 +284,22 @@ function DoctorManagement() {
           <table className="min-w-full divide-y divide-cp-border">
             <thead className="bg-cp-header">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   이름
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   이메일
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   전문과
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   역할
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   상태
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   관리
                 </th>
               </tr>
@@ -316,7 +316,11 @@ function DoctorManagement() {
                 </tr>
               ) : (
                 doctors.map((doctor) => (
-                  <tr key={doctor.doctorId} className="hover:bg-cp-bg/50 transition">
+                  <tr
+                    key={doctor.doctorId}
+                    onClick={() => handleOpenModal(doctor)}
+                    className="hover:bg-cp-bg/50 transition cursor-pointer"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
                       {doctor.name}
                     </td>
@@ -342,13 +346,19 @@ function DoctorManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                       <button
-                        onClick={() => handleOpenModal(doctor)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(doctor);
+                        }}
                         className="cp-link-blue"
                       >
                         수정
                       </button>
                       <button
-                        onClick={() => handleDelete(doctor.doctorId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(doctor.doctorId);
+                        }}
                         className="cp-link-red"
                       >
                         삭제

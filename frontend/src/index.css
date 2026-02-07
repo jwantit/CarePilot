@@ -8,7 +8,7 @@
     color-scheme: light;
     --bg-main: #f8fafc;    /* slate-50: 배경 */
     --bg-card: #ffffff;    /* pure white: 카드/섹션 */
-    --bg-header: #e2e8f0;   /* slate-200: 테이블 헤더행 */
+    --bg-header: #0d9488;   /* slate-200: 테이블 헤더행 */
     --text-main: #0f172a;  /* slate-900: 주 텍스트 */
     --text-muted: #64748b; /* slate-500: 보조 텍스트 */
     --border-main: #cbd5e1; /* slate-300: 경계선 (선명하게) */

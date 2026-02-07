@@ -28,17 +28,17 @@ const NoticeList = ({ notices, onDetail }) => {
     <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
       {notices && notices.length > 0 ? (
         <table className="w-full text-left">
-          <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
+          <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
-              <th className="px-4 py-3 text-teal-400 w-20 text-center">종류</th>
-              <th className="px-4 py-3 text-teal-400">제목</th>
-              <th className="px-4 py-3 text-teal-400 w-32 text-center">
+              <th className="px-4 py-3 text-white dark:text-teal-400 w-20 text-center">종류</th>
+              <th className="px-4 py-3 text-white dark:text-teal-400">제목</th>
+              <th className="px-4 py-3 text-white dark:text-teal-400 w-32 text-center">
                 작성자
               </th>
-              <th className="px-4 py-3 text-teal-400 w-32 text-center">
+              <th className="px-4 py-3 text-white dark:text-teal-400 w-32 text-center">
                 작성 시간
               </th>
-              <th className="px-4 py-3 text-teal-400 w-24 text-center">
+              <th className="px-4 py-3 text-white dark:text-teal-400 w-24 text-center">
                 조회수
               </th>
             </tr>

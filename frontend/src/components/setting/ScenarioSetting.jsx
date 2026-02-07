@@ -331,19 +331,19 @@ function ScenarioSetting() {
           <table className="min-w-full divide-y divide-cp-border">
             <thead className="bg-cp-header">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   시나리오명
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   설명
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   위험 레벨
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   사용 여부
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
                   관리
                 </th>
               </tr>
@@ -360,7 +360,11 @@ function ScenarioSetting() {
                 </tr>
               ) : (
                 scenarios.map((scenario) => (
-                  <tr key={scenario.scenarioId} className="hover:bg-cp-bg/50 transition">
+                  <tr
+                    key={scenario.scenarioId}
+                    onClick={() => handleOpenDetailModal(scenario.scenarioId)}
+                    className="hover:bg-cp-bg/50 transition cursor-pointer"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
                       {scenario.name}
                     </td>
@@ -375,12 +379,14 @@ function ScenarioSetting() {
                         <input
                           type="checkbox"
                           checked={scenario.enabled}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            e.stopPropagation();
                             handleToggleEnabled(
                               scenario.scenarioId,
                               e.target.checked,
-                            )
-                          }
+                            );
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-cp-bg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
@@ -388,21 +394,28 @@ function ScenarioSetting() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                       <button
-                        onClick={() =>
-                          handleOpenDetailModal(scenario.scenarioId)
-                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDetailModal(scenario.scenarioId);
+                        }}
                         className="cp-link-muted"
                       >
                         상세
                       </button>
                       <button
-                        onClick={() => handleOpenModal(scenario)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(scenario);
+                        }}
                         className="cp-link-blue"
                       >
                         수정
                       </button>
                       <button
-                        onClick={() => handleDelete(scenario.scenarioId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(scenario.scenarioId);
+                        }}
                         className="cp-link-red"
                       >
                         삭제

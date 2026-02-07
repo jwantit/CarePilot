@@ -104,28 +104,28 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
         <table className="w-full table-fixed border-separate border-spacing-0">
           <thead className="bg-cp-header border-b-2 border-teal-500/30 sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[10%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[10%] bg-cp-header border-b-2 border-teal-500/30">
                 이름
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[18%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[18%] bg-cp-header border-b-2 border-teal-500/30">
                 이메일
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
                 연락처
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
                 권한
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[8%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[8%] bg-cp-header border-b-2 border-teal-500/30">
                 상태
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[15%] bg-cp-header border-b-2 border-teal-500/30">
                 신청일
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[15%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[15%] bg-cp-header border-b-2 border-teal-500/30">
                 처리일
               </th>
-              <th className="px-6 py-4 text-center text-[11px] font-black text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
+              <th className="px-6 py-4 text-center text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest w-[12%] bg-cp-header border-b-2 border-teal-500/30">
                 관리
               </th>
             </tr>

@@ -373,39 +373,36 @@ const CareTargetGroupDetailPage = () => {
         <div className="overflow-y-auto flex-1 modal-scrollbar">
           <table className="w-full text-left border-separate border-spacing-0">
             <thead className="sticky top-0 bg-cp-header border-b-2 border-teal-500/30 z-10">
-              <tr className="text-xs font-semibold text-cp-muted">
+              <tr className="text-xs font-semibold text-white dark:text-cp-muted">
                 <th className="px-8 py-3.5">
-                  <div className="flex items-center gap-1 text-teal-400">
-                    <Users className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1 text-white dark:text-teal-400">
                     <span>성명</span>
                   </div>
                 </th>
                 <th className="px-8 py-3.5">
-                  <div className="flex items-center gap-1 text-teal-400">
-                    <Calendar className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1 text-white dark:text-teal-400">
                     <span>성별/나이</span>
                   </div>
                 </th>
                 <th className="px-8 py-3.5">
-                  <div className="flex items-center gap-1 text-teal-400">
-                    <Phone className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1 text-white dark:text-teal-400">
                     <span>연락처</span>
                   </div>
                 </th>
                 <th className="px-8 py-3.5 text-center">
-                  <div className="flex items-center justify-center gap-1 text-teal-400">
-                    <Activity className="w-3.5 h-3.5" />
+                  <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
                     <span>위험도</span>
                   </div>
                 </th>
-                <th className="px-8 py-3.5 text-right text-teal-400">관리</th>
+                <th className="px-8 py-3.5 text-right text-white dark:text-teal-400">관리</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-cp-border">
               {formData.careList?.map((p) => (
                 <tr
                   key={p.careTargetId}
-                  className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50"
+                  onClick={() => navigate(`/care-target/detail/${p.careTargetId}`)}
+                  className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50 cursor-pointer"
                 >
                   <td className="px-8 py-5">
                     <div className="font-bold text-cp-text group-hover:text-teal-400 transition-colors">
@@ -428,9 +425,10 @@ const CareTargetGroupDetailPage = () => {
                   </td>
                   <td className="px-8 py-5 text-right">
                     <button
-                      onClick={() =>
-                        navigate(`/care-target/detail/${p.careTargetId}`)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/care-target/detail/${p.careTargetId}`);
+                      }}
                       className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
                     >
                       <span className="font-mono text-teal-400">&gt;</span>

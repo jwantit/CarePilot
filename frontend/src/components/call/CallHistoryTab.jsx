@@ -300,25 +300,26 @@ const CallHistoryTab = () => {
           {/* 테이블 */}
           <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
             <table className="w-full text-left">
-              <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
+              <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
                 <tr>
-                  <th className="px-3 py-2 text-teal-400">시간</th>
-                  <th className="px-3 py-2 text-teal-400">ID</th>
-                  <th className="px-3 py-2 text-teal-400">케어 대상</th>
-                  <th className="px-3 py-2 text-teal-400">유형</th>
-                  <th className="px-3 py-2 text-teal-400">통화 시간</th>
-                  <th className="px-3 py-2 text-teal-400">결과</th>
-                  <th className="px-3 py-2 text-teal-400 text-center">
+                  <th className="px-3 py-2 text-white dark:text-teal-400">시간</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400">ID</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400">케어 대상</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400">유형</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400">통화 시간</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400">결과</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400 text-center">
                     위험도 (점수)
                   </th>
-                  <th className="px-3 py-2 text-teal-400">관리</th>
+                  <th className="px-3 py-2 text-white dark:text-teal-400">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cp-border">
                 {filteredHistory.map((item) => (
                   <tr
                     key={item.callId}
-                    className="hover:bg-cp-bg/50 transition bg-cp-card/30"
+                    onClick={() => openDetailModal(item.callId)}
+                    className="hover:bg-cp-bg/50 transition bg-cp-card/30 cursor-pointer"
                   >
                     <td className="px-3 py-2 text-sm text-cp-text">
                       {item.startTime}
@@ -350,7 +351,7 @@ const CallHistoryTab = () => {
                       <button
                         type="button"
                         className="cp-link-muted"
-                        onClick={() => openDetailModal(item.callId)}
+                        onClick={(e) => { e.stopPropagation(); openDetailModal(item.callId); }}
                       >
                         상세
                       </button>

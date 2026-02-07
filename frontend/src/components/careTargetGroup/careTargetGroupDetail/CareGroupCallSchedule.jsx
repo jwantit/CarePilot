@@ -112,28 +112,22 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
           ) : (
             <table className="w-full border-separate border-spacing-0">
               <thead className="sticky top-0 bg-cp-header border-b-2 border-teal-500/30 z-10">
-                <tr className="text-xs font-semibold text-cp-muted text-left">
-                  <th className="px-8 py-3.5">
-                    <div className="flex items-center gap-1 text-teal-400">
-                      <RefreshCcw className="w-3.5 h-3.5" />
-                      <span>유형 / 반복 정보</span>
-                    </div>
-                  </th>
-                  <th className="px-8 py-3.5">
-                    <div className="flex items-center gap-1 text-teal-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>시작 일시</span>
-                    </div>
-                  </th>
-                  <th className="px-8 py-3.5 text-teal-400">우선도</th>
-                  <th className="px-8 py-3.5 text-teal-400">메모</th>
-                  <th className="px-8 py-3.5 text-teal-400">상태</th>
-                  <th className="px-8 py-3.5 text-right text-teal-400">관리</th>
+                <tr className="text-xs font-semibold text-white dark:text-cp-muted text-left">
+                  <th className="px-8 py-3.5 text-white dark:text-teal-400">유형 / 반복 정보</th>
+                  <th className="px-8 py-3.5 text-white dark:text-teal-400">시작 일시</th>
+                  <th className="px-8 py-3.5 text-white dark:text-teal-400">우선도</th>
+                  <th className="px-8 py-3.5 text-white dark:text-teal-400">메모</th>
+                  <th className="px-8 py-3.5 text-white dark:text-teal-400">상태</th>
+                  <th className="px-8 py-3.5 text-right text-white dark:text-teal-400">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cp-border text-left">
                 {schedules.map((s, idx) => (
-                  <tr key={s.scheduleId || idx} className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50">
+                  <tr 
+                    key={s.scheduleId || idx} 
+                    onClick={() => { setSelectedSchedule(s); setIsModalOpen(true); }}
+                    className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50 cursor-pointer"
+                  >
                     {/* 유형 및 반복상세 */}
                     <td className="px-8 py-5">
                       <div className="flex flex-col gap-1">
@@ -176,13 +170,13 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
                       {(role === 'ADMIN' || role === 'MANAGER') ? (
                         <div className="flex justify-end gap-1">
                           <button 
-                            onClick={() => { setSelectedSchedule(s); setIsModalOpen(true); }} 
+                            onClick={(e) => { e.stopPropagation(); setSelectedSchedule(s); setIsModalOpen(true); }} 
                             className="p-2 text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 rounded-sm transition-all border border-orange-500/30 hover:border-orange-500/50 shadow-sm hover:shadow-md"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button 
-                            onClick={() => handleDelete(s.scheduleId)} 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(s.scheduleId); }} 
                             className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-sm transition-all border border-red-500/30 hover:border-red-500/50 shadow-sm hover:shadow-md"
                           >
                             <Trash2 size={16} />

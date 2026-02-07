@@ -159,7 +159,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
   const headerRenderer = ({ label }) => {
     return (
-      <div className="flex items-center justify-center w-full h-full text-[11px] font-black text-teal-400 uppercase tracking-widest">
+      <div className="flex items-center justify-center w-full h-full text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest">
         {label}
       </div>
     );

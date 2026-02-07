@@ -44,25 +44,25 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
         <table className="w-full table-fixed text-sm">
           <thead className="bg-cp-header border-b-2 border-teal-500/30">
             <tr>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[15%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[15%]">
                 유형
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[10%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[10%]">
                 상태
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[12%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[12%]">
                 케어대상
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[20%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[20%]">
                 결과 요약
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[15%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[15%]">
                 시작 시각
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[15%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[15%]">
                 완료 시각
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider w-[8%]">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[8%]">
                 관리
               </th>
             </tr>
@@ -71,7 +71,8 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
             {aiTaskList.map((row) => (
               <tr
                 key={row.taskId}
-                className="bg-cp-card/30 hover:bg-cp-bg/50 transition-colors"
+                onClick={() => onDetail && onDetail(row.taskId)}
+                className="bg-cp-card/30 hover:bg-cp-bg/50 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3 text-cp-text">
                   {getAITaskTypeLabel(row.type)}
@@ -100,7 +101,7 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    onClick={() => onDetail && onDetail(row.taskId)}
+                    onClick={(e) => { e.stopPropagation(); onDetail && onDetail(row.taskId); }}
                     className="cp-link-muted"
                   >
                     상세
