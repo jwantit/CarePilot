@@ -9,7 +9,7 @@ import StatCardGrid from '../../components/common/StatCardGrid';
 import { deleteCareTarget, uploadCsvCareTarget, uploadOneCareTarget, getCareTargetAllList } from '../../api/caretarget/careTargetApi';
 import { makeCallTest } from '../../api/callApi';
 import { useAuth } from '../../hooks/useAuth';
-import { Users, AlertTriangle, Activity, Heart, Shield } from 'lucide-react';
+import { Users, AlertTriangle, AlertCircle, Activity, Shield } from 'lucide-react';
 
 function CareTargetPage() {
   const { user } = useAuth();
@@ -100,7 +100,7 @@ function CareTargetPage() {
     {
       value: stats.high,
       label: '위험',
-      icon: AlertTriangle,
+      icon: AlertCircle,
       iconColor: 'text-orange-400',
       valueColor: 'text-orange-400',
       hoverBorderColor: 'hover:border-orange-500/50'

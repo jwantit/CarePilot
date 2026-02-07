@@ -109,7 +109,7 @@ function NotificationSetting() {
                 onChange={(e) => handleConfigChange("smsEnabled", e.target.checked)}
                 label="SMS 알림"
                 icon={MessageSquare}
-                description="긴급 상황 시 SMS로 알림을 받습니다."
+                description="긴급 상황 시 SMS로 알림"
               />
 
               <ToggleSwitch
@@ -119,7 +119,7 @@ function NotificationSetting() {
                 }
                 label="이메일 알림"
                 icon={Mail}
-                description="중요 보고서 및 통계를 이메일로 받습니다."
+                description="회원가입 승인 요청 이메일 알림"
               />
             </div>
           </div>
@@ -141,7 +141,7 @@ function NotificationSetting() {
                 }
                 label="위험 감지"
                 icon={ShieldAlert}
-                description="케어 대상자 위험 시 알림"
+                description="케어 대상자 위험 감지 알림"
               />
 
               <ToggleSwitch
@@ -161,7 +161,7 @@ function NotificationSetting() {
                 }
                 label="긴급 상황"
                 icon={AlertTriangle}
-                description="즉시 조치 필요 시 알림"
+                description="긴급 상황 시 즉시 알림"
               />
             </div>
           </div>
