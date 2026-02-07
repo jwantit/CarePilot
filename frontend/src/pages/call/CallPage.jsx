@@ -18,26 +18,28 @@ const CallPage = () => {
 
       {/* 탭 메뉴 */}
       <div className="flex border-b border-cp-border mb-4">
-        <button
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === "history"
-              ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
-          }`}
-          onClick={() => handleTabChange("history")}
-        >
-          통화 이력
-        </button>
-        <button
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === "schedule"
-              ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
-          }`}
-          onClick={() => handleTabChange("schedule")}
-        >
-          통화 스케줄
-        </button>
+        <div className="flex -mb-px">
+          <button
+            className={`px-4 py-2 font-medium text-base transition-colors ${
+              activeTab === "history"
+                ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
+            }`}
+            onClick={() => handleTabChange("history")}
+          >
+            통화 이력
+          </button>
+          <button
+            className={`px-4 py-2 font-medium text-base transition-colors ${
+              activeTab === "schedule"
+                ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
+            }`}
+            onClick={() => handleTabChange("schedule")}
+          >
+            통화 스케줄
+          </button>
+        </div>
       </div>
 
       {/* 컨텐츠 영역 */}

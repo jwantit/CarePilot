@@ -129,7 +129,7 @@ function CareTargetDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={["케어 대상자", data?.name || "상세"]} />
+      <Breadcrumb items={[{ label: "케어 대상자", path: "/care-target" }, data?.name || "상세"]} />
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
           <button 

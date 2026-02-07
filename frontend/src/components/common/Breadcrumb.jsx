@@ -15,7 +15,7 @@ function Breadcrumb({ items = [], showHome = true }) {
   const breadcrumbArray = typeof items === 'string' 
     ? items.split(' > ').filter(item => item.trim())
     : Array.isArray(items) 
-    ? items.filter(item => item && item.trim())
+    ? items.filter(item => item)
     : [];
 
   // 빈 배열이면 렌더링하지 않음
@@ -24,7 +24,7 @@ function Breadcrumb({ items = [], showHome = true }) {
   }
 
   return (
-    <nav className="mb-4 flex items-center gap-2 text-sm text-cp-muted" aria-label="Breadcrumb">
+    <nav className="mb-4 flex items-center gap-2 text-base text-cp-muted" aria-label="Breadcrumb">
       {/* 홈 아이콘 */}
       {showHome && (
         <>
@@ -33,11 +33,11 @@ function Breadcrumb({ items = [], showHome = true }) {
             className="flex items-center gap-1 hover:text-teal-400 transition-colors"
             title="대시보드로 이동"
           >
-            <Home size={14} />
+            <Home size={16} />
             <span>대시보드</span>
           </Link>
           {breadcrumbArray.length > 0 && (
-            <ChevronRight size={14} className="text-cp-muted/50" />
+            <ChevronRight size={16} className="text-cp-muted/50" />
           )}
         </>
       )}
@@ -45,19 +45,29 @@ function Breadcrumb({ items = [], showHome = true }) {
       {/* 브레드크럼 항목들 */}
       {breadcrumbArray.map((item, index) => {
         const isLast = index === breadcrumbArray.length - 1;
+        const label = typeof item === 'object' ? item.label : item;
+        const path = typeof item === 'object' ? item.path : null;
+
         return (
           <React.Fragment key={index}>
             {isLast ? (
               <span className="text-cp-text font-semibold" aria-current="page">
-                {item}
+                {label}
               </span>
+            ) : path ? (
+              <Link 
+                to={path}
+                className="text-cp-muted hover:text-teal-400 transition-colors"
+              >
+                {label}
+              </Link>
             ) : (
               <span className="text-cp-muted hover:text-teal-400 transition-colors cursor-default">
-                {item}
+                {label}
               </span>
             )}
             {!isLast && (
-              <ChevronRight size={14} className="text-cp-muted/50" />
+              <ChevronRight size={16} className="text-cp-muted/50" />
             )}
           </React.Fragment>
         );

@@ -67,8 +67,8 @@ function RiskSetting() {
           <Icon size={20} className={iconColorClass || "text-teal-400"} />
         </div>
         <div>
-          <label className={`text-sm font-black block ${iconColorClass || "text-cp-text"}`}>{label}</label>
-          <p className="text-[11px] text-cp-muted mt-0.5">{description}</p>
+          <label className={`text-base font-medium block ${iconColorClass || "text-cp-text"}`}>{label}</label>
+          <p className="text-xs text-cp-muted mt-0.5">{description}</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
@@ -78,10 +78,10 @@ function RiskSetting() {
           max="100"
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-20 px-3 py-2 border border-cp-border rounded-sm bg-cp-input text-cp-text text-sm font-semibold text-center focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+          className="w-20 px-3 py-2 border border-cp-border rounded-sm bg-cp-input text-cp-text text-base font-medium text-center focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
           placeholder="0-100"
         />
-        <span className="text-sm text-cp-muted font-medium">점</span>
+        <span className="text-base text-cp-muted font-medium">점</span>
       </div>
     </div>
   );
@@ -94,7 +94,7 @@ function RiskSetting() {
           <div className="p-2 bg-teal-500/10 rounded-sm">
             <ShieldAlert className="text-teal-400" size={24} />
           </div>
-          <h1 className="text-xl font-black text-cp-text tracking-tight uppercase">위험 설정</h1>
+          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">위험 설정</h1>
         </div>
 
         <div className="p-8 space-y-10">
@@ -102,11 +102,11 @@ function RiskSetting() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
               <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
-              <h2 className="text-sm font-black text-cp-text uppercase tracking-widest">
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
                 위험 등급 기준 점수
               </h2>
             </div>
-            <p className="text-[11px] text-cp-muted -mt-2">각 등급별 기준 점수를 설정해 위험도를 결정할 수 있습니다. (0~100점)</p>
+            <p className="text-xs text-cp-muted -mt-2">각 등급별 기준 점수를 설정해 위험도를 결정할 수 있습니다. (0~100점)</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ThresholdInput
@@ -150,8 +150,8 @@ function RiskSetting() {
                   <ShieldCheck size={20} className="text-emerald-400" />
                 </div>
                 <div>
-                  <label className="text-sm font-black block text-emerald-400">낮음</label>
-                  <p className="text-[11px] text-cp-muted mt-0.5">
+                  <label className="text-base font-medium block text-emerald-400">낮음</label>
+                  <p className="text-xs text-cp-muted mt-0.5">
                     보통 기준({riskConfig.mediumThreshold ?? 50}점) 미만이면 낮음으로 분류됩니다.
                   </p>
                 </div>
@@ -164,7 +164,7 @@ function RiskSetting() {
             <button
               onClick={handleSave}
               disabled={loading}
-              className="flex items-center justify-center gap-2 px-10 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-black text-base hover:from-teal-500 hover:to-teal-600 transition-all shadow-lg shadow-teal-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 px-10 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-bold text-lg hover:from-teal-500 hover:to-teal-600 transition-all shadow-lg shadow-teal-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={20} />
               {loading ? "저장 중..." : "설정 저장하기"}

@@ -244,10 +244,10 @@ function NotificationPage() {
       <Breadcrumb items={["알림 관리"]} />
       
       {/* 탭 메뉴 */}
-      <div className="flex justify-between items-end border-b border-cp-border pb-px mb-4">
-        <div className="flex">
+      <div className="flex justify-between items-end border-b border-cp-border mb-4">
+        <div className="flex -mb-px">
           <button
-            className={`px-4 py-2 font-medium text-sm transition-colors ${
+            className={`px-4 py-2 font-medium text-base transition-colors ${
               filter === "active"
                 ? "border-b-2 border-teal-500 text-teal-400 font-bold"
                 : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
@@ -257,7 +257,7 @@ function NotificationPage() {
             활성 알림
           </button>
           <button
-            className={`px-4 py-2 font-medium text-sm transition-colors ${
+            className={`px-4 py-2 font-medium text-base transition-colors ${
               filter === "all"
                 ? "border-b-2 border-teal-500 text-teal-400 font-bold"
                 : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"

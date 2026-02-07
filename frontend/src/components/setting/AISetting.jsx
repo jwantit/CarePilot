@@ -86,7 +86,7 @@ function AISetting() {
           <Icon size={20} className="text-teal-400" />
         </div>
         <div>
-          <label className="text-sm font-black text-cp-text block">{label}</label>
+          <label className="text-base font-medium text-cp-text block">{label}</label>
         </div>
       </div>
       <label className="relative inline-flex items-center cursor-pointer">
@@ -110,7 +110,7 @@ function AISetting() {
             <div className="p-2 bg-teal-500/10 rounded-sm">
               <Bot className="text-teal-400" size={24} />
             </div>
-            <h1 className="text-xl font-black text-cp-text tracking-tight uppercase">AI 설정</h1>
+            <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">AI 설정</h1>
           </div>
           <div className="p-8">
             <div className="text-center py-8 text-cp-muted">로딩 중...</div>
@@ -128,7 +128,7 @@ function AISetting() {
           <div className="p-2 bg-teal-500/10 rounded-sm">
             <Bot className="text-teal-400" size={24} />
           </div>
-          <h1 className="text-xl font-black text-cp-text tracking-tight uppercase">AI 설정</h1>
+          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">AI 설정</h1>
         </div>
 
         <div className="p-8 space-y-10">
@@ -136,7 +136,7 @@ function AISetting() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
               <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
-              <h2 className="text-sm font-black text-cp-text uppercase tracking-widest">
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
                 AI 자동화
               </h2>
             </div>

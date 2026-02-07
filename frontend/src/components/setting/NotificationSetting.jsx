@@ -66,8 +66,8 @@ function NotificationSetting() {
           <Icon size={20} className="text-teal-400" />
         </div>
         <div>
-          <label className="text-sm font-black text-cp-text block">{label}</label>
-          <p className="text-[11px] text-cp-muted mt-0.5">{description}</p>
+          <label className="text-base font-medium text-cp-text block">{label}</label>
+          <p className="text-xs text-cp-muted mt-0.5">{description}</p>
         </div>
       </div>
       <label className="relative inline-flex items-center cursor-pointer">
@@ -90,7 +90,7 @@ function NotificationSetting() {
           <div className="p-2 bg-teal-500/10 rounded-sm">
             <Bell className="text-teal-400" size={24} />
           </div>
-          <h1 className="text-xl font-black text-cp-text tracking-tight uppercase">알림 설정</h1>
+          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">알림 설정</h1>
         </div>
 
         <div className="p-8 space-y-10">
@@ -98,7 +98,7 @@ function NotificationSetting() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
               <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
-              <h2 className="text-sm font-black text-cp-text uppercase tracking-widest">
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
                 알림 수신 방식
               </h2>
             </div>
@@ -128,7 +128,7 @@ function NotificationSetting() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
               <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
-              <h2 className="text-sm font-black text-cp-text uppercase tracking-widest">
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
                 알림 유형
               </h2>
             </div>
@@ -171,7 +171,7 @@ function NotificationSetting() {
             <button
               onClick={handleSave}
               disabled={loading}
-              className="flex items-center justify-center gap-2 px-10 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-black text-base hover:from-teal-500 hover:to-teal-600 transition-all shadow-lg shadow-teal-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 px-10 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-bold text-lg hover:from-teal-500 hover:to-teal-600 transition-all shadow-lg shadow-teal-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={20} />
               {loading ? "저장 중..." : "설정 저장하기"}

@@ -123,7 +123,7 @@ function Menu() {
               }}
             />
 
-            <span className="text-xl font-semibold text-cp-text">
+            <span className="text-2xl font-bold text-cp-text">
               Care<span className="text-teal-400">Pilot</span>
             </span>
           </Link>
@@ -135,7 +135,7 @@ function Menu() {
                 key={item.path}
                 to={item.path}
 
-                className={`px-4 py-2 text-sm font-semibold transition-colors relative ${
+                className={`px-4 py-2 text-base font-bold transition-colors relative ${
                   isActive(item.path)
                     ? 'text-teal-400 border-b-2 border-teal-400'
                     : 'text-cp-text/70 hover:text-teal-400'
@@ -187,7 +187,7 @@ function Menu() {
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
 
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-cp-text hover:text-teal-400 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-base font-bold text-cp-text hover:text-teal-400 transition-colors"
               >
                 <span>{user?.name || user?.email || "유저"}</span>
                 <svg

@@ -382,7 +382,7 @@ function ReportPage() {
           <nav className="flex gap-4">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "overview"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"
@@ -392,7 +392,7 @@ function ReportPage() {
             </button>
             <button
               onClick={() => setActiveTab("risk")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "risk"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"
@@ -402,7 +402,7 @@ function ReportPage() {
             </button>
             <button
               onClick={() => setActiveTab("call")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "call"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"
@@ -412,7 +412,7 @@ function ReportPage() {
             </button>
             <button
               onClick={() => setActiveTab("ai")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "ai"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"

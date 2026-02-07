@@ -259,7 +259,7 @@ const CareTargetGroupDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={["케어 그룹", formData?.groupName ?? "상세"]} />
+      <Breadcrumb items={[{ label: "케어 그룹", path: "/care-target-group" }, formData?.groupName ?? "상세"]} />
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
           <button
@@ -304,10 +304,10 @@ const CareTargetGroupDetailPage = () => {
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-8 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         {/* 그룹 제목 및 설명 */}
         <div className="mb-8 pb-6 border-b border-cp-border/50">
-          <h1 className="text-3xl font-black text-cp-text tracking-tight mb-3">
+          <h1 className="text-3xl font-bold text-cp-text tracking-tight mb-3">
             {formData.groupName}
           </h1>
-          <p className="text-base text-cp-muted font-medium leading-relaxed">
+          <p className="text-base text-cp-muted font-normal leading-relaxed">
             {formData.groupDescription}
           </p>
         </div>
@@ -317,18 +317,18 @@ const CareTargetGroupDetailPage = () => {
           {/* 시나리오 정보 - 전체 너비 사용 */}
           <div className="space-y-4 pb-6 border-b border-cp-border/50">
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
+              <p className="text-xs font-bold text-cp-muted uppercase tracking-widest">
                 시나리오명
               </p>
-              <p className="text-base font-bold text-cp-text break-words">
+              <p className="text-lg font-normal text-cp-text break-words">
                 {formData.scenarioName || "-"}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
+              <p className="text-xs font-bold text-cp-muted uppercase tracking-widest">
                 시나리오 설명
               </p>
-              <p className="text-base font-bold text-cp-text break-words leading-relaxed">
+              <p className="text-lg font-normal text-cp-text break-words leading-relaxed">
                 {formData.scenarioDescription || "-"}
               </p>
             </div>
@@ -350,11 +350,11 @@ const CareTargetGroupDetailPage = () => {
               { label: "그룹 생성자", value: formData.createdByName },
             ].map((item, idx) => (
               <div key={idx} className="space-y-1">
-                <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-cp-muted uppercase tracking-widest">
                   {item.label}
                 </p>
                 <p
-                  className={`text-base font-bold ${item.highlight ? "text-teal-400" : "text-cp-text"}`}
+                  className={`text-base font-normal ${item.highlight ? "text-teal-400" : "text-cp-text"}`}
                 >
                   {item.value || "-"}
                 </p>
