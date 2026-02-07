@@ -98,66 +98,13 @@ function DoughnutChart({ title, data, labels, colors }) {
     },
   };
 
-  const doughnutLabelsPlugin = {
-    id: 'doughnutLabels',
-    afterDraw(chart) {
-      const { ctx, chartArea, data, tooltip } = chart;
-      if (!chartArea || !data.datasets?.[0]?.data?.length) return;
-      
-      const activeIndex = tooltip?._active?.length > 0 ? tooltip._active[0].element.index : -1;
-
-      const values = data.datasets[0].data;
-      const total = values.reduce((a, b) => Number(a) + Number(b), 0);
-      if (total <= 0) return;
-
-      const { left, right, top, bottom } = chartArea;
-
-      const meta = chart.getDatasetMeta(0);
-      if (!meta.data?.length) return;
-
-      const centerX = (left + right) / 2;
-      const centerY = (top + bottom) / 2;
-
-      meta.data.forEach((arc, i) => {
-        if (i === activeIndex) return;
-        
-        const value = data.datasets[0].data[i];
-        if (value == null || value <= 0) return;
-
-        const midAngle = (arc.startAngle + arc.endAngle) / 2;
-        const midR = (arc.innerRadius + arc.outerRadius) / 2;
-        const labelX = centerX + midR * Math.cos(midAngle);
-        const labelY = centerY + midR * Math.sin(midAngle);
-
-        const pct = ((value / total) * 100).toFixed(1);
-        const countStr = value.toLocaleString();
-
-        ctx.save();
-        ctx.translate(labelX, labelY);
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 4;
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px sans-serif';
-        ctx.fillText(`${pct}%`, 0, -10);
-        ctx.font = 'bold 14px sans-serif';
-        ctx.fillText(countStr, 0, 10);
-        ctx.shadowBlur = 0;
-
-        ctx.restore();
-      });
-    },
-  };
-
   return (
     <div className="h-72">
       <Doughnut
         key={isDark ? 'dark' : 'light'} // 테마 변경 시 차트 강제 재렌더링
         data={chartData}
         options={options}
-        plugins={[doughnutLabelsPlugin]}
+        plugins={[]}
       />
     </div>
   );
