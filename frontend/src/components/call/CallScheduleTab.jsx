@@ -244,143 +244,158 @@ const CallScheduleTab = () => {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-sm border border-cp-border bg-cp-bg/50 p-4 shadow-sm">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold text-cp-text">
-              {monthLabel}
-            </h3>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <CustomMonthPicker
-              value={calendarMonthValue}
-              onChange={handleCalendarMonthChange}
-            />
-            <div className="flex items-center gap-1 text-sm ml-1">
-              <button
-                type="button"
-                className="h-9 rounded-sm border border-cp-border bg-cp-input px-4 text-cp-muted font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
-                onClick={() => moveMonth(-1)}
-              >
-                이전
-              </button>
-              <button
-                type="button"
-                className="h-9 rounded-sm border border-cp-border bg-cp-input px-4 text-cp-muted font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
-                onClick={() => moveMonth(1)}
-              >
-                다음
-              </button>
-              <button
-                type="button"
-                className="h-9 rounded-sm border border-teal-500/50 bg-gradient-to-br from-teal-600/20 to-teal-700/20 px-4 text-teal-400 font-bold hover:from-teal-600/30 hover:to-teal-700/30 hover:border-teal-500 transition-all shadow-md ml-1"
-                onClick={goToToday}
-              >
-                오늘
-              </button>
+      <div className="rounded-sm border border-cp-border bg-cp-card overflow-hidden shadow-sm">
+        {/* 상단 헤더 섹션 - 배경색 명확하게 차이 부여 (라이트모드 대비 강화) */}
+        <div className="bg-slate-50 dark:bg-black/40 border-b border-cp-border p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 rounded-sm bg-teal-500/10 text-teal-500 border border-teal-500/20 shadow-inner">
+                <CalendarDays size={22} />
+              </div>
+              <h3 className="text-2xl font-black text-cp-text tracking-tight">
+                {monthLabel}
+              </h3>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <CustomMonthPicker
+                value={calendarMonthValue}
+                onChange={handleCalendarMonthChange}
+              />
+              <div className="flex items-center gap-1.5 ml-1">
+                <button
+                  type="button"
+                  className="h-10 rounded-sm border border-cp-border bg-white dark:bg-cp-input px-4 text-cp-text text-sm font-bold hover:bg-slate-50 dark:hover:bg-cp-bg hover:border-teal-500/50 transition-all shadow-sm active:translate-y-0.5"
+                  onClick={() => moveMonth(-1)}
+                >
+                  이전달
+                </button>
+                <button
+                  type="button"
+                  className="h-10 rounded-sm border border-teal-500/50 bg-teal-500 text-white px-5 text-sm font-bold hover:bg-teal-600 transition-all shadow-md active:scale-95"
+                  onClick={goToToday}
+                >
+                  오늘
+                </button>
+                <button
+                  type="button"
+                  className="h-10 rounded-sm border border-cp-border bg-white dark:bg-cp-input px-4 text-cp-text text-sm font-bold hover:bg-slate-50 dark:hover:bg-cp-bg hover:border-teal-500/50 transition-all shadow-sm active:translate-y-0.5"
+                  onClick={() => moveMonth(1)}
+                >
+                  다음달
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div className="mb-2 grid grid-cols-7 gap-2 text-xs font-semibold uppercase text-cp-muted">
-          {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
-            <div key={label} className="py-1 text-center">
-              {label}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2 text-sm">
-          {calendarCells.map((cell, index) => {
-            const isToday = cell.date
-              ? isSameDay(cell.date, new Date())
-              : false;
-            const isSelected = cell.date
-              ? isSameDay(cell.date, selectedDate)
-              : false;
-            const dayKey = cell.date ? formatYMD(cell.date) : null;
-            const dayEvents = dayKey ? scheduleByDay[dayKey] || [] : [];
-            const hasSchedule = dayEvents.length > 0;
-            const isExpanded = expandedDay === dayKey;
-            const maxVisible = isExpanded ? dayEvents.length : 2;
-            const visibleEvents = dayEvents.slice(0, maxVisible);
-            const hasMore = dayEvents.length > maxVisible;
 
-            const baseClasses =
-              "flex h-24 flex-col items-start justify-start rounded border px-2 py-1 transition relative overflow-hidden";
-            const bgClass = cell.date ? "bg-cp-card" : "bg-cp-bg/50";
-            const borderClass = hasSchedule
-              ? "border-teal-500/30"
-              : "border-cp-border";
-            const selectedClass = isSelected
-              ? "border-teal-500 bg-teal-500/10"
-              : "";
-            const todayClass = isToday ? "ring-2 ring-teal-500" : "";
-            return (
-              <div
-                key={`cell-${index}`}
-                role={cell.date ? "button" : undefined}
-                tabIndex={cell.date ? 0 : -1}
-                className={`${baseClasses} ${bgClass} ${borderClass} ${selectedClass} ${todayClass} ${cell.date ? "cursor-pointer" : "cursor-not-allowed"}`}
-                onClick={() => cell.date && setSelectedDate(cell.date)}
-                onKeyDown={(e) => {
-                  if (cell.date && (e.key === "Enter" || e.key === " ")) {
-                    e.preventDefault();
-                    setSelectedDate(cell.date);
-                  }
-                }}
-              >
-                <span className="text-sm font-semibold text-cp-text mb-1">
-                  {cell.dayNumber ?? ""}
-                </span>
-                <div className="flex flex-col gap-1 w-full overflow-y-auto calendar-cell-scrollbar">
-                  {visibleEvents.map((event) => {
-                    const targetName =
-                      event.careTargetName || event.targetGroupName || "대상";
-                    // nextRunAt 우선 사용, 없으면 scheduledTime 사용
-                    const displayTime = event.nextRunAt || event.scheduledTime;
-                    const timeStr = displayTime ? displayTime.slice(-5) : "";
-                    const eventText = `${targetName} · ${timeStr}`;
-                    const fullText = event.memo
-                      ? `${eventText} - ${event.memo}`
-                      : eventText;
+        {/* 달력 본문 영역 */}
+        <div className="p-4 bg-white dark:bg-cp-card">
+          <div className="mb-3 grid grid-cols-7 gap-2 text-xs font-black uppercase text-cp-muted tracking-widest border-b border-cp-border/30 pb-2">
+            {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((label, idx) => (
+              <div key={label} className={`py-1 text-center ${idx === 0 ? 'text-red-500/80' : idx === 6 ? 'text-blue-500/80' : ''}`}>
+                {label}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-2 text-sm">
+            {calendarCells.map((cell, index) => {
+              const isToday = cell.date
+                ? isSameDay(cell.date, new Date())
+                : false;
+              const isSelected = cell.date
+                ? isSameDay(cell.date, selectedDate)
+                : false;
+              const dayKey = cell.date ? formatYMD(cell.date) : null;
+              const dayEvents = dayKey ? scheduleByDay[dayKey] || [] : [];
+              const hasSchedule = dayEvents.length > 0;
+              const isExpanded = expandedDay === dayKey;
+              const maxVisible = isExpanded ? dayEvents.length : 2;
+              const visibleEvents = dayEvents.slice(0, maxVisible);
+              const hasMore = dayEvents.length > maxVisible;
 
-                    const dotColor = getPriorityDotColor(event.priority);
+              const baseClasses =
+                "flex h-24 flex-col items-start justify-start rounded border px-2 py-1 transition relative overflow-hidden";
+              // 날짜가 없는 칸(이전/다음달 일부)과 현재 달의 칸 배경색 구분 (라이트모드 명확화)
+              const bgClass = cell.date 
+                ? (isToday ? "bg-teal-50 dark:bg-teal-950/30" : "bg-white dark:bg-white/5") 
+                : "bg-slate-100 dark:bg-black/20 opacity-60";
+              
+              const borderClass = isSelected
+                ? "border-teal-500 ring-1 ring-teal-500/30"
+                : hasSchedule
+                  ? "border-teal-500/40"
+                  : "border-cp-border/60";
+              
+              const todayClass = isToday ? "border-teal-500/50 dark:border-teal-500/20 border-2" : "";
+              
+              return (
+                <div
+                  key={`cell-${index}`}
+                  role={cell.date ? "button" : undefined}
+                  tabIndex={cell.date ? 0 : -1}
+                  className={`${baseClasses} ${bgClass} ${borderClass} ${todayClass} ${cell.date ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-white/10" : "cursor-not-allowed"}`}
+                  onClick={() => cell.date && setSelectedDate(cell.date)}
+                  onKeyDown={(e) => {
+                    if (cell.date && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      setSelectedDate(cell.date);
+                    }
+                  }}
+                >
+                  <span className={`text-sm font-bold mb-1 ${isToday ? 'text-teal-500' : (cell.date ? 'text-cp-text' : 'text-cp-muted')}`}>
+                    {cell.dayNumber ?? ""}
+                  </span>
+                  <div className="flex flex-col gap-1 w-full overflow-y-auto calendar-cell-scrollbar">
+                    {visibleEvents.map((event) => {
+                      const targetName =
+                        event.careTargetName || event.targetGroupName || "대상";
+                      // nextRunAt 우선 사용, 없으면 scheduledTime 사용
+                      const displayTime = event.nextRunAt || event.scheduledTime;
+                      const timeStr = displayTime ? displayTime.slice(-5) : "";
+                      const eventText = `${targetName} · ${timeStr}`;
+                      const fullText = event.memo
+                        ? `${eventText} - ${event.memo}`
+                        : eventText;
 
-                    return (
-                      <div
-                        key={event.scheduleId}
-                        className="flex items-center gap-1.5 min-w-0 cursor-pointer group hover:opacity-90 transition"
-                        title={fullText}
+                      const dotColor = getPriorityDotColor(event.priority);
+
+                      return (
+                        <div
+                          key={event.scheduleId}
+                          className="flex items-center gap-1.5 min-w-0 cursor-pointer group hover:opacity-90 transition bg-slate-100 dark:bg-black/20 px-1.5 py-0.5 rounded-sm"
+                          title={fullText}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(event);
+                          }}
+                        >
+                          <span
+                            className={`shrink-0 w-1.5 h-1.5 rounded-full ${dotColor}`}
+                            aria-hidden
+                          />
+                          <span className="text-[12px] text-cp-text truncate min-w-0 font-bold">
+                            {targetName} / {timeStr || "시간 미정"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {hasMore && (
+                      <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEdit(event);
+                          setExpandedDay(isExpanded ? null : dayKey);
                         }}
+                        className="text-[9px] text-teal-500 hover:text-teal-400 font-bold px-1 py-0.5 rounded-none hover:bg-teal-500/10 transition"
                       >
-                        <span
-                          className={`shrink-0 w-2 h-2 rounded-full ${dotColor} group-hover:ring-2 group-hover:ring-cp-muted/50`}
-                          aria-hidden
-                        />
-                        <span className="text-[10px] text-cp-text truncate min-w-0">
-                          {targetName} / {timeStr || "시간 미정"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {hasMore && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedDay(isExpanded ? null : dayKey);
-                      }}
-                      className="text-[9px] text-teal-400 hover:text-teal-300 font-medium px-1 py-0.5 rounded-none hover:bg-teal-500/10 transition"
-                    >
-                      +{dayEvents.length - maxVisible}개 더보기
-                    </button>
-                  )}
+                        +{dayEvents.length - maxVisible}개 더보기
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
