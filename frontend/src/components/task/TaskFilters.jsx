@@ -4,13 +4,13 @@ import {
   PRIORITY_OPTIONS,
   TASK_TYPE_OPTIONS,
 } from "../../utils/taskLabel";
-import { Filter, Plus } from "lucide-react";
+import { Filter, Plus, RotateCcw } from "lucide-react";
 
 const inputClass =
   "rounded-sm border border-cp-border bg-cp-input px-3 py-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
 const labelClass = "text-xs font-semibold text-cp-muted uppercase tracking-wider";
 
-const TaskFilters = ({ filters, updateFilter, staffList, onAddClick }) => {
+const TaskFilters = ({ filters, updateFilter, staffList, onAddClick, onReset }) => {
   return (
     <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 mb-6 shadow-lg rounded-sm">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -74,6 +74,17 @@ const TaskFilters = ({ filters, updateFilter, staffList, onAddClick }) => {
                 </option>
               ))}
           </select>
+
+          {onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="h-9 flex items-center gap-1.5 px-4 bg-cp-input hover:bg-cp-bg text-cp-muted text-sm font-semibold border border-cp-border hover:border-cp-border hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <RotateCcw size={14} />
+              초기화
+            </button>
+          )}
         </div>
         {onAddClick && (
           <button

@@ -152,6 +152,10 @@ export const useTaskList = () => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  const resetFilters = () => {
+    setFilters({ ...defaultFilters });
+  };
+
   return {
     taskList,
     staffList,
@@ -159,6 +163,7 @@ export const useTaskList = () => {
     filters,
     setFilters,
     updateFilter,
+    resetFilters,
     fetchTasks,
     handleCreateTask,
     handleUpdateTask,

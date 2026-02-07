@@ -8,7 +8,7 @@ import StatCardGrid from "../common/StatCardGrid";
 import { Cpu, Clock, CheckCircle, XCircle } from "lucide-react";
 
 const AITaskListTab = () => {
-  const { aiTaskList, loading, filters, updateFilter } = useAITaskList();
+  const { aiTaskList, loading, filters, updateFilter, resetFilters } = useAITaskList();
   const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   const aiStats = useMemo(() => {
@@ -41,7 +41,7 @@ const AITaskListTab = () => {
 
   return (
     <>
-      <AITaskFilters filters={filters} updateFilter={updateFilter} />
+      <AITaskFilters filters={filters} updateFilter={updateFilter} onReset={resetFilters} />
       <AITaskTable
         aiTaskList={aiTaskList}
         onDetail={(taskId) => setSelectedTaskId(taskId)}
