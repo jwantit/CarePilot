@@ -9,7 +9,7 @@ import {
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import BulkUploadModal from "../../components/common/BulkUploadModal";
-import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle } from "lucide-react";
+import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle, RotateCcw } from "lucide-react";
 
 const inputClass =
   "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
@@ -75,6 +75,14 @@ function DoctorManagement() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      role: "",
+      isActive: "",
+      name: "",
+    });
   };
 
   const handleOpenModal = (doctor = null) => {
@@ -226,8 +234,8 @@ function DoctorManagement() {
 
       {/* 필터 섹션 */}
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               역할
             </label>
@@ -244,7 +252,7 @@ function DoctorManagement() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
@@ -259,7 +267,7 @@ function DoctorManagement() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-[2] min-w-[200px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               이름 검색
             </label>
@@ -268,9 +276,18 @@ function DoctorManagement() {
               value={filters.name}
               onChange={(e) => handleFilterChange("name", e.target.value)}
               placeholder="이름으로 검색"
-              className="w-full px-4 py-2 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="w-full h-9 px-4 border border-cp-border rounded-none bg-cp-input text-cp-text text-sm placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <RotateCcw size={14} />
+            전체보기
+          </button>
         </div>
       </div>
 
@@ -327,10 +344,10 @@ function DoctorManagement() {
                     </div>
                     <div className="flex items-center justify-center h-full">
                       <span
-                        className={`px-2.5 py-1 text-xs rounded-full border ${
+                        className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${
                           doctor.isActive
-                            ? "bg-teal-500/20 text-teal-400 border-teal-500/50"
-                            : "bg-cp-bg/50 text-cp-muted border-cp-border"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50"
+                            : "bg-cp-bg text-cp-text border border-cp-border dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border"
                         }`}
                       >
                         {getStatusLabel(doctor.isActive)}

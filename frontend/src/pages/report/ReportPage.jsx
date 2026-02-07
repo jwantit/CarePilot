@@ -361,10 +361,10 @@ function ReportPage() {
 
           <button
             onClick={handleReset}
-            className="h-9 flex items-center gap-1.5 px-5 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-none"
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
           >
             <RotateCcw size={14} />
-            초기화
+            전체보기
           </button>
 
           <div className="flex-1" />

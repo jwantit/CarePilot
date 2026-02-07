@@ -8,7 +8,7 @@ import {
 } from "../../api/scenarioApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { getRiskLevelLabel } from "../../utils/riskLevelStyles";
+import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";
 import { 
   X, 
   PlusCircle, 
@@ -17,7 +17,8 @@ import {
   ShieldCheck, 
   HelpCircle,
   Trash2,
-  Plus
+  Plus,
+  RotateCcw
 } from "lucide-react";
 
 const inputClass =
@@ -79,6 +80,14 @@ function ScenarioSetting() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      status: "전체",
+      riskLevel: "전체",
+      category: "전체",
+    });
   };
 
   const handleOpenModal = async (scenario = null) => {
@@ -271,8 +280,8 @@ function ScenarioSetting() {
 
       {/* 필터 섹션 */}
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
@@ -286,7 +295,7 @@ function ScenarioSetting() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               위험 단계
             </label>
@@ -303,7 +312,7 @@ function ScenarioSetting() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               카테고리
             </label>
@@ -318,6 +327,15 @@ function ScenarioSetting() {
               <option value="질병별 모니터링" className="bg-cp-card">질병별 모니터링</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <RotateCcw size={14} />
+            전체보기
+          </button>
         </div>
       </div>
 
@@ -362,7 +380,9 @@ function ScenarioSetting() {
                       </span>
                     </div>
                     <div className="flex items-center justify-center h-full">
-                      <span className="text-cp-text text-base">
+                      <span
+                        className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(scenario.riskLevel)}`}
+                      >
                         {getRiskLevelLabel(scenario.riskLevel)}
                       </span>
                     </div>
@@ -677,8 +697,10 @@ function ScenarioSetting() {
 
                 <div>
                   <label className={labelClass}>위험 레벨</label>
-                  <div className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30">
-                    <span className="text-cp-text">
+                  <div className="flex">
+                    <span
+                      className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(selectedScenario.riskLevel)}`}
+                    >
                       {getRiskLevelLabel(selectedScenario.riskLevel)}
                     </span>
                   </div>

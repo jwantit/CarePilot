@@ -43,10 +43,10 @@ const AITaskFilters = ({ filters, updateFilter, onReset }) => {
           <button
             type="button"
             onClick={onReset}
-            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input hover:bg-cp-bg text-cp-muted text-sm font-semibold border border-cp-border hover:border-cp-border hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="h-[38px] flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <RotateCcw size={14} />
-            초기화
+            전체보기
           </button>
         )}
       </div>

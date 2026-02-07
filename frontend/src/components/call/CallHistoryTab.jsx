@@ -4,6 +4,7 @@ import { API_SERVER_HOST } from "../../api/apiClient";
 import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
 import { useAuth } from "../../hooks/useAuth";
 import Loading from "../common/Loading";
+import { RotateCcw } from "lucide-react";
 import {
   getRiskLevelLabel,
   getRiskLevelStyle,
@@ -290,9 +291,10 @@ const CallHistoryTab = () => {
                   setFilterResult("");
                   setFilterRiskLevel("");
                 }}
-                className="h-9 flex items-center gap-1.5 px-4 bg-cp-input hover:bg-cp-bg text-cp-muted text-sm font-semibold border border-cp-border hover:border-cp-border hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
-                초기화
+                <RotateCcw size={14} />
+                전체보기
               </button>
             </div>
           </div>

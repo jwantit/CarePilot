@@ -17,12 +17,12 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
   // 상태 색상 (기존 프로젝트 스타일에 맞춤)
   const getStatusColor = (status) => {
     const colorMap = {
-      ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-      WAITING: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-      DENIED: 'bg-red-500/10 text-red-400 border-red-500/30',
-      DISABLED: 'bg-cp-bg/50 text-cp-muted border-cp-border'
+      ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50',
+      WAITING: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50',
+      DENIED: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50',
+      DISABLED: 'bg-cp-bg text-cp-text border border-cp-border dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border'
     };
-    return colorMap[status] || 'bg-cp-bg text-cp-text border-cp-border';
+    return colorMap[status] || 'bg-cp-bg text-cp-text border border-cp-border dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border';
   };
 
   // 권한 한글 변환
@@ -166,7 +166,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <span className={`inline-block px-2.5 py-1 rounded-sm text-[11px] font-black border ${getStatusColor(member.status)} whitespace-nowrap`}>
+                  <span className={`inline-block px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getStatusColor(member.status)} whitespace-nowrap`}>
                     {getStatusLabel(member.status)}
                   </span>
                 </td>
