@@ -33,12 +33,11 @@ const formatDateTime = (dateString) => {
   if (!dateString) return '-';
   try {
     const date = new Date(dateString);
-    const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
+    return `${month}-${day} ${hours}:${minutes}`;
   } catch (error) {
     return dateString;
   }
@@ -72,7 +71,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
     if (!rowData) return null;
     const severityBadge = getSeverityBadge(rowData.severity);
     return (
-      <div className="px-4 py-3 whitespace-nowrap h-full flex items-center">
+      <div className="px-4 py-3 whitespace-nowrap h-full flex items-center justify-center w-full">
         <span className={`inline-block px-2 py-1 rounded-sm text-[11px] font-black border ${severityBadge.color}`}>
           {severityBadge.label}
         </span>
@@ -83,8 +82,8 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const titleCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm font-bold text-cp-text whitespace-nowrap truncate h-full flex items-center">
-        {rowData.title || '-'}
+      <div className="px-4 py-3 text-sm text-cp-text h-full flex items-center justify-center w-full overflow-hidden">
+        <span className="truncate">{rowData.title || '-'}</span>
       </div>
     );
   };
@@ -92,8 +91,8 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const descriptionCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-cp-muted truncate h-full flex items-center">
-        {rowData.description || '-'}
+      <div className="px-4 py-3 text-sm text-cp-muted h-full flex items-center justify-center w-full overflow-hidden">
+        <span className="truncate">{rowData.description || '-'}</span>
       </div>
     );
   };
@@ -101,8 +100,8 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const careTargetCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-cp-text whitespace-nowrap font-bold h-full flex items-center">
-        {rowData.careTarget?.name || '-'}
+      <div className="px-4 py-3 text-sm text-cp-text h-full flex items-center justify-center w-full overflow-hidden">
+        <span className="truncate">{rowData.careTarget?.name || '-'}</span>
       </div>
     );
   };
@@ -110,8 +109,8 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const typeCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-cp-text whitespace-nowrap font-bold h-full flex items-center">
-        {getTypeLabel(rowData.type)}
+      <div className="px-4 py-3 text-sm text-cp-text h-full flex items-center justify-center w-full overflow-hidden">
+        <span className="truncate">{getTypeLabel(rowData.type)}</span>
       </div>
     );
   };
@@ -119,7 +118,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
   const occurredAtCellRenderer = ({ rowData }) => {
     if (!rowData) return null;
     return (
-      <div className="px-4 py-3 text-sm text-cp-muted whitespace-nowrap font-mono h-full flex items-center">
+      <div className="px-4 py-3 text-sm text-cp-muted whitespace-nowrap font-mono h-full flex items-center justify-center w-full">
         {formatDateTime(rowData.occurredAt)}
       </div>
     );
@@ -136,7 +135,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               e.stopPropagation();
               handleConfirm(e, rowData.notificationId);
             }}
-            className="px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 text-white text-xs font-black rounded-sm border border-teal-500 hover:from-teal-500 hover:to-teal-600 transition-all shadow-md active:scale-95"
+            className="px-4 py-2 bg-gradient-to-br from-teal-600 to-teal-700 text-white text-sm font-black rounded-sm border border-teal-500 hover:from-teal-500 hover:to-teal-600 transition-all shadow-md active:scale-95"
           >
             확인
           </button>
@@ -159,7 +158,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
   const headerRenderer = ({ label }) => {
     return (
-      <div className="flex items-center justify-center w-full h-full text-[11px] font-black text-white dark:text-teal-400 uppercase tracking-widest">
+      <div className="flex items-center justify-center w-full h-full text-sm font-semibold text-white dark:text-cp-text uppercase tracking-wider">
         {label}
       </div>
     );
@@ -167,7 +166,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
 
   // 동적 row height 계산 (내용에 따라)
   const getRowHeight = ({ index }) => {
-    return 64; // 고정 높이 약간 증가
+    return 60; // 다른 테이블 행 높이(min-h-[60px])와 일치
   };
 
   if (notifications.length === 0) {
@@ -185,7 +184,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
       <style>
         {`
           .ReactVirtualized__Table__headerRow {
-            background-color: var(--input-bg) !important;
+            background-color: var(--bg-header) !important;
             border-bottom: 2px solid rgba(20, 184, 166, 0.3) !important;
             display: flex !important;
             align-items: center !important;
@@ -214,7 +213,7 @@ function NotificationTable({ notifications, onMarkAsRead, currentUserId }) {
               height={height}
               headerHeight={48}
               headerStyle={{ 
-                backgroundColor: 'var(--input-bg)', 
+                backgroundColor: 'var(--bg-header)', 
                 borderBottom: '2px solid rgba(20, 184, 166, 0.3)',
                 display: 'flex',
                 alignItems: 'center',

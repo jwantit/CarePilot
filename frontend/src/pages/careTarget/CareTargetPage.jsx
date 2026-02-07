@@ -262,25 +262,25 @@ function CareTargetPage() {
               전체선택
             </button>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>프로필 사진</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>이름</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>성별</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>나이</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>연락처</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>질환</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-white dark:text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>위험도</span>
           </div>
         </div>

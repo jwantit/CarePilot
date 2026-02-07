@@ -70,6 +70,16 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
     }
   };
 
+  const getRecurrenceLabel = (s) => {
+    if (s.type !== '반복') return '일회성';
+    const recurrenceMap = {
+      'DAILY': '일간 반복',
+      'WEEKLY': '주간 반복',
+      'MONTHLY': '월간 반복'
+    };
+    return recurrenceMap[s.recurrence] || `${s.recurrence || ''} 반복`;
+  };
+
   return (
     <>
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border shadow-lg hover:shadow-xl transition-shadow overflow-hidden flex flex-col h-[600px] rounded-sm">
@@ -110,86 +120,83 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
               <p className="text-cp-muted text-sm font-mono">// 등록된 스케줄이 없습니다.</p>
             </div>
           ) : (
-            <table className="w-full border-separate border-spacing-0">
-              <thead className="sticky top-0 bg-cp-header border-b-2 border-teal-500/30 z-10">
-                <tr className="text-xs font-semibold text-white dark:text-cp-muted text-left">
-                  <th className="px-8 py-3.5 text-white dark:text-teal-400">유형 / 반복 정보</th>
-                  <th className="px-8 py-3.5 text-white dark:text-teal-400">시작 일시</th>
-                  <th className="px-8 py-3.5 text-white dark:text-teal-400">우선도</th>
-                  <th className="px-8 py-3.5 text-white dark:text-teal-400">메모</th>
-                  <th className="px-8 py-3.5 text-white dark:text-teal-400">상태</th>
-                  <th className="px-8 py-3.5 text-right text-white dark:text-teal-400">관리</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-cp-border text-left">
+            <div className="w-full">
+              {/* 헤더 - CareTarget 스타일 동일 적용 (6열) */}
+              <div className="grid grid-cols-6 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px] sticky top-0 z-10">
+                <div className="text-white dark:text-teal-400">유형 / 반복 정보</div>
+                <div className="text-white dark:text-teal-400">시작 일시</div>
+                <div className="text-white dark:text-teal-400">우선도</div>
+                <div className="text-white dark:text-teal-400">메모</div>
+                <div className="text-white dark:text-teal-400">상태</div>
+                <div className="text-white dark:text-teal-400">관리</div>
+              </div>
+
+              {/* 데이터 행 */}
+              <div className="">
                 {schedules.map((s, idx) => (
-                  <tr 
-                    key={s.scheduleId || idx} 
+                  <div
+                    key={s.scheduleId || idx}
                     onClick={() => { setSelectedSchedule(s); setIsModalOpen(true); }}
-                    className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50 cursor-pointer"
+                    className="grid grid-cols-6 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
                   >
                     {/* 유형 및 반복상세 */}
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col gap-1">
-                        <span className={`text-[11px] font-black flex items-center gap-1.5 ${s.type === '반복' ? 'text-teal-400' : 'text-cp-muted'}`}>
-                          {s.type === '반복' ? <RefreshCcw size={12} strokeWidth={3}/> : <Clock size={12} strokeWidth={3}/>}
-                          {s.type}
-                        </span>
-                        {s.type === '반복' && (
-                          <div className="flex flex-col text-[10px] font-bold text-cp-muted">
-                            <span>주기: {s.recurrence || '-'}</span>
-                            <span className="text-[9px] text-cp-muted/60 font-medium">종료: {s.recurrenceEndDate || '기한없음'}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
+                    <div className="flex items-center justify-center h-full">
+                      <span className={`text-xs ${s.type === '반복' ? 'text-teal-400' : 'text-cp-muted'}`}>
+                        {getRecurrenceLabel(s)}
+                      </span>
+                    </div>
+
                     {/* 시작 일시 */}
-                    <td className="px-8 py-5">
-                      <span className="text-sm font-bold text-cp-text block">{s.scheduledTime}</span>
-                    </td>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-sm text-cp-text">{s.scheduledTime}</span>
+                    </div>
+
                     {/* 우선도 */}
-                    <td className="px-8 py-5">
-                      <span className="text-[10px] font-black text-cp-text bg-cp-input px-2.5 py-1 rounded-sm border border-cp-border shadow-sm">
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-[13px] text-cp-text bg-cp-input px-3 py-1.5 rounded-sm border border-cp-border shadow-sm">
                         {s.priority}
                       </span>
-                    </td>
+                    </div>
+
                     {/* 메모 */}
-                    <td className="px-8 py-5">
-                      <p className="text-sm text-cp-muted truncate max-w-[180px] font-medium" title={s.memo}>
+                    <div className="flex items-center justify-center h-full px-2">
+                      <p className="text-sm text-cp-muted truncate w-full" title={s.memo}>
                         {s.memo || <span className="text-cp-muted/40">-</span>}
                       </p>
-                    </td>
+                    </div>
+
                     {/* 상태 */}
-                    <td className="px-8 py-5">
-                      <span className={`px-2.5 py-1 rounded-sm text-[10px] font-black border ${getStatusStyle(s.scheduleStatus)} shadow-sm`}>
+                    <div className="flex items-center justify-center h-full">
+                      <span className={`px-3 py-1.5 rounded-sm text-[13px] border ${getStatusStyle(s.scheduleStatus)} shadow-sm`}>
                         {s.scheduleStatus}
                       </span>
-                    </td>
-                    {/* 관리 버튼: ADMIN 혹은 MANAGER일 때만 노출 */}
-                    <td className="px-8 py-5 text-right">
+                    </div>
+
+                    {/* 관리 버튼 */}
+                    <div className="flex justify-center gap-1.5">
                       {(role === 'ADMIN' || role === 'MANAGER') ? (
-                        <div className="flex justify-end gap-1">
+                        <div className="flex justify-center gap-1.5">
                           <button 
                             onClick={(e) => { e.stopPropagation(); setSelectedSchedule(s); setIsModalOpen(true); }} 
-                            className="p-2 text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 rounded-sm transition-all border border-orange-500/30 hover:border-orange-500/50 shadow-sm hover:shadow-md"
+                            className="cp-link-blue"
                           >
-                            <Edit2 size={16} />
+                            수정
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleDelete(s.scheduleId); }} 
-                            className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-sm transition-all border border-red-500/30 hover:border-red-500/50 shadow-sm hover:shadow-md"
+                            className="cp-link-red"
                           >
-                            <Trash2 size={16} />
+                            삭제
                           </button>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-cp-muted font-bold italic">권한 없음</span>
+                        <span className="text-xs text-cp-muted italic">권한 없음</span>
                       )}
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
           )}
         </div>
       </div>

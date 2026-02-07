@@ -40,77 +40,71 @@ const AITaskTable = ({ aiTaskList, onDetail }) => {
 
   return (
     <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-xl">
-      <div className="overflow-x-auto">
-        <table className="w-full table-fixed text-sm">
-          <thead className="bg-cp-header border-b-2 border-teal-500/30">
-            <tr>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[15%]">
-                유형
-              </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[10%]">
-                상태
-              </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[12%]">
-                케어대상
-              </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[20%]">
-                결과 요약
-              </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[15%]">
-                시작 시각
-              </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[15%]">
-                완료 시각
-              </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider w-[8%]">
-                관리
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-cp-border">
-            {aiTaskList.map((row) => (
-              <tr
-                key={row.taskId}
-                onClick={() => onDetail && onDetail(row.taskId)}
-                className="bg-cp-card/30 hover:bg-cp-bg/50 transition-colors cursor-pointer"
+      {/* 테이블 헤더 - CareTarget 스타일 동일 적용 (6열) */}
+      <div className="grid grid-cols-6 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+        <div className="text-white dark:text-teal-400">유형</div>
+        <div className="text-white dark:text-teal-400">상태</div>
+        <div className="text-white dark:text-teal-400">케어대상</div>
+        <div className="text-white dark:text-teal-400">결과 요약</div>
+        <div className="text-white dark:text-teal-400">시작 시각</div>
+        <div className="text-white dark:text-teal-400">완료 시각</div>
+      </div>
+
+      {/* 데이터 행 */}
+      <div className="">
+        {aiTaskList.map((row) => (
+          <div
+            key={row.taskId}
+            onClick={() => onDetail && onDetail(row.taskId)}
+            className="grid grid-cols-6 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
+          >
+            {/* 유형 */}
+            <div className="flex items-center justify-center h-full">
+              <span className="text-cp-text text-base">
+                {getAITaskTypeLabel(row.type)}
+              </span>
+            </div>
+
+            {/* 상태 */}
+            <div className="flex items-center justify-center h-full">
+              <span
+                className={`inline-block px-2.5 py-1 rounded text-[11px] font-bold border ${getAITaskStatusStyle(
+                  row.status
+                )}`}
               >
-                <td className="px-4 py-3 text-cp-text">
-                  {getAITaskTypeLabel(row.type)}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${getAITaskStatusStyle(
-                      row.status
-                    )}`}
-                  >
-                    {getAITaskStatusLabel(row.status)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-cp-muted truncate">
-                  {row.careTargetName || "-"}
-                </td>
-                <td className="px-4 py-3 text-cp-muted truncate" title={row.resultSummary}>
-                  {row.resultSummary || "-"}
-                </td>
-                <td className="px-4 py-3 text-cp-muted whitespace-nowrap text-xs">
-                  {formatDateTime(row.startedAt)}
-                </td>
-                <td className="px-4 py-3 text-cp-muted whitespace-nowrap text-xs">
-                  {formatDateTime(row.completedAt)}
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onDetail && onDetail(row.taskId); }}
-                    className="cp-link-muted"
-                  >
-                    상세
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                {getAITaskStatusLabel(row.status)}
+              </span>
+            </div>
+
+            {/* 케어대상 */}
+            <div className="flex items-center justify-center h-full overflow-hidden">
+              <span className="text-cp-text text-base truncate w-full">
+                {row.careTargetName || "-"}
+              </span>
+            </div>
+
+            {/* 결과 요약 */}
+            <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+              <span className="text-cp-text text-base truncate w-full" title={row.resultSummary}>
+                {row.resultSummary || "-"}
+              </span>
+            </div>
+
+            {/* 시작 시각 */}
+            <div className="flex items-center justify-center h-full">
+              <span className="text-cp-text text-base font-mono">
+                {formatDateTime(row.startedAt)}
+              </span>
+            </div>
+
+            {/* 완료 시각 */}
+            <div className="flex items-center justify-center h-full">
+              <span className="text-cp-text text-base font-mono">
+                {formatDateTime(row.completedAt)}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

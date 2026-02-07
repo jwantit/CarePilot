@@ -275,76 +275,68 @@ function DoctorManagement() {
       </div>
 
       {/* 테이블 */}
-      <div className="bg-cp-card border border-cp-border rounded-none overflow-hidden shadow-lg">
+      <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-cp-border">
-            <thead className="bg-cp-header">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  이름
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  이메일
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  전문과
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  역할
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  상태
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cp-border">
+          <div className="w-full">
+            {/* 헤더 - CareTarget 스타일 동일 적용 (6열) */}
+            <div className="grid grid-cols-6 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+              <div className="text-white dark:text-teal-400">이름</div>
+              <div className="text-white dark:text-teal-400">이메일</div>
+              <div className="text-white dark:text-teal-400">전문과</div>
+              <div className="text-white dark:text-teal-400">역할</div>
+              <div className="text-white dark:text-teal-400">상태</div>
+              <div className="text-white dark:text-teal-400">관리</div>
+            </div>
+
+            {/* 데이터 행 */}
+            <div className="">
               {doctors.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-4 text-center text-cp-muted"
-                  >
-                    등록된 의료진이 없습니다.
-                  </td>
-                </tr>
+                <div className="py-20 text-center text-cp-muted bg-cp-card/30">
+                  등록된 의료진이 없습니다.
+                </div>
               ) : (
                 doctors.map((doctor) => (
-                  <tr
+                  <div
                     key={doctor.doctorId}
                     onClick={() => handleOpenModal(doctor)}
-                    className="hover:bg-cp-bg/50 transition cursor-pointer"
+                    className="grid grid-cols-6 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
-                      {doctor.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {doctor.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {doctor.specialty || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {getRoleLabel(doctor.role)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate">
+                        {doctor.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate">
+                        {doctor.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-cp-text text-base">
+                        {doctor.specialty || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-cp-text text-base">
+                        {getRoleLabel(doctor.role)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
+                        className={`px-2.5 py-1 text-xs rounded-full border ${
                           doctor.isActive
-                            ? "bg-teal-500/20 text-teal-400 border border-teal-500/50"
-                            : "bg-cp-bg/50 text-cp-muted border border-cp-border"
+                            ? "bg-teal-500/20 text-teal-400 border-teal-500/50"
+                            : "bg-cp-bg/50 text-cp-muted border-cp-border"
                         }`}
                       >
                         {getStatusLabel(doctor.isActive)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    </div>
+                    <div className="flex items-center justify-center h-full gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -363,12 +355,12 @@ function DoctorManagement() {
                       >
                         삭제
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
       </div>
 

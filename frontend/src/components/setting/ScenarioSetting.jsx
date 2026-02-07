@@ -322,86 +322,67 @@ function ScenarioSetting() {
       </div>
 
       {/* 테이블 */}
-      <div className="bg-cp-card border border-cp-border rounded-none overflow-hidden shadow-lg">
+      <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-cp-border">
-            <thead className="bg-cp-header">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  시나리오명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  설명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  위험 레벨
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  사용 여부
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-white dark:text-teal-400 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cp-border">
+          <div className="w-full">
+            {/* 헤더 - CareTarget 스타일 동일 적용 (5열) */}
+            <div className="grid grid-cols-5 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+              <div className="text-white dark:text-teal-400">시나리오명</div>
+              <div className="text-white dark:text-teal-400">설명</div>
+              <div className="text-white dark:text-teal-400">위험 레벨</div>
+              <div className="text-white dark:text-teal-400">사용 여부</div>
+              <div className="text-white dark:text-teal-400">관리</div>
+            </div>
+
+            {/* 데이터 행 */}
+            <div className="">
               {scenarios.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="px-6 py-4 text-center text-cp-muted"
-                  >
-                    등록된 시나리오가 없습니다.
-                  </td>
-                </tr>
+                <div className="py-20 text-center text-cp-muted bg-cp-card/30">
+                  등록된 시나리오가 없습니다.
+                </div>
               ) : (
                 scenarios.map((scenario) => (
-                  <tr
+                  <div
                     key={scenario.scenarioId}
                     onClick={() => handleOpenDetailModal(scenario.scenarioId)}
-                    className="hover:bg-cp-bg/50 transition cursor-pointer"
+                    className="grid grid-cols-5 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
-                      {scenario.name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-cp-text max-w-md truncate">
-                      {scenario.description}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {getRiskLevelLabel(scenario.riskLevel)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate w-full">
+                        {scenario.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-sm truncate w-full" title={scenario.description}>
+                        {scenario.description || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-cp-text text-base">
+                        {getRiskLevelLabel(scenario.riskLevel)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full" onClick={(e) => e.stopPropagation()}>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
                           checked={scenario.enabled}
-                          onChange={(e) => {
-                            e.stopPropagation();
+                          onChange={(e) =>
                             handleToggleEnabled(
                               scenario.scenarioId,
                               e.target.checked,
-                            );
-                          }}
-                          onClick={(e) => e.stopPropagation()}
+                            )
+                          }
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-cp-bg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDetailModal(scenario.scenarioId);
-                        }}
-                        className="cp-link-muted"
-                      >
-                        상세
-                      </button>
+                    </div>
+                    <div className="flex items-center justify-center h-full gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -420,12 +401,12 @@ function ScenarioSetting() {
                       >
                         삭제
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
       </div>
 

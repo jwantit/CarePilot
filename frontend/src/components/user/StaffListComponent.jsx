@@ -137,7 +137,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                 className="hover:bg-cp-bg/30 transition-colors bg-cp-card/30"
               >
                 <td className="px-6 py-4 whitespace-nowrap overflow-hidden text-center">
-                  <div className="text-sm font-bold text-cp-text truncate">
+                  <div className="text-sm text-cp-text truncate">
                     {member.name}
                   </div>
                 </td>
@@ -153,12 +153,12 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                 </td>
                 <td className="px-6 py-4 text-center">
                   {member.role === 'ADMIN' ? (
-                    <span className="text-sm text-cp-text font-bold whitespace-nowrap">{getRoleLabel(member.role)}</span>
+                    <span className="text-sm text-cp-text whitespace-nowrap">{getRoleLabel(member.role)}</span>
                   ) : (
                     <select
                       value={member.role}
                       onChange={(e) => handleRoleChange(member.userId, e.target.value, member.role)}
-                      className="bg-cp-input border border-cp-border rounded-sm px-3 py-1.5 text-xs text-cp-text font-bold focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                      className="bg-cp-input border border-cp-border rounded-sm px-3 py-1.5 text-xs text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
                     >
                       <option value="USER">일반 사용자</option>
                       <option value="MANAGER">매니저</option>
@@ -181,7 +181,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-1.5">
                     {member.status === 'WAITING' && (
                       <>
                         <button
@@ -205,7 +205,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {member.status === 'ACTIVE' && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="px-3 py-1.5 bg-cp-bg hover:bg-cp-card text-amber-400 text-xs font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
+                        className="px-4 py-2 bg-cp-bg hover:bg-cp-card text-amber-400 text-sm font-bold rounded-sm border border-amber-500/30 hover:border-amber-500 transition-all shadow-md active:scale-95"
                         title="탈퇴 처리"
                       >
                         탈퇴 처리
@@ -214,7 +214,7 @@ const StaffListComponent = ({ staff, onStatusUpdate, onRoleUpdate }) => {
                     {(member.status === 'DENIED' || member.status === 'DISABLED') && (
                       <button
                         onClick={() => handleStatusClick(member.userId, member.status)}
-                        className="px-3 py-1.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-xs font-black rounded-sm border border-teal-500 transition-all shadow-md active:scale-95"
+                        className="px-4 py-2 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-sm font-black rounded-sm border border-teal-500 transition-all shadow-md active:scale-95"
                         title="복구"
                       >
                         복구

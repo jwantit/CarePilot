@@ -84,7 +84,7 @@ const NoticeList = ({ notices, onDetail }) => {
                           className="text-teal-400 fill-teal-400/20 rotate-45 shrink-0"
                         />
                       )}
-                      <span className="text-cp-text font-bold text-base truncate max-w-lg group-hover:text-teal-400 transition-colors">
+                      <span className="text-cp-text text-base truncate max-w-lg group-hover:text-teal-400 transition-colors">
                         {notice.title}
                       </span>
                       {notice.files && notice.files.length > 0 && (
@@ -96,14 +96,14 @@ const NoticeList = ({ notices, onDetail }) => {
                       {notice.commentCount > 0 && (
                         <div className="flex items-center gap-1.5 text-teal-500 bg-teal-500/10 px-2 py-0.5 rounded-sm border border-teal-500/20">
                           <MessageSquare size={14} />
-                          <span className="text-xs font-black font-mono">
+                          <span className="text-xs font-mono">
                             {notice.commentCount}
                           </span>
                         </div>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-5 text-center text-base text-cp-text font-bold truncate">
+                  <td className="px-4 py-5 text-center text-base text-cp-text truncate">
                     {notice.writerName || "익명"}
                   </td>
                   <td className="px-4 py-5 text-center text-sm text-slate-400 whitespace-nowrap font-mono tracking-tighter">

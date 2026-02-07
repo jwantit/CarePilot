@@ -6,6 +6,7 @@ import {
 } from "../../api/callApi";
 import ScheduleModal from "./ScheduleModal";
 import { useSelector } from "react-redux";
+import { CalendarDays } from "lucide-react";
 import CustomMonthPicker from "../common/CustomMonthPicker";
 
 // 우선순위별 스타일 (위험도와 동일)
@@ -384,11 +385,11 @@ const CallScheduleTab = () => {
       </div>
 
       <div className="flex justify-between items-center bg-cp-bg/50 p-4 rounded-sm border border-cp-border">
-        <div>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
+            <CalendarDays size={20} />
+          </div>
           <h2 className="text-lg font-bold text-cp-text">통화 예정 일정</h2>
-          <p className="text-sm text-cp-muted">
-            AI가 자동으로 전화를 걸거나 상담원 연결이 예정된 목록입니다.
-          </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-sm bg-cp-card px-2 py-1 border border-cp-border">
@@ -425,7 +426,7 @@ const CallScheduleTab = () => {
       </div>
 
       <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
-        <table className="w-full text-left">
+        <table className="w-full text-center">
           <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
             <tr>
               <th className="p-3 text-white dark:text-teal-400">대상자</th>
@@ -453,22 +454,22 @@ const CallScheduleTab = () => {
                     onClick={() => !isCancelled && handleEdit(s)}
                     className={`hover:bg-cp-bg/50 transition cursor-pointer ${isCancelled ? "bg-cp-card/70" : "bg-cp-card/30"}`}
                   >
-                    <td className="p-3 font-medium text-cp-text">
+                    <td className="p-4 text-cp-text font-medium">
                       {s.targetType === "GROUP"
                         ? `${s.targetGroupName ?? "이름 없음"}`
                         : s.careTargetName}
                     </td>
-                    <td className="p-3 text-cp-muted">
+                    <td className="p-4 text-cp-muted">
                       {s.nextRunAt || s.scheduledTime}
                     </td>
-                    <td className="p-3">
-                      <span className="px-2 py-1 bg-cp-bg text-cp-text text-xs rounded-sm border border-cp-border">
+                    <td className="p-4">
+                      <span className="px-2.5 py-1 bg-cp-input text-cp-text text-xs rounded-sm border border-cp-border">
                         {s.typeLabel || s.type}
                       </span>
                     </td>
-                    <td className="p-3">
+                    <td className="p-4">
                       <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-sm border shadow-sm ${
+                        className={`px-2.5 py-1 text-xs font-semibold rounded-sm border shadow-sm ${
                           s.status === "CANCELLED"
                             ? "bg-cp-muted text-white"
                             : getPriorityStyle(s.priority)
@@ -477,28 +478,22 @@ const CallScheduleTab = () => {
                         {s.priorityLabel || s.priority}
                       </span>
                     </td>
-                    <td className="p-3">
+                    <td className="p-4 text-center">
                       <span
                         className={`${s.status === "CANCELLED" ? "text-cp-muted" : "text-emerald-400"}`}
                       >
                         ● {s.statusLabel || s.status}
                       </span>
                     </td>
-                    <td className="p-3 text-sm text-cp-text">
+                    <td className="p-4 text-sm text-cp-text max-w-[200px] truncate">
                       {s.memo || "-"}
                     </td>
-                    <td className="p-3">
-                      <div className="flex gap-2 flex-wrap">
-                        <button
-                          onClick={() => handleOpenDetail(s)}
-                          className="text-cp-muted hover:text-cp-text underline text-sm font-medium"
-                        >
-                          상세
-                        </button>
+                    <td className="p-4">
+                      <div className="flex justify-center gap-1.5">
                         {isCancelled ? (
                           <button
                             onClick={(e) => { e.stopPropagation(); handleRestore(s.scheduleId); }}
-                            className="text-emerald-400 hover:text-emerald-300 underline text-sm font-medium"
+                            className="text-emerald-400 hover:text-emerald-300 underline text-sm font-bold px-2 py-1 transition-colors"
                           >
                             복구
                           </button>
@@ -506,13 +501,13 @@ const CallScheduleTab = () => {
                           <>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleEdit(s); }}
-                              className="text-teal-400 hover:text-teal-300 underline text-sm font-medium"
+                              className="cp-link-blue"
                             >
                               수정
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDelete(s.scheduleId); }}
-                              className="text-red-400 hover:text-red-300 underline text-sm font-medium"
+                              className="cp-link-red"
                             >
                               삭제
                             </button>

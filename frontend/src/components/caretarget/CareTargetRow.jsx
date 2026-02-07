@@ -37,7 +37,7 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
       tabIndex={0}
       onClick={handleRowClick}
       onKeyDown={(e) => e.key === "Enter" && handleRowClick()}
-      className={`grid grid-cols-8 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer ${isSelected ? "bg-cp-bg/40 border-l-2 border-l-teal-400" : ""}`}
+      className={`grid grid-cols-8 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer ${isSelected ? "bg-cp-bg/40 border-l-2 border-l-teal-400 -ml-[2px]" : ""}`}
     >
       {/* 체크박스 열 */}
       <div className="flex items-center justify-center h-full" onClick={handleCheckboxClick}>
@@ -70,31 +70,31 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
 
       {/* 이름 열 */}
       <div className="flex items-center justify-center h-full">
-        <span className="font-bold text-cp-text text-base truncate">{data?.name || "-"}</span>
+        <span className="text-cp-text text-base truncate">{data?.name || "-"}</span>
       </div>
 
       {/* 성별 열 */}
       <div className="flex items-center justify-center h-full">
-        <span className="text-cp-text font-semibold text-base">{getGenderLabel(data?.gender)}</span>
+        <span className="text-cp-text text-base">{getGenderLabel(data?.gender)}</span>
       </div>
 
       {/* 나이 열 */}
       <div className="flex items-center justify-center h-full">
-        <span className="text-cp-text font-semibold text-base">{data?.age ?? "-"}</span>
+        <span className="text-cp-text text-base">{data?.age ?? "-"}세</span>
       </div>
 
       {/* 전화번호 열 */}
       <div className="flex items-center justify-center h-full">
         {data?.careTargetPhone ? (
-          <span className="text-cp-text text-sm font-medium font-mono truncate">{data.careTargetPhone}</span>
+          <span className="text-cp-text text-sm font-mono truncate">{data.careTargetPhone}</span>
         ) : (
           <span className="text-cp-muted">-</span>
         )}
       </div>
 
       {/* 질환 열 */}
-      <div className="flex items-center justify-center h-full px-2">
-        <span className="text-cp-text truncate font-medium text-sm">{data?.disease || "-"}</span>
+      <div className="flex items-center justify-center h-full">
+        <span className="text-cp-text truncate text-sm">{data?.disease || "-"}</span>
       </div>
 
       {/* 위험 레벨 열 */}

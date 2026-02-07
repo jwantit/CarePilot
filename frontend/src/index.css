@@ -322,13 +322,13 @@
 
   /* --- 링크형 텍스트 버튼 (통화 스케줄 스타일) --- */
   .cp-link-blue {
-    @apply text-blue-400 hover:text-blue-300 underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    @apply text-blue-400 hover:text-blue-300 underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
   }
   .cp-link-red {
-    @apply text-red-400 hover:text-red-300 underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    @apply text-red-400 hover:text-red-300 underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
   }
   .cp-link-muted {
-    @apply underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    @apply underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
     color: var(--text-muted);
   }
   .cp-link-muted:hover {
