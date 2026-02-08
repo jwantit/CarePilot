@@ -1,5 +1,7 @@
 package com.carepilot.service.caretarget;
 
+import com.carepilot.common.exception.ApiException;
+import com.carepilot.common.exception.ErrorCode;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.RiskScore;
 import com.carepilot.domain.caretarget.CareTarget;
@@ -59,7 +61,7 @@ public class CareServiceImpl implements CareService {
     public List<CareTargetListResponseDTO> csvOrExcelCareTargetSave(List<CareTargetInsertRequestDTO> requests) {
 
         Organization organization = organizationRepository.findById(requests.get(0).getOrganizationId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 조직입니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND));
 
         log.info("대량 등록 서비스 진입 - 건수: {}", requests.size());
 
@@ -104,7 +106,7 @@ public class CareServiceImpl implements CareService {
         }
 
         Organization organization = organizationRepository.findById(careTargetInsertRequestDTO.getOrganizationId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 조직입니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND));
 
         CareTarget ct = CareTarget.builder()
                 .organization(organization)
@@ -242,7 +244,9 @@ public class CareServiceImpl implements CareService {
     public CareTargetDetailResponseDTO getCareTargetDetail(Long organizationId, Long careTargetId) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        CareTarget careTarget = careTargetRepository.findById(careTargetId).orElseThrow();
+        CareTarget careTarget = careTargetRepository.findById(careTargetId)
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_NOT_FOUND, "케어 대상 ID를 찾을 수 없습니다."));
+
 
         // 1. 통화 기록 가져오기 및 최신순 정렬 (Repository 레벨에서 정렬 권장)
         List<Call> calls = callRepository.findAllByCareTargetCareTargetIdOrderByStartTimeDesc(careTargetId);
@@ -350,7 +354,7 @@ public class CareServiceImpl implements CareService {
             Long organizationId, Long careTargetId, CareTargetUpdateRequestDTO updateDTO, MultipartFile file) {
 
         CareTarget target = careTargetRepository.findById(careTargetId)
-                .orElseThrow(() -> new IllegalArgumentException("대상자가 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_NOT_FOUND));
 
         log.info("케어대상자" + target.getName());
         Doctor doctor = null;
@@ -408,7 +412,7 @@ public class CareServiceImpl implements CareService {
     @Transactional
     public String updateToolCareTarget(CareTargetInsertRequestDTO updateDto, Long careTargetId) {
         CareTarget careTarget = careTargetRepository.findById(careTargetId)
-                .orElseThrow(() -> new RuntimeException("해당 환자를 찾을 수 없습니다. ID: " + careTargetId));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_NOT_FOUND));
 
         // 변경된 상세 내용을 담을 리스트
         List<String> changeDetails = new ArrayList<>();
@@ -450,7 +454,7 @@ public class CareServiceImpl implements CareService {
 
     public CareTarget getCareTarget(Long id){
         CareTarget ct = careTargetRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대상자"));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_NOT_FOUND));
         return ct;
     }
 

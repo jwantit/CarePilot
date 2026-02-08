@@ -1,6 +1,8 @@
 package com.carepilot.service.caretarget;
 
 
+import com.carepilot.common.exception.ApiException;
+import com.carepilot.common.exception.ErrorCode;
 import com.carepilot.domain.call.*;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.caretarget.CareTargetGroup;
@@ -76,14 +78,14 @@ public class CareGroupServiceImpl implements CareGroupService {
 //            private Long userId;
 //        }
         Scenario scenario = scenarioRepository.findById(dto.getScenarioId())
-                .orElseThrow(() -> new RuntimeException("해당 시나리오를 찾을 수 없담: " + dto.getScenarioId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.SCENARIO_NOT_FOUND));
 
         log.info("scenario" + scenario.getName());
 
         Organization organization = organizationRepository.findById(dto.getOrganizationId())
-                .orElseThrow(() -> new RuntimeException("해당 조직을 찾을 수 없습니다: " + dto.getOrganizationId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND, "조직 ID를 찾을 수 없습니다."));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다: " + dto.getUserId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
         log.info("성공1");
 
         CareTargetGroup careTargetGroup = CareTargetGroup.builder()
@@ -165,23 +167,6 @@ public class CareGroupServiceImpl implements CareGroupService {
 
 
 
-
-    //그룹 상세정보------------------------------------------------------------------
-    @Override
-    public CareGroupDetailResponseDTO getAllCareGroup(Long organizationId) {
-        return null;
-    }
-    //-------------------------------------------------------------------------
-
-    //케데 선택 리스트------------------------------------------------
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CareTargetListResponseDTO> getCareTargetList(Long organizationId) {
-        return careTargetRepository.findCareTargetList(organizationId);
-    }
-    //-------------------------------------------------------------
-
     //시나리오 선택 리스트 ------------------------------------------------
     @Override
     @Transactional(readOnly = true)
@@ -201,7 +186,7 @@ public class CareGroupServiceImpl implements CareGroupService {
         List<CareTargetGroupMap> ctgms = careTargetGroupMapRepository.findGroupDetails(organizationId, careGroupId);
 
         if (ctgms.isEmpty()) {
-            throw new EntityNotFoundException("해당 그룹 정보가 존재하지 않습니다.");
+            throw new ApiException(ErrorCode.CARE_TARGET_GROUP_NOT_FOUND);
         }
 
         // 공통 그룹 정보 추출
@@ -290,12 +275,12 @@ public class CareGroupServiceImpl implements CareGroupService {
     @Transactional
     public CareGroupOneDetailResponseDTO updateCareTargetGroup(CareGroupUpdateRequestDTO dto) {
         CareTargetGroup ctg = careTargetGroupRepository.findById(dto.getCareGroupId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 그룹을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_NOT_FOUND));
 
         // 시나리오 업데이트 처리
         if (dto.getScenarioId() != null) {
             Scenario scenario = scenarioRepository.findById(dto.getScenarioId())
-                    .orElseThrow(() -> new RuntimeException("해당 시나리오를 찾을 수 없습니다: " + dto.getScenarioId()));
+                    .orElseThrow(() -> new ApiException(ErrorCode.SCENARIO_NOT_FOUND));
             ctg.updateScenario(scenario);
         }
 
@@ -317,7 +302,7 @@ public class CareGroupServiceImpl implements CareGroupService {
     @Override
     public CareGroupOneDetailResponseDTO addCareTargetInGroup(CareGroupUpdateRequestDTO dto) {
         CareTargetGroup ctg = careTargetGroupRepository.findById(dto.getCareGroupId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 그룹을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_GROUP_NOT_FOUND));
 
 
         List<CareTarget> careTargets = careTargetRepository.findAllById(dto.getCareTargetIds());
@@ -342,11 +327,11 @@ public class CareGroupServiceImpl implements CareGroupService {
     public List<CareGroupCallScheduleResponseDTO> saveOrUpdateCareGroupCallSchedule(CareGroupScheduleRequestDTO dto, Long userId) {
 
         Organization ogz = organizationRepository.findById(dto.getOrganizationId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 조직을 찾을 수 없습니다"));
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND, "조직ID를 찾을 수 없습니다."));
         CareTargetGroup ctg = careTargetGroupRepository.findById(dto.getGroupId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 그룹을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_GROUP_NOT_FOUND, "그룹ID를 찾을 수 없습니다."));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
         // 날짜 파싱 로직
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -358,7 +343,7 @@ public class CareGroupServiceImpl implements CareGroupService {
         if (dto.getScheduleId() != null) {
             // 1. 수정 모드
             callSchedule = callScheduleRepository.findById(dto.getScheduleId())
-                    .orElseThrow(() -> new IllegalArgumentException("수정할 스케줄을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ApiException(ErrorCode.SCHEDULE_NOT_FOUND));
 
             // 필드 업데이트 (Dirty Checking 활용)
             callSchedule.updateSchedule(
@@ -441,7 +426,7 @@ public class CareGroupServiceImpl implements CareGroupService {
     @Transactional
     public void deleteGroupCallSchedule(Long groupId, Long scheduleId) {
         CallSchedule schedule = callScheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 스케줄을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.SCENARIO_NOT_FOUND));
         if (!schedule.getGroup().getGroupId().equals(groupId)) {
             throw new IllegalArgumentException("해당 그룹의 스케줄이 아닙니다.");
         }

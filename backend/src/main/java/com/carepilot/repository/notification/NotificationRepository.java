@@ -63,9 +63,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         @Param("status") NotificationStatus status
     );
     
-    // 통계용: 조직별 활성 알림 개수
+    // 통계용: 조직별 활성 알림 개수 (대시보드 전용)
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.organization.organizationId = :organizationId " +
-           "AND n.status = :status AND n.occurredAt >= :startDate AND n.occurredAt < :endDate")
+           "AND (:status IS NULL OR n.status = :status) " +
+           "AND n.occurredAt >= :startDate AND n.occurredAt < :endDate")
     Long countByOrganizationIdAndStatusAndDateRange(
         @Param("organizationId") Long organizationId,
         @Param("status") NotificationStatus status,

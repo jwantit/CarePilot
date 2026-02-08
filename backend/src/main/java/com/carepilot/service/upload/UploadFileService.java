@@ -1,6 +1,8 @@
 package com.carepilot.service.upload;
 
 
+import com.carepilot.common.exception.ApiException;
+import com.carepilot.common.exception.ErrorCode;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.file.UploadFileType;
@@ -571,8 +573,11 @@ public class UploadFileService {
     //챗봇 선 임시 파일 등록-------------------------------------------------------------------
     public Long temporaryFile(MultipartFile file, Long userId,Long organizationId){
 
-        User user = userRepository.findById(userId).orElseThrow();
-        Organization organization = organizationRepository.findById(organizationId).orElseThrow();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND, "사용자 ID를 찾을 수 없습니다."));
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND, "조직 ID를 찾을 수 없습니다."));
+
 
         //원본파일명 null일 경우 unknown
         String originalName = Optional.ofNullable(file.getOriginalFilename())
@@ -619,7 +624,7 @@ public class UploadFileService {
     public MultipartFile temporaryfind(Long fileId) {
         // 1. DB에서 파일 정보 조회
         UploadFile getFile = uploadFileRepository.findById(fileId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파일입니다. ID: " + fileId));
+                .orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND, "파일 ID를 찾을 수 없습니다."));
 
         // 2. 실제 파일 경로 생성
         Path path = Paths.get(BASE_DIR, getFile.getStoragePath());

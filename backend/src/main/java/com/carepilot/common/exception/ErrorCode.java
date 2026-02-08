@@ -26,6 +26,13 @@ public enum ErrorCode {
     // 작업 관련
     TASK_NOT_FOUND("작업을 찾을 수 없습니다."),
     CARE_TARGET_NOT_FOUND("케어 대상을 찾을 수 없습니다."),
+    CARE_TARGET_GROUP_NOT_FOUND("그룹을 찾을 수 없습니다."),
+    SCENARIO_NOT_FOUND("시나리오를 찾을 수 없습니다."),
+    SCHEDULE_NOT_FOUND("스케줄을 찾을 수 없습니다."),
+
+
+    //파일 관련
+    FILE_NOT_FOUND("파일ID를 찾을 수 없습니다."),
 
     // 기타
     BAD_REQUEST("잘못된 요청입니다."),

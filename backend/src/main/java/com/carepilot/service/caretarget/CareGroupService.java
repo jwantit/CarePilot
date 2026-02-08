@@ -12,11 +12,6 @@ public interface CareGroupService{
     //케데 그룹 리스트 조회
     public List<CareGroupListResponseDTO> getCareGroupList(Long organizationId);
 
-    //상세보기
-    public CareGroupDetailResponseDTO getAllCareGroup(Long organizationId);
-
-    //케데 멤버 리스트 조회 프론트에서 선택하기 위해
-    public List<CareTargetListResponseDTO> getCareTargetList(Long organizationId);
 
     //시나리오 리스트 조회 프론트에서 선택하기 위해
     public List<CareGroupScenarioRequestDTO> getScenarioList(Long organizationId);
