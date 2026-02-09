@@ -154,6 +154,29 @@ const AiChatPanel = ({
 
       {/* 입력 영역 */}
       <div className="p-4 border-t border-cp-border bg-cp-bg/30">
+        {/* 빠른 작업 배지 */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {[
+            { label: "대상자 조회", value: "대상자의 현재 통화 예약 스케줄 알려줘" },
+            { label: "대상자 수정", value: "대상자 연락처 수정해줘" },
+            { label: "통화 예약하기", value: "대상자 다음주 금요일 2시에 통화 예약해줘" },
+            { label: "공지하기", value: "공지사항 등록해줘 내용 : " }
+          ].map((action) => (
+            <button
+              key={action.label}
+              onClick={() => {
+                setInput(action.value);
+                if (textareaRef.current) {
+                  textareaRef.current.focus();
+                }
+              }}
+              className="px-3 py-1 text-[10px] font-bold bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-full hover:bg-teal-500/20 hover:border-teal-500 transition-all shadow-sm"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+
         {/* 둥둥 떠있는 이미지 미리보기 */}
         {selectedImage && (
           <div className="mb-3 relative inline-flex items-center gap-3 p-2 pr-10 bg-cp-card border border-cp-border shadow-sm">
