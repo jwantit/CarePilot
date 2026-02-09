@@ -2,39 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getUnreadCount } from "../../api/notificationApi";
 import { useAuth } from "../../hooks/useAuth";
-import { Sun, Moon } from "lucide-react";
 
 function Menu() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isDark, setIsDark] = useState(document.documentElement.classList.contains("dark"));
-
-  // 테마 전환 핸들러
-  const toggleTheme = () => {
-    const newDark = !isDark;
-    setIsDark(newDark);
-    if (newDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  };
-
-  // 초기 테마 설정 확인
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    } else if (savedTheme === "light") {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    }
-  }, []);
 
   // Redux에서 사용자 정보 가져오기
   const userId = user?.userId;
@@ -173,15 +146,6 @@ function Menu() {
 
           {/* 우측 버튼 영역 */}
           <div className="flex items-center space-x-3">
-            {/* 테마 토글 버튼 */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full text-cp-text/70 hover:text-teal-400 hover:bg-cp-bg/50 transition-all"
-              title={isDark ? "라이트모드로 전환" : "다크모드로 전환"}
-            >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-
             {/* 유저 드롭다운 */}
             <div className="relative">
               <button
