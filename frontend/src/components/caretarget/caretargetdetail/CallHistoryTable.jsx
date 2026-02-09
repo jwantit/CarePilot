@@ -22,33 +22,41 @@ const CallHistoryTable = ({ history }) => {
         </h3>
       </div>
       <div className="max-h-[400px] overflow-y-auto modal-scrollbar text-left">
-        <table className="w-full text-left table-fixed border-separate border-spacing-0">
-          <thead className="bg-cp-header sticky top-0 z-10 border-b border-cp-border">
+        <table className="w-full text-center table-fixed border-separate border-spacing-0">
+          <thead className="bg-cp-header sticky top-0 z-10 border-b-2 border-teal-500/30">
             <tr>
-              <th className="px-10 py-4 w-[20%] text-[11px] font-bold text-cp-muted uppercase tracking-widest">상담 일시</th>
-              <th className="px-6 py-4 w-[15%] text-[11px] font-bold text-cp-muted uppercase tracking-widest text-center">유형</th>
-              <th className="px-6 py-4 w-[50%] text-[11px] font-bold text-cp-muted uppercase tracking-widest">상담 요약</th>
-              <th className="px-10 py-4 w-[15%] text-[11px] font-bold text-cp-muted uppercase tracking-widest text-center">진행 상태</th>
+              <th className="px-10 py-4 w-[20%] text-sm font-semibold text-white dark:text-teal-400 uppercase tracking-widest">상담 일시</th>
+              <th className="px-6 py-4 w-[15%] text-sm font-semibold text-white dark:text-teal-400 uppercase tracking-widest">유형</th>
+              <th className="px-6 py-4 w-[50%] text-sm font-semibold text-white dark:text-teal-400 uppercase tracking-widest">상담 요약</th>
+              <th className="px-10 py-4 w-[15%] text-sm font-semibold text-white dark:text-teal-400 uppercase tracking-widest">진행 상태</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-cp-border">
-            {history.map((log, idx) => {
-              const typeInfo = typeMap[log.callType] || typeMap['OTHER'];
-              return (
-                <tr key={idx} className="hover:bg-cp-bg/50 transition-all group bg-cp-card/50">
-                  <td className="px-10 py-5 text-xs font-bold text-cp-text tabular-nums">{log.startTime || "-"}</td>
-                  <td className="px-6 py-5 text-center">
-                    <span className={`inline-block text-sm font-bold px-4 py-1.5 rounded-sm border ${typeInfo.color} shadow-sm`}>{typeInfo.text}</span>
-                  </td>
-                  <td className="px-6 py-5 text-sm font-medium text-cp-muted truncate group-hover:text-cp-text">{log.summary || "내역 없음"}</td>
-                  <td className="px-10 py-5 text-center">
-                    <span className={`inline-block px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${log.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50' : 'bg-cp-bg text-cp-text border border-cp-border dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border'}`}>
-                      {log.status === 'SUCCESS' ? '완료' : '실패'}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+            {history && history.length > 0 ? (
+              history.map((log, idx) => {
+                const typeInfo = typeMap[log.callType] || typeMap['OTHER'];
+                return (
+                  <tr key={idx} className="hover:bg-cp-bg/50 transition-all group bg-cp-card/30 cursor-pointer">
+                    <td className="px-10 py-5 text-base text-cp-text tabular-nums">{log.startTime || "-"}</td>
+                    <td className="px-6 py-5">
+                      <span className={`inline-block text-sm font-bold px-4 py-1.5 rounded-sm border ${typeInfo.color} shadow-sm`}>{typeInfo.text}</span>
+                    </td>
+                    <td className="px-6 py-5 text-base font-normal text-cp-muted truncate group-hover:text-cp-text text-left">{log.summary || "내역 없음"}</td>
+                    <td className="px-10 py-5">
+                      <span className={`inline-block px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${log.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50' : 'bg-cp-bg text-cp-text border border-cp-border dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border'}`}>
+                        {log.status === 'SUCCESS' ? '완료' : '실패'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-10 py-12 text-center text-cp-muted text-base font-normal bg-cp-card/30">
+                  등록된 통화 이력이 없습니다.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

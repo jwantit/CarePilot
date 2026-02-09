@@ -136,7 +136,7 @@ function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* 통화 카드 */}
         <div
-          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
+          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-xl flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
           onClick={() => {
             const today = new Date();
             const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -144,7 +144,7 @@ function DashboardPage() {
           }}
         >
           <div className="flex items-center gap-4 w-full">
-            <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-slate-100 border border-slate-200 dark:bg-slate-700/50 dark:border-slate-600">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 border border-slate-200 dark:bg-slate-700/50 dark:border-slate-600">
               <svg
                 className="w-7 h-7 text-teal-600 dark:text-teal-400"
                 fill="none"
@@ -177,11 +177,11 @@ function DashboardPage() {
 
         {/* 위험 카드 */}
         <div
-          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-red-500/50 transition-all cursor-pointer rounded-sm flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
+          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-red-500/50 transition-all cursor-pointer rounded-xl flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
           onClick={navigateToCareTarget}
         >
           <div className="flex items-center gap-4 w-full">
-            <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-red-50 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-50 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30">
               <svg
                 className="w-7 h-7 text-red-600 dark:text-red-400"
                 fill="none"
@@ -211,11 +211,11 @@ function DashboardPage() {
 
         {/* 작업 카드 */}
         <div
-          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
+          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-xl flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
           onClick={() => navigateToTask('WAITING,IN_PROGRESS')}
         >
           <div className="flex items-center gap-4 w-full">
-            <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-slate-100 border border-slate-200 dark:bg-slate-700/50 dark:border-slate-600">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 border border-slate-200 dark:bg-slate-700/50 dark:border-slate-600">
               <svg
                 className="w-7 h-7 text-teal-600 dark:text-teal-400"
                 fill="none"
@@ -245,11 +245,11 @@ function DashboardPage() {
 
         {/* 알림 카드 */}
         <div
-          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-sm flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
+          className="bg-white border border-slate-200 p-6 shadow-lg hover:shadow-xl hover:border-teal-500/50 transition-all cursor-pointer rounded-xl flex items-center dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
           onClick={navigateToNotification}
         >
           <div className="flex items-center gap-4 w-full">
-            <div className="w-14 h-14 rounded-sm flex items-center justify-center flex-shrink-0 bg-slate-100 border border-slate-200 dark:bg-slate-700/50 dark:border-slate-600">
+            <div className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 border border-slate-200 dark:bg-slate-700/50 dark:border-slate-600">
               <svg
                 className="w-7 h-7 text-teal-600 dark:text-teal-400"
                 fill="currentColor"
