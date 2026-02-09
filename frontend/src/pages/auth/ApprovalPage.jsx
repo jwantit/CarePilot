@@ -1,38 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 
 function ApprovalPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { approveUser, error } = useAuth();
 
   const [approvalStatus, setApprovalStatus] = useState('pending'); // 'pending', 'success', 'error'
 
   useEffect(() => {
-    const token = searchParams.get('token');
+    const errorParam = searchParams.get('error');
     
-    if (!token) {
+    // URL에 에러 파라미터가 있으면 에러 상태로 설정
+    if (errorParam) {
       setApprovalStatus('error');
       return;
     }
-
-    const handleApproval = async () => {
-      const result = await approveUser(token);
-      
-      if (result) {
-        setApprovalStatus('success');
-        // 3초 후 로그인 페이지로 이동
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      } else {
-        setApprovalStatus('error');
-      }
-    };
-
-    handleApproval();
-  }, [searchParams, approveUser, navigate]);
+    
+    // 에러 파라미터가 없으면 토큰이 없거나 이미 처리된 경우
+    // (메일 링크는 백엔드에서 승인 처리 후 홈페이지로 리다이렉트됨)
+    setApprovalStatus('error');
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cp-bg">
@@ -63,8 +50,8 @@ function ApprovalPage() {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-cp-text">승인 완료</h2>
-            <p className="text-cp-muted">승인이 완료되었습니다. 이제 로그인할 수 있습니다.</p>
-            <p className="text-sm text-cp-muted/60 mt-2">잠시 후 로그인 페이지로 이동합니다...</p>
+            <p className="text-cp-muted">승인이 완료되었습니다.</p>
+            <p className="text-sm text-cp-muted/60 mt-2">잠시 후 홈페이지로 이동합니다...</p>
           </>
         )}
 
@@ -87,13 +74,13 @@ function ApprovalPage() {
             </div>
             <h2 className="text-2xl font-bold text-cp-text">승인 실패</h2>
             <p className="text-cp-muted">
-              {error || '승인 토큰이 유효하지 않거나 만료되었습니다.'}
+              {searchParams.get('error') || '승인 토큰이 유효하지 않거나 만료되었습니다.'}
             </p>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/')}
               className="mt-6 w-full py-3 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
-              로그인 페이지로 이동
+              홈페이지로 이동
             </button>
           </>
         )}
