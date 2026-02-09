@@ -205,7 +205,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
             callScheduleRepository.save(nearest);
             sendChangeConfirmationSms(careTarget, nearest);
 
-            String resultMsg = String.format("AI 자동 처리 완료: %d월 %d일 %d시 %02d분으로 변경",
+            String resultMsg = String.format("예약 변경 완료: %d월 %d일 %d시 %02d분으로 변경",
                     newDateTime.getMonthValue(), newDateTime.getDayOfMonth(), newDateTime.getHour(), newDateTime.getMinute());
             existingTask.updateSchedule(nearest);
             existingTask.convertToAIResult();

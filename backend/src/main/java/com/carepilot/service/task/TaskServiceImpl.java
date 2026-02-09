@@ -205,9 +205,15 @@ public class TaskServiceImpl implements TaskService {
 
                 // 공통 처리: 자동화 성공 시 sourceType을 AI로 변경하고 SUCCESS 처리
                 task.changeSourceType(TaskSourceType.AI);
+                
+                // 이미 상세 결과가 설정되어 있다면 유지하고, 없다면 기본 메시지 설정
+                String finalResult = (task.getResult() != null && !task.getResult().isBlank()) 
+                        ? task.getResult() 
+                        : "사용자 승인에 따른 AI 자동화 처리 완료";
+
                 task.updateResultAndStatus(
                     TaskStatus.SUCCESS,
-                    "사용자 승인에 따른 AI 자동화 처리 완료",
+                    finalResult,
                     LocalDateTime.now()
                 );
 
