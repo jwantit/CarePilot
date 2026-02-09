@@ -399,7 +399,7 @@ function ScenarioSetting() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-200 dark:bg-cp-bg border border-slate-300 dark:border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white dark:peer-checked:after:border-cp-bg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-cp-muted after:border-slate-300 dark:after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                        <div className="w-11 h-6 bg-slate-200 dark:bg-cp-bg border border-slate-300 dark:border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
                     </div>
                     <div className="flex items-center justify-center h-full gap-1">
@@ -617,7 +617,7 @@ function ScenarioSetting() {
                                 }
                                 className="sr-only peer"
                               />
-                              <div className="w-8 h-4 bg-slate-200 dark:bg-cp-bg border border-slate-300 dark:border-cp-border rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-cp-muted after:border-slate-300 dark:after:border-cp-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                              <div className="w-8 h-4 bg-slate-200 dark:bg-cp-bg border border-slate-300 dark:border-cp-border rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-cp-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
                             </div>
                             <span className="text-xs font-semibold text-cp-muted group-hover/label:text-cp-text transition-colors">필수 답변</span>
                           </label>
