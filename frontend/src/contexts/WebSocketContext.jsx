@@ -20,6 +20,7 @@ export function WebSocketProvider({ children }) {
   const auth = useSelector((state) => state.auth);
   const organizationId = auth.user?.organizationId;
   const userId = auth.user?.userId;
+  const userRole = auth.user?.role;
 
   // 알림 설정값 가져오기 (ref 객체)
   const notificationConfigRef = useNotificationConfig(userId);
@@ -49,8 +50,16 @@ export function WebSocketProvider({ children }) {
         return;
       }
 
-      // 회원가입 승인 요청 알림: 백엔드에서 MANAGER만 개인 큐로 전송하므로, 이메일 알림 설정만 확인
-      if (message.type === "SIGNUP_APPROVAL_REQUEST") {
+      // 회원가입 승인 요청 알림: MANAGER/ADMIN에게만 표시
+      if (
+        message.type === "SIGNUP_APPROVAL_REQUEST" ||
+        message.type === "SIGNUP_APPROVAL"
+      ) {
+        // 일반 직원(USER)은 무시
+        if (userRole === "USER") {
+          return;
+        }
+
         if (notificationConfigRef.current.emailEnabled) {
           const title = message.title || "회원가입 승인 요청";
           const text =
@@ -62,6 +71,10 @@ export function WebSocketProvider({ children }) {
             duration: 5000,
           });
         }
+        // 알림 페이지에서 목록 새로고침을 위한 이벤트 발생
+        window.dispatchEvent(
+          new CustomEvent("notification-received", { detail: message }),
+        );
         return;
       }
 
@@ -143,7 +156,7 @@ export function WebSocketProvider({ children }) {
         new CustomEvent("notification-received", { detail: message }),
       );
     },
-    [], // ref 객체는 변하지 않으므로 의존성 배열 비움
+    [userRole], // userRole 의존성 추가
   );
 
   useEffect(() => {

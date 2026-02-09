@@ -1,9 +1,12 @@
 package com.carepilot.service.auth;
 
+import com.carepilot.domain.notification.NotificationType;
+import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.carepilot.domain.user.UserRole;
 import com.carepilot.repository.user.UserRepository;
+import com.carepilot.service.notification.NotificationService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +14,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +30,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     
     private final JavaMailSender mailSender;
     private final UserRepository userRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
     
     // TODO: 추후 Redis로 변경 (현재는 인메모리 저장)
     private final Map<String, TokenInfo> tokenStore = new ConcurrentHashMap<>();
@@ -172,7 +173,21 @@ public class ApprovalServiceImpl implements ApprovalService {
             String token = generateToken(user.getUserId());
             String approvalLink = generateApprovalLink(token);
             
-            // 4. 각 MANAGER에게 메일 및 WebSocket 알림 발송
+            // 4. 조직 공유 알림 생성 및 WebSocket 발송 (DB 저장 포함)
+            String title = "회원가입 승인 요청";
+            String text = user.getName() + "(" + user.getEmail() + ")님이 회원가입 승인을 요청했습니다.";
+            
+            notificationService.createOrganizationNotification(
+                organization.getOrganizationId(),
+                NotificationType.SIGNUP_APPROVAL,
+                title,
+                text,
+                RiskLevel.MEDIUM,
+                null,
+                null
+            );
+
+            // 5. 각 MANAGER에게 메일 발송
             for (User manager : managers) {
                 // 메일 발송
                 sendApprovalRequestEmail(
@@ -182,17 +197,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                         approvalLink
                 );
                 
-                // WebSocket 알림
-                String userQueue = "/queue/users/" + manager.getUserId();
-                Map<String, Object> payload = new HashMap<>();
-                payload.put("type", "SIGNUP_APPROVAL_REQUEST");
-                payload.put("userName", user.getName());
-                payload.put("userEmail", user.getEmail());
-                payload.put("title", "회원가입 승인 요청");
-                payload.put("text", user.getName() + "(" + user.getEmail() + ")님이 회원가입 승인을 요청했습니다.");
-                
-                messagingTemplate.convertAndSend(userQueue, payload);
-                log.debug("회원가입 승인 요청 발송 완료 (Email & WebSocket): managerId={}, managerEmail={}", 
+                log.debug("회원가입 승인 요청 메일 발송 완료: managerId={}, managerEmail={}", 
                         manager.getUserId(), manager.getEmail());
             }
             log.info("비동기 승인 알림 처리 완료: userId={}", userId);

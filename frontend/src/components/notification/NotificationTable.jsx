@@ -15,6 +15,7 @@ const getTypeLabel = (type) => {
     CALL: '통화',
     RISK_DETECTION: '위험감지',
     SCHEDULE: '스케줄',
+    SIGNUP_APPROVAL: '회원가입',
     OTHER: '기타',
   };
   return typeMap[type] || type;

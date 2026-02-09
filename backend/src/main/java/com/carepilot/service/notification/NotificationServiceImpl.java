@@ -6,6 +6,7 @@ import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.carepilot.domain.user.UserRole;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallStatus;
 import com.carepilot.domain.caretarget.CareTarget;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -89,7 +91,16 @@ public class NotificationServiceImpl implements NotificationService {
         Long organizationId = user.getOrganization().getOrganizationId();
         
         // 개인 알림 + 조직 공유 알림 (user가 null인 것)
-        return notificationRepository.findByOrganizationIdAndUserIdOrShared(organizationId, userId);
+        List<Notification> notifications = notificationRepository.findByOrganizationIdAndUserIdOrShared(organizationId, userId);
+        
+        // 일반 직원(USER)은 회원가입 승인 알림을 볼 수 없음
+        if (user.getRole() == UserRole.USER) {
+            return notifications.stream()
+                    .filter(n -> n.getType() != NotificationType.SIGNUP_APPROVAL)
+                    .collect(Collectors.toList());
+        }
+        
+        return notifications;
     }
 
     @Override
@@ -101,8 +112,17 @@ public class NotificationServiceImpl implements NotificationService {
         Long organizationId = user.getOrganization().getOrganizationId();
         
         // 개인 알림 + 조직 공유 알림 중 읽지 않은 것
-        return notificationRepository.findByOrganizationIdAndUserIdOrSharedAndStatus(
+        List<Notification> notifications = notificationRepository.findByOrganizationIdAndUserIdOrSharedAndStatus(
                 organizationId, userId, NotificationStatus.ACTIVE);
+        
+        // 일반 직원(USER)은 회원가입 승인 알림을 볼 수 없음
+        if (user.getRole() == UserRole.USER) {
+            return notifications.stream()
+                    .filter(n -> n.getType() != NotificationType.SIGNUP_APPROVAL)
+                    .collect(Collectors.toList());
+        }
+        
+        return notifications;
     }
 
     @Override
@@ -126,6 +146,14 @@ public class NotificationServiceImpl implements NotificationService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
         
         Long organizationId = user.getOrganization().getOrganizationId();
+        
+        // 일반 직원(USER)은 회원가입 승인 알림을 제외한 개수를 반환
+        if (user.getRole() == UserRole.USER) {
+            return notificationRepository.findByOrganizationIdAndUserIdOrSharedAndStatus(
+                    organizationId, userId, NotificationStatus.ACTIVE).stream()
+                    .filter(n -> n.getType() != NotificationType.SIGNUP_APPROVAL)
+                    .count();
+        }
         
         // 개인 알림 + 조직 공유 알림 중 읽지 않은 개수
         return notificationRepository.countByOrganizationIdAndUserIdOrSharedAndStatus(
