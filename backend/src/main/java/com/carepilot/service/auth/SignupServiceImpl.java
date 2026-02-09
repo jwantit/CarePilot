@@ -15,14 +15,11 @@ import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -38,7 +35,6 @@ public class SignupServiceImpl implements SignupService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApprovalService approvalService;
-    private final SimpMessagingTemplate messagingTemplate;
     
     private static final Random RANDOM = new Random();
     private static final String PREFIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -148,8 +144,8 @@ public class SignupServiceImpl implements SignupService {
         log.info("직원 회원가입 완료: userId={}, email={}, organizationId={}, status=WAITING", 
                 user.getUserId(), request.getEmail(), organization.getOrganizationId());
         
-        // 승인 요청 메일 발송
-        sendApprovalRequestEmail(organization, user);
+        // 승인 요청 알림 비동기 발송
+        approvalService.sendApprovalNotificationsAsync(user.getUserId());
         
         return new UserSignupResponseDTO(
                 "회원가입이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.",
@@ -188,8 +184,8 @@ public class SignupServiceImpl implements SignupService {
         log.info("USER 소셜 회원가입 완료: userId={}, organizationId={}, status=WAITING", 
                 user.getUserId(), organization.getOrganizationId());
         
-        // 승인 메일 발송
-        sendApprovalRequestEmail(organization, user);
+        // 승인 알림 비동기 발송
+        approvalService.sendApprovalNotificationsAsync(user.getUserId());
         
         return OAuth2LoginResponseDTO.waitingApproval();
     }
@@ -220,59 +216,4 @@ public class SignupServiceImpl implements SignupService {
         
         return prefix.toString() + "-" + numberStr;
     }
-    
-    /**
-     * 승인 요청 메일 발송
-     * @param organization 조직
-     * @param user 승인 요청한 사용자
-     */
-    private void sendApprovalRequestEmail(Organization organization, User user) {
-        try {
-            // 조직의 MANAGER 조회
-            var managers = userRepository.findByOrganizationAndRole(organization, UserRole.MANAGER);
-            
-            if (managers.isEmpty()) {
-                log.warn("조직에 MANAGER가 없음: organizationId={}, organizationNumber={}", 
-                        organization.getOrganizationId(), organization.getOrganizationNumber());
-                return;
-            }
-            
-            // 승인 토큰 생성
-            String token = approvalService.generateToken(user.getUserId());
-            
-            // 승인 링크 생성
-            String approvalLink = approvalService.generateApprovalLink(token);
-            
-            // 각 MANAGER에게 메일 발송
-            for (User manager : managers) {
-                approvalService.sendApprovalRequestEmail(
-                        manager.getEmail(),
-                        user.getName(),
-                        user.getEmail(),
-                        approvalLink
-                );
-                log.info("승인 요청 메일 발송 완료: managerEmail={}, userEmail={}", 
-                        manager.getEmail(), user.getEmail());
-            }
-
-            // MANAGER에게 앱 내 토스트 알림 (개인 큐로 전송, 이메일 알림 설정 연동)
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("type", "SIGNUP_APPROVAL_REQUEST");
-            payload.put("userName", user.getName());
-            payload.put("userEmail", user.getEmail());
-            payload.put("title", "회원가입 승인 요청");
-            payload.put("text", user.getName() + "(" + user.getEmail() + ")님이 회원가입 승인을 요청했습니다.");
-            
-            // 각 MANAGER에게 개인 큐로 전송
-            for (User manager : managers) {
-                String userQueue = "/queue/users/" + manager.getUserId();
-                messagingTemplate.convertAndSend(userQueue, payload);
-                log.debug("회원가입 승인 요청 WebSocket 전송: userQueue={}, managerId={}", userQueue, manager.getUserId());
-            }
-        } catch (Exception e) {
-            log.error("승인 요청 메일 발송 실패: userId={}, error={}", user.getUserId(), e.getMessage(), e);
-            // 메일 발송 실패해도 회원가입은 성공 처리
-        }
-    }
 }
-

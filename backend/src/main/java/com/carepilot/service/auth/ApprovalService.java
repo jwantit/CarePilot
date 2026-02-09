@@ -37,5 +37,12 @@ public interface ApprovalService {
      * @param approvalLink 승인 링크
      */
     void sendApprovalRequestEmail(String managerEmail, String userName, String userEmail, String approvalLink);
+
+    /**
+     * 승인 요청 통합 알림 발송 (비동기)
+     * 이메일 발송 및 WebSocket 알림을 포함
+     * @param userId 승인 요청한 사용자 ID
+     */
+    void sendApprovalNotificationsAsync(Long userId);
 }
 
