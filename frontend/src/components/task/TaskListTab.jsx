@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom"; // 작업 필터 로직 임포트
 import { useTaskList } from "../../hooks/task/useTaskList";
@@ -151,6 +151,12 @@ const TaskListTab = () => {
     [taskStats]
   );
 
+  const handleStartTask = useCallback((task) => handleStart(task), [handleStart]);
+  const handleCompleteTask = useCallback((taskId) => handleUpdateStatus(taskId, 'DONE'), [handleUpdateStatus]);
+  const handleEditTask = useCallback((task) => handleOpenEdit(task), [handleOpenEdit]);
+  const handleDetailTask = useCallback((task) => handleOpenDetail(task), [handleOpenDetail]);
+  const handleAssignChange = useCallback((taskId, userId) => handleUpdateAssign(taskId, userId), [handleUpdateAssign]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[320px]">
@@ -171,11 +177,11 @@ const TaskListTab = () => {
       <TaskTable
         taskList={filteredTaskList}
         staffList={staffList}
-        onStart={(task) => handleStart(task)}
-        onComplete={(taskId) => handleUpdateStatus(taskId, 'DONE')}
-        onEdit={handleOpenEdit}
-        onDetail={handleOpenDetail}
-        onAssignChange={handleUpdateAssign}
+        onStart={handleStartTask}
+        onComplete={handleCompleteTask}
+        onEdit={handleEditTask}
+        onDetail={handleDetailTask}
+        onAssignChange={handleAssignChange}
       />
       <TaskDetailModal
         open={detailModalOpen}

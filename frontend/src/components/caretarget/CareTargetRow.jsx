@@ -12,7 +12,7 @@ const getGenderLabel = (gender) => {
   return gender;
 };
 
-function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
+const CareTargetRow = React.memo(({ data, organizationId, isSelected, onSelectChange }) => {
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
@@ -107,6 +107,6 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
       </div>
     </div>
   );
-}
+});
 
 export default CareTargetRow;
