@@ -36,9 +36,10 @@ function CareTargetActionBar({
         
         <button 
           onClick={handleSearch}
-          className="bg-cp-input hover:bg-cp-bg text-teal-400 px-6 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          className="flex items-center gap-2 bg-cp-input hover:bg-cp-bg text-teal-400 px-6 py-2.5 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
-          <span className="font-mono text-teal-400">&gt;</span> 검색
+          <Search size={18} />
+          <span>검색</span>
         </button>
 
         <button 

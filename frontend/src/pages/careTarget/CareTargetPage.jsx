@@ -232,67 +232,69 @@ function CareTargetPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb items={['케어 대상자']} />
+    <>
+      <div className="space-y-6">
+        <Breadcrumb items={['케어 대상자']} />
 
-        {/* 통계 카드 섹션 */}
-        <StatCardGrid cards={statCards} />
+          {/* 통계 카드 섹션 */}
+          <StatCardGrid cards={statCards} />
 
-      <CareTargetActionBar 
-        onInsertClick={() => setIsInsertModalOpen(true)}
-        onUploadClick={() => setIsModalOpen(true)}
-        // //--------- [액션바 연결] 통합 핸들러 전달 ---------
-        onActionClick={handleAction}
-        // //--------- [액션바 연결] 끝 ---------
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        handleSearch={handleSearch}
-        handleReset={handleReset}
-        selectedCount={selectedIds.length}
-      />
-
-      <div className="bg-cp-card border border-cp-border overflow-hidden">
-        {/* 테이블 헤더 - 터미널 스타일 */}
-        <div className="grid grid-cols-8 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
-          <div className="flex items-center justify-center">
-            <button
-              onClick={handleSelectAll}
-              className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-600 dark:text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-            >
-              전체선택
-            </button>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>프로필 사진</span>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>이름</span>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>성별</span>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>나이</span>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>연락처</span>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>질환</span>
-          </div>
-          <div className="flex items-center justify-center text-white dark:text-teal-400">
-            <span>위험도</span>
-          </div>
-        </div>
-        
-        <CareTarget 
-          organizationId={organizationId} 
-          setRefreshHandler={setRefreshCareList}
-          keyword={keywordParam}
-          selectedIds={selectedIds}
-          onSelectChange={handleSelectChange}
-          onListFetched={setCurrentList}
+        <CareTargetActionBar 
+          onInsertClick={() => setIsInsertModalOpen(true)}
+          onUploadClick={() => setIsModalOpen(true)}
+          // //--------- [액션바 연결] 통합 핸들러 전달 ---------
+          onActionClick={handleAction}
+          // //--------- [액션바 연결] 끝 ---------
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          handleSearch={handleSearch}
+          handleReset={handleReset}
+          selectedCount={selectedIds.length}
         />
+
+        <div className="bg-cp-card border border-cp-border overflow-hidden">
+          {/* 테이블 헤더 - 터미널 스타일 */}
+          <div className="grid grid-cols-8 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+            <div className="flex items-center justify-center">
+              <button
+                onClick={handleSelectAll}
+                className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-600 dark:text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                전체선택
+              </button>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>프로필 사진</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>이름</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>성별</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>나이</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>연락처</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>질환</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>위험도</span>
+            </div>
+          </div>
+          
+          <CareTarget 
+            organizationId={organizationId} 
+            setRefreshHandler={setRefreshCareList}
+            keyword={keywordParam}
+            selectedIds={selectedIds}
+            onSelectChange={handleSelectChange}
+            onListFetched={setCurrentList}
+          />
+        </div>
       </div>
 
       <CareTargetUploadModal 
@@ -306,7 +308,7 @@ function CareTargetPage() {
         isOpen={isInsertModalOpen} onClose={() => setIsInsertModalOpen(false)}
         organizationId={organizationId} onInsert={handleInsert} isUploading={isUploading}
       />
-    </div>
+    </>
   );
 }
 

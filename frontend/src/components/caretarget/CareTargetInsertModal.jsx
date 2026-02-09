@@ -89,7 +89,6 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
-        
         {/* 헤더 */}
         <div className="flex justify-between items-center p-5 border-b border-cp-border bg-cp-bg/30">
           <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">

@@ -89,7 +89,7 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
   };
 
   return (
-    <>
+    <div className="flex flex-col">
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border shadow-lg hover:shadow-xl transition-shadow overflow-hidden flex flex-col h-[600px] rounded-sm">
         {/* 헤더 */}
         <div className="p-6 border-b border-cp-border flex justify-between items-center bg-cp-bg/30 sticky top-0 z-10">
@@ -124,8 +124,9 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
               <div className="w-20 h-20 bg-cp-bg border-2 border-cp-border rounded flex items-center justify-center mb-5">
                 <Calendar size={32} className="text-cp-muted/40"/>
               </div>
-              <p className="text-cp-text font-mono font-semibold text-base mb-2">// No schedule found</p>
-              <p className="text-cp-muted text-sm font-mono">// 등록된 스케줄이 없습니다.</p>
+              <p className="text-cp-text font-bold text-xl tracking-tight">
+                    등록된 스케줄이 없습니다.
+              </p>
             </div>
           ) : (
             <div className="w-full">
@@ -218,7 +219,7 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
           initialData={selectedSchedule} 
         />
       )}
-    </>
+    </div>
   );
 };
 

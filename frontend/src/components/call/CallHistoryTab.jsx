@@ -4,7 +4,7 @@ import { API_SERVER_HOST } from "../../api/apiClient";
 import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
 import { useAuth } from "../../hooks/useAuth";
 import Loading from "../common/Loading";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, X } from "lucide-react";
 import {
   getRiskLevelLabel,
   getRiskLevelStyle,
@@ -194,262 +194,264 @@ const CallHistoryTab = () => {
   ]);
 
   return (
-    <div className="relative space-y-6">
-      {isListLoading ? (
-        <div className="flex min-h-[320px] items-center justify-center rounded-none border border-cp-border bg-cp-bg/50">
-          <Loading />
-        </div>
-      ) : (
-        <>
-          {/* 필터 바 */}
-          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 mb-2 space-y-4 shadow-lg">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
-                  시간
-                </span>
-                <div className="flex gap-2">
+    <>
+      <div className="relative space-y-6">
+        {isListLoading ? (
+          <div className="flex min-h-[320px] items-center justify-center rounded-none border border-cp-border bg-cp-bg/50">
+            <Loading />
+          </div>
+        ) : (
+          <>
+            {/* 필터 바 */}
+            <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-5 mb-2 space-y-4 shadow-lg">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
+                    시간
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      className="h-9 w-[150px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                      value={filterTimeFrom}
+                      onChange={(e) => setFilterTimeFrom(e.target.value)}
+                    />
+                    <input
+                      type="date"
+                      className="h-9 w-[150px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                      value={filterTimeTo}
+                      onChange={(e) => setFilterTimeTo(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
+                    유형
+                  </span>
+                  <select
+                    className="h-9 min-w-[100px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="">전체</option>
+                    <option value="수신">수신</option>
+                    <option value="발신">발신</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
+                    케어 대상
+                  </span>
                   <input
-                    type="date"
-                    className="h-9 w-[150px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                    value={filterTimeFrom}
-                    onChange={(e) => setFilterTimeFrom(e.target.value)}
-                  />
-                  <input
-                    type="date"
-                    className="h-9 w-[150px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                    value={filterTimeTo}
-                    onChange={(e) => setFilterTimeTo(e.target.value)}
+                    type="text"
+                    className="h-9 min-w-[140px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    placeholder="이름 검색"
+                    value={filterPatient}
+                    onChange={(e) => setFilterPatient(e.target.value)}
                   />
                 </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
-                  유형
-                </span>
-                <select
-                  className="h-9 min-w-[100px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <option value="">전체</option>
-                  <option value="수신">수신</option>
-                  <option value="발신">발신</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
-                  케어 대상
-                </span>
-                <input
-                  type="text"
-                  className="h-9 min-w-[140px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                  placeholder="이름 검색"
-                  value={filterPatient}
-                  onChange={(e) => setFilterPatient(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
-                  결과
-                </span>
-                <select
-                  className="h-9 min-w-[110px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                  value={filterResult}
-                  onChange={(e) => setFilterResult(e.target.value)}
-                >
-                  <option value="">전체</option>
-                  <option value="성공">성공</option>
-                  <option value="실패">실패</option>
-                  <option value="무응답">무응답</option>
-                  <option value="취소됨">취소됨</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
-                  위험도
-                </span>
-                <select
-                  className="h-9 min-w-[110px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
-                  value={filterRiskLevel}
-                  onChange={(e) => setFilterRiskLevel(e.target.value)}
-                >
-                  <option value="">전체</option>
-                  <option value="LOW">낮음</option>
-                  <option value="MEDIUM">보통</option>
-                  <option value="HIGH">위험</option>
-                  <option value="CRITICAL">긴급</option>
-                </select>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterTimeFrom("");
-                  setFilterTimeTo("");
-                  setFilterType("");
-                  setFilterPatient("");
-                  setFilterResult("");
-                  setFilterRiskLevel("");
-                }}
-                className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
-              >
-                <RotateCcw size={14} />
-                전체보기
-              </button>
-            </div>
-          </div>
-
-          {/* 테이블 */}
-          <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
-            <table className="w-full text-center">
-              <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
-                <tr>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">콜 ID</th>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">시간</th>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">케어 대상</th>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">유형</th>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">통화 시간</th>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">결과</th>
-                  <th className="px-3 py-3 text-white dark:text-teal-400">
-                    위험도 (점수)
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-cp-border">
-                {filteredHistory.map((item) => (
-                  <tr
-                    key={item.callId}
-                    onClick={() => openDetailModal(item.callId)}
-                    className="hover:bg-cp-bg/50 transition bg-cp-card/30 cursor-pointer"
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
+                    결과
+                  </span>
+                  <select
+                    className="h-9 min-w-[110px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    value={filterResult}
+                    onChange={(e) => setFilterResult(e.target.value)}
                   >
-                    <td className="px-3 py-4 text-base text-cp-text">
-                      {item.callId}
-                    </td>
-                    <td className="px-3 py-4 text-base text-cp-text">
-                      {item.startTime}
-                    </td>
-                    <td className="px-3 py-4 text-base text-cp-text">
-                      {item.careTargetName}
-                    </td>
-                    <td className="px-3 py-4 text-base text-cp-text">
-                      {item.direction}
-                    </td>
-                    <td className="px-3 py-4 text-base text-cp-text">
-                      {item.duration}
-                    </td>
-                    <td className="px-3 py-4 text-base text-cp-text">
-                      {item.statusLabel || item.status}
-                    </td>
-                    <td className="px-3 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {getRiskLevelDisplay(item.riskLevel)}
-                        <span className="text-cp-muted text-sm min-w-[45px]">
-                          ({item.riskScore ?? 0}점)
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredHistory.length === 0 && (
-                  <tr>
-                    <td
-                      className="px-3 py-10 text-center text-base text-cp-muted"
-                      colSpan={7}
-                    >
-                      표시할 통화 기록이 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {/* 페이징 */}
-          {pageData.total > 0 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => handlePageChange(1)}
-                disabled={!pageData.prev}
-                className={`px-3 py-1.5 rounded border text-sm font-medium ${
-                  !pageData.prev
-                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
-                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
-                }`}
-              >
-                처음
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!pageData.prev}
-                className={`px-3 py-1.5 rounded border text-sm font-medium ${
-                  !pageData.prev
-                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
-                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
-                }`}
-              >
-                이전
-              </button>
-              {Array.from(
-                { length: pageData.end - pageData.start + 1 },
-                (_, i) => pageData.start + i,
-              ).map((pageNum) => (
+                    <option value="">전체</option>
+                    <option value="성공">성공</option>
+                    <option value="실패">실패</option>
+                    <option value="무응답">무응답</option>
+                    <option value="취소됨">취소됨</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-cp-muted uppercase tracking-wider">
+                    위험도
+                  </span>
+                  <select
+                    className="h-9 min-w-[110px] rounded border border-cp-border bg-cp-input px-2 text-sm text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+                    value={filterRiskLevel}
+                    onChange={(e) => setFilterRiskLevel(e.target.value)}
+                  >
+                    <option value="">전체</option>
+                    <option value="LOW">낮음</option>
+                    <option value="MEDIUM">보통</option>
+                    <option value="HIGH">위험</option>
+                    <option value="CRITICAL">긴급</option>
+                  </select>
+                </div>
                 <button
-                  key={pageNum}
                   type="button"
-                  onClick={() => handlePageChange(pageNum)}
+                  onClick={() => {
+                    setFilterTimeFrom("");
+                    setFilterTimeTo("");
+                    setFilterType("");
+                    setFilterPatient("");
+                    setFilterResult("");
+                    setFilterRiskLevel("");
+                  }}
+                  className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  <RotateCcw size={14} />
+                  전체보기
+                </button>
+              </div>
+            </div>
+
+            {/* 테이블 */}
+            <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
+              <table className="w-full text-center">
+                <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
+                  <tr>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">콜 ID</th>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">시간</th>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">케어 대상</th>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">유형</th>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">통화 시간</th>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">결과</th>
+                    <th className="px-3 py-3 text-white dark:text-teal-400">
+                      위험도 (점수)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-cp-border">
+                  {filteredHistory.map((item) => (
+                    <tr
+                      key={item.callId}
+                      onClick={() => openDetailModal(item.callId)}
+                      className="hover:bg-cp-bg/50 transition bg-cp-card/30 cursor-pointer"
+                    >
+                      <td className="px-3 py-4 text-base text-cp-text">
+                        {item.callId}
+                      </td>
+                      <td className="px-3 py-4 text-base text-cp-text">
+                        {item.startTime}
+                      </td>
+                      <td className="px-3 py-4 text-base text-cp-text">
+                        {item.careTargetName}
+                      </td>
+                      <td className="px-3 py-4 text-base text-cp-text">
+                        {item.direction}
+                      </td>
+                      <td className="px-3 py-4 text-base text-cp-text">
+                        {item.duration}
+                      </td>
+                      <td className="px-3 py-4 text-base text-cp-text">
+                        {item.statusLabel || item.status}
+                      </td>
+                      <td className="px-3 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          {getRiskLevelDisplay(item.riskLevel)}
+                          <span className="text-cp-muted text-sm min-w-[45px]">
+                            ({item.riskScore ?? 0}점)
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredHistory.length === 0 && (
+                    <tr>
+                      <td
+                        className="px-3 py-10 text-center text-base text-cp-muted"
+                        colSpan={7}
+                      >
+                        표시할 통화 기록이 없습니다.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {/* 페이징 */}
+            {pageData.total > 0 && (
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(1)}
+                  disabled={!pageData.prev}
                   className={`px-3 py-1.5 rounded border text-sm font-medium ${
-                    pageNum === currentPage
-                      ? "bg-teal-600 text-white border-teal-500"
+                    !pageData.prev
+                      ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
                       : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
                   }`}
                 >
-                  {pageNum}
+                  처음
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!pageData.next}
-                className={`px-3 py-1.5 rounded border text-sm font-medium ${
-                  !pageData.next
-                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
-                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
-                }`}
-              >
-                다음
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePageChange(pageData.end)}
-                disabled={!pageData.next}
-                className={`px-3 py-1.5 rounded border text-sm font-medium ${
-                  !pageData.next
-                    ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
-                    : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
-                }`}
-              >
-                마지막
-              </button>
-            </div>
-          )}
-        </>
-      )}
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pageData.prev}
+                  className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                    !pageData.prev
+                      ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                      : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
+                  }`}
+                >
+                  이전
+                </button>
+                {Array.from(
+                  { length: pageData.end - pageData.start + 1 },
+                  (_, i) => pageData.start + i,
+                ).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                      pageNum === currentPage
+                        ? "bg-teal-600 text-white border-teal-500"
+                        : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pageData.next}
+                  className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                    !pageData.next
+                      ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                      : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
+                  }`}
+                >
+                  다음
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(pageData.end)}
+                  disabled={!pageData.next}
+                  className={`px-3 py-1.5 rounded border text-sm font-medium ${
+                    !pageData.next
+                      ? "bg-cp-bg text-cp-muted border-cp-border cursor-not-allowed"
+                      : "bg-cp-input text-cp-text border-cp-border hover:bg-cp-bg"
+                  }`}
+                >
+                  마지막
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* 상세 모달 */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-none border border-cp-border bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4 py-8">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-none border border-cp-border bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg p-6 shadow-xl modal-scrollbar">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-cp-text">
-                통화 상세
+              <h3 className="text-xl font-bold text-cp-text">
+                통화 상세 내역
               </h3>
               <button
                 type="button"
-                className="text-cp-muted hover:text-cp-text text-sm font-medium"
+                className="p-1.5 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
                 onClick={closeModal}
               >
-                닫기
+                <X size={24} />
               </button>
             </div>
 
@@ -503,10 +505,10 @@ const CallHistoryTab = () => {
                   </div>
 
                   <div className="mb-4 space-y-2">
-                    <p className="text-sm font-medium text-cp-muted">
+                    <p className="text-sm font-semibold text-cp-muted">
                       AI 요약
                     </p>
-                    <p className="rounded border border-cp-border bg-cp-bg/50 px-3 py-2 text-sm text-cp-text">
+                    <p className="rounded border border-cp-border bg-cp-input/50 px-3 py-2 text-sm text-cp-text leading-relaxed">
                       {detail.aiMemo ||
                         detail.summary ||
                         "요약 정보가 없습니다."}
@@ -514,25 +516,25 @@ const CallHistoryTab = () => {
                   </div>
 
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-cp-muted">
+                    <p className="text-sm font-semibold text-cp-muted mb-2">
                       통화 전문
                     </p>
-                    <div className="h-52 overflow-y-auto rounded border border-cp-border bg-cp-bg/50 p-3 text-sm leading-relaxed text-cp-text whitespace-pre-line">
+                    <div className="h-52 overflow-y-auto rounded border border-cp-border bg-cp-input/50 p-3 text-sm leading-relaxed text-cp-text whitespace-pre-line modal-scrollbar">
                       {detail.transcript || "통화 전문이 없습니다."}
                     </div>
                   </div>
 
                   {recordingUrl && (
                     <div className="mb-4">
-                      <p className="text-sm font-medium text-cp-muted">
+                      <p className="text-sm font-semibold text-cp-muted mb-3">
                         녹취 파일
                       </p>
                       <audio
                         controls
                         src={recordingUrl}
-                        className="audio-dark w-full rounded border border-cp-border bg-cp-bg"
+                        className="w-full rounded-full bg-cp-card dark:audio-dark overflow-hidden shadow-inner"
                       />
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-cp-muted">
+                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-cp-muted">
                         <span className="font-medium text-cp-text">
                           {detail.recordingFileName}
                         </span>
@@ -573,7 +575,7 @@ const CallHistoryTab = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
