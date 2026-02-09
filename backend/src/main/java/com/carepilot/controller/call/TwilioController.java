@@ -224,12 +224,13 @@ public class TwilioController {
     public ResponseEntity<String> handleConversation(
             @RequestParam(value = "SpeechResult", required = false) String speechResult,
             @RequestParam(value = "CallSid") String callSid,
-            @RequestParam(value = "questionIdx", defaultValue = "0") int questionIdx) {
+            @RequestParam(value = "questionIdx", defaultValue = "0") int questionIdx,
+            @RequestParam(value = "skipEmergency", defaultValue = "false") boolean skipEmergency) {
 
         VoiceResponse.Builder rb = new VoiceResponse.Builder();
 
-        log.info("handleConversation 호출: callSid={}, questionIdx={}, speechResult={}",
-                callSid, questionIdx, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
+        log.info("handleConversation 호출: callSid={}, questionIdx={}, skipEmergency={}, speechResult={}",
+                callSid, questionIdx, skipEmergency, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
 
         try {
             // 1. CallSid로 Call 찾기
@@ -298,29 +299,55 @@ public class TwilioController {
                     previousContextualQuestion = previousQuestion.getQuestionText();
                 }
 
-                // 4-1. 긴급 상황 감지
-                String scenarioPurpose = scenario.getDescription() != null ? scenario.getDescription() : "";
-                EmergencyDetectionResult emergencyResult = emergencyDetectionService.detectEmergency(
-                        speechResult, scenarioPurpose);
+                // 4-1. 긴급 상황 감지 (skipEmergency가 false일 때만 수행)
+                if (!skipEmergency) {
+                    String scenarioPurpose = scenario.getDescription() != null ? scenario.getDescription() : "";
+                    EmergencyDetectionResult emergencyResult = emergencyDetectionService.detectEmergency(
+                            speechResult, scenarioPurpose);
 
-                if (emergencyResult.isEmergency()) {
-                    // 긴급 상황: 시나리오 중단 및 대응 멘트 송출
-                    rb.say(new Say.Builder(emergencyResult.getEmergencyMessage())
-                            .language(Say.Language.KO_KR)
-                            .voice(Say.Voice.POLLY_SEOYEON)
-                            .build());
+                    if (emergencyResult.isEmergency()) {
+                        // 긴급 상황: 시나리오 중단 및 대응 멘트 송출
+                        rb.say(new Say.Builder(emergencyResult.getEmergencyMessage())
+                                .language(Say.Language.KO_KR)
+                                .voice(Say.Voice.POLLY_SEOYEON)
+                                .build());
 
-                    // 답변 저장 (변형된 질문 사용)
-                    saveAnswer(callSid, previousContextualQuestion, speechResult);
+                        // 답변 저장 (변형된 질문 사용)
+                        saveAnswer(callSid, previousContextualQuestion, speechResult);
 
-                    // 긴급 상황 알림 전송 (WebSocket + DB 저장)
-                    sendEmergencyNotification(call, careTarget, speechResult, emergencyResult.getEmergencyMessage());
+                        // 긴급 상황 알림 전송 (WebSocket + DB 저장)
+                        sendEmergencyNotification(call, careTarget, speechResult, emergencyResult.getEmergencyMessage());
 
-                    log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}",
-                            callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
+                        log.warn("긴급 상황 감지: callSid={}, careTargetId={}, answer={}",
+                                callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
 
-                    // 통화 종료
-                    return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+                        // 통화 종료
+                        return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+                    } else if (emergencyResult.isNeedsDeepCheck()) {
+                        // 심층 확인 단계: 시나리오 질문 중단하고 심층 확인 질문
+                        rb.say(new Say.Builder(emergencyResult.getEmergencyMessage())
+                                .language(Say.Language.KO_KR)
+                                .voice(Say.Voice.POLLY_SEOYEON)
+                                .build());
+
+                        // 답변 저장
+                        saveAnswer(callSid, previousContextualQuestion, speechResult);
+
+                        log.info("심층 확인 단계 진입: callSid={}, careTargetId={}, answer={}",
+                                callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
+
+                        // 심층 확인을 위한 새로운 Gather (다른 엔드포인트로 연결)
+                        rb.gather(new Gather.Builder()
+                                .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                                .language(Gather.Language.KO_KR)
+                                .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                                .timeout(GATHER_TIMEOUT)
+                                .action(ngrokBaseUrl + "/api/twilio/voice/deep-check?questionIdx=" + questionIdx)
+                                .method(com.twilio.http.HttpMethod.POST)
+                                .build());
+
+                        return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+                    }
                 }
 
                 // 4-2. 답변 저장 (동기)
@@ -401,6 +428,104 @@ public class TwilioController {
 
         } catch (Exception e) {
             log.error("시나리오 질문 처리 중 에러: {}", e.getMessage(), e);
+            rb.say(new Say.Builder("시스템 오류가 발생했습니다.")
+                    .language(Say.Language.KO_KR)
+                    .voice(Say.Voice.POLLY_SEOYEON)
+                    .build());
+        }
+
+        return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+    }
+
+    /**
+     * [심층 확인 단계] "아프다" 같은 표현에 대한 심층 확인 처리
+     * 시나리오 질문을 중단하고 "어디가 얼마나 아픈지" 자세히 물어본 후, 다시 긴급 상황을 판단합니다.
+     */
+    @PostMapping(value = "/voice/deep-check", produces = "application/xml; charset=UTF-8")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<String> handleDeepCheck(
+            @RequestParam(value = "SpeechResult", required = false) String speechResult,
+            @RequestParam(value = "CallSid") String callSid,
+            @RequestParam(value = "questionIdx") int questionIdx) {
+
+        VoiceResponse.Builder rb = new VoiceResponse.Builder();
+
+        log.info("handleDeepCheck 호출: callSid={}, questionIdx={}, speechResult={}",
+                callSid, questionIdx, speechResult != null ? speechResult.substring(0, Math.min(50, speechResult.length())) : "null");
+
+        try {
+            // 1. CallSid로 Call 찾기
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            if (callOpt.isEmpty()) {
+                log.warn("Call을 찾을 수 없음: callSid={}", callSid);
+                rb.say(new Say.Builder("시스템 오류가 발생했습니다.")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+                return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+            }
+
+            Call call = callOpt.get();
+            CareTarget careTarget = call.getCareTarget();
+            Scenario scenario = call.getCallSchedule() != null ? 
+                call.getCallSchedule().getScenario() : null;
+            String scenarioPurpose = scenario != null && scenario.getDescription() != null ? 
+                scenario.getDescription() : "";
+
+            if (speechResult != null && !speechResult.trim().isEmpty()) {
+                // 심층 확인 답변에 대해 다시 긴급 상황 판단 (needsDeepCheck 무시)
+                EmergencyDetectionResult deepCheckResult = emergencyDetectionService.detectEmergencySkipDeepCheck(
+                        speechResult, scenarioPurpose);
+
+                if (deepCheckResult.isEmergency()) {
+                    // 심층 확인 결과 긴급 상황
+                    rb.say(new Say.Builder(deepCheckResult.getEmergencyMessage())
+                            .language(Say.Language.KO_KR)
+                            .voice(Say.Voice.POLLY_SEOYEON)
+                            .build());
+
+                    // 답변 저장
+                    saveAnswer(callSid, "어디가 얼마나 아픈지 자세히 말씀해 주세요.", speechResult);
+
+                    // 긴급 상황 알림 전송 (WebSocket + DB 저장)
+                    sendEmergencyNotification(call, careTarget, speechResult, deepCheckResult.getEmergencyMessage());
+
+                    log.warn("심층 확인 후 긴급 상황 감지: callSid={}, careTargetId={}, answer={}",
+                            callSid, careTarget != null ? careTarget.getCareTargetId() : null, speechResult);
+
+                    // 통화 종료
+                    return ResponseEntity.ok().body(cleanXml(rb.build().toXml()));
+                } else {
+                    // 심층 확인 결과 정상 - 시나리오 질문 계속 진행
+                    saveAnswer(callSid, "어디가 얼마나 아픈지 자세히 말씀해 주세요.", speechResult);
+
+                    log.info("심층 확인 결과 정상, 시나리오 질문 계속 진행: callSid={}, questionIdx={}",
+                            callSid, questionIdx);
+
+                    // 원래 시나리오 질문으로 돌아가기 (재귀 호출)
+                    // skipEmergency=true를 전달하여 다시 심층 확인 질문이 나가는 루프를 방지
+                    return handleConversation(speechResult, callSid, questionIdx, true);
+                }
+            } else {
+                // 답변이 없으면 다시 물어보기
+                rb.say(new Say.Builder("어디가 얼마나 아픈지 자세히 말씀해 주세요.")
+                        .language(Say.Language.KO_KR)
+                        .voice(Say.Voice.POLLY_SEOYEON)
+                        .build());
+
+                rb.gather(new Gather.Builder()
+                        .inputs(Collections.singletonList(Gather.Input.SPEECH))
+                        .language(Gather.Language.KO_KR)
+                        .speechTimeout(GATHER_SPEECH_TIMEOUT)
+                        .timeout(GATHER_TIMEOUT)
+                        .action(ngrokBaseUrl + "/api/twilio/voice/deep-check?questionIdx=" + questionIdx)
+                        .method(com.twilio.http.HttpMethod.POST)
+                        .build());
+            }
+
+        } catch (Exception e) {
+            log.error("심층 확인 처리 중 에러: {}", e.getMessage(), e);
             rb.say(new Say.Builder("시스템 오류가 발생했습니다.")
                     .language(Say.Language.KO_KR)
                     .voice(Say.Voice.POLLY_SEOYEON)
@@ -880,32 +1005,26 @@ public class TwilioController {
                 // 3) 기존 Call이 없으면 새로 생성 (인바운드 등)
                 log.info("saveCallData: CallSid로 Call을 찾을 수 없어 새로 생성 시도: callSid={}, from={}", callSid, fromNumber);
                 
-                // Organization 기본값
-                List<Organization> orgs = organizationRepository.findAll();
-                if (orgs.isEmpty()) return;
-                Organization organization = orgs.get(0);
-
                 // CareTarget 조회
                 CareTarget careTarget = careTargetRepository.findAll().stream()
                         .filter(t -> t.getTargetPhone() != null &&
                                 t.getTargetPhone().replaceAll("[^0-9]", "").equals(finalTwilioPhone))
                         .findFirst()
-                        .orElseGet(() -> {
-                            List<CareTarget> all = careTargetRepository.findAll();
-                            return all.isEmpty() ? null : all.get(0);
-                        });
+                        .orElse(null);
 
-                if (careTarget == null) return;
+                if (careTarget == null) {
+                    log.warn("saveCallData: CareTarget을 찾을 수 없음: {}", finalTwilioPhone);
+                    return;
+                }
 
                 call = Call.builder()
-                        .organization(organization)
+                        .organization(careTarget.getOrganization())
                         .careTarget(careTarget)
-                        .direction(CallDirection.OUTBOUND)
+                        .direction(CallDirection.INBOUND)
                         .callType(CallType.REGULAR_MONITORING)
                         .status(CallStatus.SUCCESS)
-                        .startTime(java.time.LocalDateTime.now())
-                        .endTime(java.time.LocalDateTime.now())
-                        .summary(null)
+                        .startTime(LocalDateTime.now())
+                        .endTime(LocalDateTime.now())
                         .callerId(finalTwilioPhone)
                         .callSid(callSid)
                         .build();
