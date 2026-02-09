@@ -38,9 +38,10 @@ import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.repository.user.UserRepository;
 import com.carepilot.repository.notification.NotificationRepository;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 
 import com.carepilot.service.sms.ScheduleChangeService;
+import com.carepilot.service.sms.ScheduleNotificationService;
 import com.carepilot.service.prescription.PrescriptionService;
 import com.carepilot.service.config.ai.AiConfigService;
 import com.carepilot.service.sms.SmsTypeService;
@@ -77,7 +78,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,6 +110,7 @@ public class TwilioController {
     private final UploadFileService uploadFileService;
     private final SmsTypeService smsTypeService;
     private final ScheduleChangeService scheduleChangeService;
+    private final ScheduleNotificationService scheduleNotificationService;
     private final PrescriptionService prescriptionService;
     private final AiConfigService aiConfigService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -723,6 +724,16 @@ public class TwilioController {
                             call.getCallId(), e.getMessage(), e);
                 }
             }
+
+            // [추가] 케어대상에게 안내 문자 발송 (무응답일 때만 발송)
+            if (newStatus == CallStatus.NO_ANSWER) {
+                try {
+                    scheduleNotificationService.sendMissedCallNotificationSms(call);
+                } catch (Exception e) {
+                    log.error("부재중 안내 문자 발송 중 오류: callId={}, error={}",
+                            call.getCallId(), e.getMessage(), e);
+                }
+            }
         }
 
         return ResponseEntity.ok().build();
@@ -1292,5 +1303,3 @@ public class TwilioController {
         }
     }
 }
-
-

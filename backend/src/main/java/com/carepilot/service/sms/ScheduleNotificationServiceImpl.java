@@ -67,6 +67,55 @@ public class ScheduleNotificationServiceImpl implements ScheduleNotificationServ
         }
     }
 
+    @Override
+    @Transactional
+    public void sendMissedCallNotificationSms(com.carepilot.domain.call.Call call) {
+        CareTarget careTarget = call.getCareTarget();
+        if (careTarget == null) {
+            log.warn("[MissedCallNotification] 케어대상 없음 callId={}", call.getCallId());
+            return;
+        }
+
+        String phone = careTarget.getTargetPhone();
+        if (phone == null || phone.isBlank()) {
+            log.warn("[MissedCallNotification] 전화번호 없음 careTargetId={}", careTarget.getCareTargetId());
+            return;
+        }
+
+        String name = (careTarget.getName() != null && !careTarget.getName().isBlank())
+                ? careTarget.getName() + "님"
+                : "고객님";
+
+        String message = buildMissedCallMessage(name);
+
+        try {
+            String parsedPhone = PhoneNumberUtil.parsePhoneNumber(phone);
+            String messageSid = twilioService.sendSms(parsedPhone, message);
+            outboundSmsRepository.save(OutboundSms.builder()
+                    .messageSid(messageSid)
+                    .fromNumber(twilioService.getFromNumber())
+                    .toNumber(parsedPhone)
+                    .body(message)
+                    .sentBy(SentBy.AI)
+                    .build());
+            log.info("[MissedCallNotification] 발송 완료 callId={}, to={}", call.getCallId(), phone);
+        } catch (Exception e) {
+            log.error("[MissedCallNotification] 발송 실패 callId={}, to={}, error={}",
+                    call.getCallId(), phone, e.getMessage(), e);
+        }
+    }
+
+    private String buildMissedCallMessage(String name) {
+        return """
+                [CarePilot 안내]
+                안녕하세요, %s.
+                방금 전화를 드렸으나 부재중이셔서 연결되지 않았습니다.
+                
+                예약 변경을 원하실 경우,
+                이 문자에 원하시는 시간을 답장해 주세요.
+                """.formatted(name);
+    }
+
     private List<CareTarget> collectRecipients(CallSchedule schedule) {
         List<CareTarget> list = new ArrayList<>();
         if (schedule.getCareTarget() != null) {
