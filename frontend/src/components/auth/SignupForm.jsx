@@ -56,8 +56,8 @@ function SignupForm() {
     }
   };
 
-  const inputClass = "block w-full px-4 py-2.5 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-sm";
-  const labelClass = "flex items-center gap-2 text-[11px] font-black text-cp-muted uppercase tracking-widest mb-1.5 ml-1";
+  const inputClass = "block w-full px-4 py-3 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-base";
+  const labelClass = "flex items-center gap-2 text-[13px] font-black text-cp-muted uppercase tracking-widest mb-2 ml-1";
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
@@ -66,25 +66,25 @@ function SignupForm() {
         <button
           type="button"
           onClick={() => setSignupType('organization')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-sm font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-sm text-base font-bold transition-all ${
             signupType === 'organization'
               ? 'bg-cp-bg text-teal-400 shadow-md border border-cp-border'
               : 'text-cp-muted hover:text-cp-text'
           }`}
         >
-          <Building size={16} />
+          <Building size={18} />
           업체 등록
         </button>
         <button
           type="button"
           onClick={() => setSignupType('user')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-sm font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-sm text-base font-bold transition-all ${
             signupType === 'user'
               ? 'bg-cp-bg text-teal-400 shadow-md border border-cp-border'
               : 'text-cp-muted hover:text-cp-text'
           }`}
         >
-          <UserPlus size={16} />
+          <UserPlus size={18} />
           직원 가입
         </button>
       </div>
@@ -94,7 +94,7 @@ function SignupForm() {
           {signupType === 'organization' ? (
             <div>
               <label htmlFor="organizationName" className={labelClass}>
-                <Building size={14} className="text-teal-500/70" />
+                <Building size={16} className="text-teal-500/70" />
                 업체 이름
               </label>
               <input
@@ -110,10 +110,15 @@ function SignupForm() {
             </div>
           ) : (
             <div>
-              <label htmlFor="organizationNumber" className={labelClass}>
-                <Hash size={14} className="text-teal-500/70" />
-                업체 식별 번호
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="organizationNumber" className={`${labelClass} mb-0`}>
+                  <Hash size={16} className="text-teal-500/70" />
+                  업체 식별 번호
+                </label>
+                <span className="text-[11px] text-cp-muted font-bold uppercase tracking-tight">
+                  관리자로부터 전달받은 번호를 입력하세요
+                </span>
+              </div>
               <input
                 id="organizationNumber"
                 name="organizationNumber"
@@ -124,16 +129,13 @@ function SignupForm() {
                 className={inputClass}
                 placeholder="ABC-12345"
               />
-              <p className="mt-1.5 text-[10px] text-cp-muted font-medium ml-1">
-                관리자로부터 전달받은 식별 코드를 입력하세요
-              </p>
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label htmlFor="email" className={labelClass}>
-                <Mail size={14} className="text-teal-500/70" />
+                <Mail size={16} className="text-teal-500/70" />
                 이메일 계정
               </label>
               <input
@@ -150,7 +152,7 @@ function SignupForm() {
 
             <div>
               <label htmlFor="password" className={labelClass}>
-                <Lock size={14} className="text-teal-500/70" />
+                <Lock size={16} className="text-teal-500/70" />
                 비밀번호
               </label>
               <input
@@ -169,7 +171,7 @@ function SignupForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label htmlFor="name" className={labelClass}>
-                <User size={14} className="text-teal-500/70" />
+                <User size={16} className="text-teal-500/70" />
                 성함
               </label>
               <input
@@ -186,7 +188,7 @@ function SignupForm() {
 
             <div>
               <label htmlFor="phone" className={labelClass}>
-                <Phone size={14} className="text-teal-500/70" />
+                <Phone size={16} className="text-teal-500/70" />
                 전화번호
               </label>
               <input
@@ -205,7 +207,7 @@ function SignupForm() {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-sm text-xs font-bold text-center">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-sm text-sm font-bold text-center">
             {typeof error === 'string' ? error : error?.message || '입력 정보를 다시 확인해주세요.'}
           </div>
         )}
@@ -231,9 +233,9 @@ function SignupForm() {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="group inline-flex items-center gap-2 text-sm text-cp-muted font-medium hover:text-cp-text transition-colors"
+            className="group inline-flex items-center gap-2 text-base text-cp-muted font-medium hover:text-cp-text transition-colors"
           >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             이미 계정이 있으신가요? <span className="text-teal-400 font-black underline underline-offset-4 decoration-2 decoration-teal-500/30">로그인하기</span>
           </button>
         </div>

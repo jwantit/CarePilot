@@ -1,8 +1,12 @@
 import SignupForm from '../../components/auth/SignupForm';
+import ThemeToggle from '../../components/common/ThemeToggle';
 
 function SignupPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cp-bg py-16 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-cp-bg py-16 px-4 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle className="bg-cp-card border border-cp-border shadow-md" />
+      </div>
       <div className="max-w-lg w-full bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-500">
         <div className="p-10 space-y-8">
           <div className="text-center space-y-3">

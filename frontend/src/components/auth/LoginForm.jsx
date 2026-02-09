@@ -23,8 +23,8 @@ function LoginForm() {
     await login(formData);
   };
 
-  const inputClass = "block w-full px-4 py-3 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-sm";
-  const labelClass = "block text-xs font-black text-cp-muted uppercase tracking-widest mb-1.5 ml-1";
+  const inputClass = "block w-full px-4 py-3 bg-cp-input text-cp-text placeholder:text-cp-muted border border-cp-border rounded-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all shadow-inner text-base";
+  const labelClass = "block text-[13px] font-black text-cp-muted uppercase tracking-widest mb-2 ml-1";
 
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -63,7 +63,7 @@ function LoginForm() {
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-sm text-xs font-bold text-center animate-shake">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-sm text-sm font-bold text-center animate-shake">
           {typeof error === 'string' ? error : error?.message || '로그인 정보를 다시 확인해주세요.'}
         </div>
       )}
@@ -79,7 +79,7 @@ function LoginForm() {
 
         <div className="relative flex items-center py-2">
           <div className="flex-grow border-t border-cp-border"></div>
-          <span className="flex-shrink mx-4 text-cp-muted text-[10px] font-black uppercase tracking-[0.2em]">Social Login</span>
+          <span className="flex-shrink mx-4 text-cp-muted text-[11px] font-black uppercase tracking-[0.2em]">Social Login</span>
           <div className="flex-grow border-t border-cp-border"></div>
         </div>
 
@@ -98,7 +98,7 @@ function LoginForm() {
       </div>
 
       <div className="text-center pt-2">
-        <p className="text-sm text-cp-muted font-medium">
+        <p className="text-base text-cp-muted font-medium">
           아직 계정이 없으신가요?{' '}
           <button
             type="button"
