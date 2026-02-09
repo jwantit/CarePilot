@@ -113,14 +113,14 @@ const SmsWidgetPanel = ({
             <button
               onClick={loadList}
               disabled={loading}
-              className="p-1.5 hover:bg-cp-bg rounded text-cp-muted hover:text-cp-text text-sm transition-colors"
+              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm transition-colors"
               title="새로고침"
             >
               새로고침
             </button>
             <button
               onClick={closePanel}
-              className="p-1 hover:bg-cp-bg rounded text-cp-muted hover:text-cp-text transition-colors"
+              className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
               aria-label="닫기"
             >
               <X className="h-5 w-5" />
@@ -310,10 +310,10 @@ const SmsWidgetPanel = ({
         <button
           onClick={handleSend}
           disabled={sending || !to.trim() || !message.trim()}
-          className={`p-2 text-white transition-colors shrink-0 rounded-sm ${
+          className={`p-2 transition-colors shrink-0 rounded-sm ${
             sending || !to.trim() || !message.trim()
-              ? "bg-cp-bg/50 text-cp-muted cursor-not-allowed"
-              : "bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 cursor-pointer"
+              ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+              : "bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white cursor-pointer"
           }`}
           aria-label="전송"
         >

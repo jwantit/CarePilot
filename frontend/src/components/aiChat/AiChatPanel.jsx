@@ -76,13 +76,13 @@ const AiChatPanel = ({
           </span>
         </div>
         {/* 클라우드 / 온디바이스 토글 */}
-        <div className="flex items-center bg-slate-800 rounded-full p-1 border border-slate-600 mx-4">
+        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-slate-200 dark:border-slate-700 mx-4">
           <button
             onClick={() => setProviderKey(0)}
             className={`px-3 py-1 text-[10px] font-medium rounded-full transition-all ${
               providerKey === 0 
                 ? 'bg-teal-600 text-white shadow-sm' 
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             클라우드
@@ -92,14 +92,14 @@ const AiChatPanel = ({
             className={`px-3 py-1 text-[10px] font-medium rounded-full transition-all ${
               providerKey === 1 
                 ? 'bg-teal-600 text-white shadow-sm' 
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             온디바이스
           </button>
         </div>
 
-        <button onClick={closePanel} className="p-1 hover:bg-slate-600 text-slate-300 hover:text-slate-100 transition-colors">
+        <button onClick={closePanel} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 transition-colors">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -225,7 +225,11 @@ const AiChatPanel = ({
           <button 
             onClick={handleSendMessage} 
             disabled={isLoading || selectedImage?.isUploading}
-            className={`ml-2 p-2 text-white transition-colors rounded-sm ${isLoading || selectedImage?.isUploading ? 'bg-cp-bg/50 text-cp-muted' : 'bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600'}`}
+            className={`ml-2 p-2 transition-colors rounded-sm ${
+              isLoading || selectedImage?.isUploading 
+                ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' 
+                : 'bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white cursor-pointer'
+            }`}
           >
             <Send className="h-5 w-5" />
           </button>
