@@ -8,7 +8,7 @@ import {
 } from "../../api/scenarioApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { getRiskLevelLabel } from "../../utils/riskLevelStyles";
+import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";
 import { 
   X, 
   PlusCircle, 
@@ -17,7 +17,8 @@ import {
   ShieldCheck, 
   HelpCircle,
   Trash2,
-  Plus
+  Plus,
+  RotateCcw
 } from "lucide-react";
 
 const inputClass =
@@ -79,6 +80,14 @@ function ScenarioSetting() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      status: "전체",
+      riskLevel: "전체",
+      category: "전체",
+    });
   };
 
   const handleOpenModal = async (scenario = null) => {
@@ -271,8 +280,8 @@ function ScenarioSetting() {
 
       {/* 필터 섹션 */}
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
@@ -286,7 +295,7 @@ function ScenarioSetting() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               위험 단계
             </label>
@@ -303,7 +312,7 @@ function ScenarioSetting() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               카테고리
             </label>
@@ -318,59 +327,66 @@ function ScenarioSetting() {
               <option value="질병별 모니터링" className="bg-cp-card">질병별 모니터링</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <RotateCcw size={14} />
+            전체보기
+          </button>
         </div>
       </div>
 
       {/* 테이블 */}
-      <div className="bg-cp-card border border-cp-border rounded-none overflow-hidden shadow-lg">
+      <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-cp-border">
-            <thead className="bg-cp-header">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  시나리오명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  설명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  위험 레벨
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  사용 여부
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cp-border">
+          <div className="w-full">
+            {/* 헤더 - CareTarget 스타일 동일 적용 (5열) */}
+            <div className="grid grid-cols-5 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+              <div className="text-white dark:text-teal-400">시나리오명</div>
+              <div className="text-white dark:text-teal-400">설명</div>
+              <div className="text-white dark:text-teal-400">위험 레벨</div>
+              <div className="text-white dark:text-teal-400">사용 여부</div>
+              <div className="text-white dark:text-teal-400">관리</div>
+            </div>
+
+            {/* 데이터 행 */}
+            <div className="">
               {scenarios.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="px-6 py-4 text-center text-cp-muted"
-                  >
-                    등록된 시나리오가 없습니다.
-                  </td>
-                </tr>
+                <div className="py-20 text-center text-cp-muted bg-cp-card/30">
+                  등록된 시나리오가 없습니다.
+                </div>
               ) : (
                 scenarios.map((scenario) => (
-                  <tr key={scenario.scenarioId} className="hover:bg-cp-bg/50 transition">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
-                      {scenario.name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-cp-text max-w-md truncate">
-                      {scenario.description}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {getRiskLevelLabel(scenario.riskLevel)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
+                  <div
+                    key={scenario.scenarioId}
+                    onClick={() => handleOpenDetailModal(scenario.scenarioId)}
+                    className="grid grid-cols-5 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate w-full">
+                        {scenario.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-sm truncate w-full" title={scenario.description}>
+                        {scenario.description || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span
+                        className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(scenario.riskLevel)}`}
+                      >
+                        {getRiskLevelLabel(scenario.riskLevel)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full" onClick={(e) => e.stopPropagation()}>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -385,34 +401,32 @@ function ScenarioSetting() {
                         />
                         <div className="w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-cp-bg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    </div>
+                    <div className="flex items-center justify-center h-full gap-1">
                       <button
-                        onClick={() =>
-                          handleOpenDetailModal(scenario.scenarioId)
-                        }
-                        className="cp-link-muted"
-                      >
-                        상세
-                      </button>
-                      <button
-                        onClick={() => handleOpenModal(scenario)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(scenario);
+                        }}
                         className="cp-link-blue"
                       >
                         수정
                       </button>
                       <button
-                        onClick={() => handleDelete(scenario.scenarioId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(scenario.scenarioId);
+                        }}
                         className="cp-link-red"
                       >
                         삭제
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
       </div>
 
@@ -683,8 +697,10 @@ function ScenarioSetting() {
 
                 <div>
                   <label className={labelClass}>위험 레벨</label>
-                  <div className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30">
-                    <span className="text-cp-text">
+                  <div className="flex">
+                    <span
+                      className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(selectedScenario.riskLevel)}`}
+                    >
                       {getRiskLevelLabel(selectedScenario.riskLevel)}
                     </span>
                   </div>

@@ -1,14 +1,22 @@
 import React, { useState } from "react";
-import { User, Phone, Calendar, AlertCircle, ChevronRight } from "lucide-react";
+import { User } from "lucide-react";
 import { getFileUrl } from "../../hooks/fileHelper";
 import { useNavigate } from "react-router-dom";
 import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";
+
+const getGenderLabel = (gender) => {
+  if (!gender) return "-";
+  const g = String(gender).toUpperCase();
+  if (g === "M" || g === "MALE" || g === "남" || g === "남성") return "남성";
+  if (g === "F" || g === "FEMALE" || g === "여" || g === "여성") return "여성";
+  return gender;
+};
 
 function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
-  const handleDetailGo = () => {
+  const handleRowClick = () => {
     if (data?.careTargetId) {
       navigate(`/care-target/detail/${data.careTargetId}`);
     } else {
@@ -16,26 +24,34 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
     }
   };
 
+  const handleCheckboxClick = (e) => {
+    e.stopPropagation();
+  };
+
   const imageUrl = getFileUrl(data?.thumbnailStoragePath);
   const displayRiskLevel = data?.riskLevel || "LOW";
 
-
   return (
     <div
-      className={`grid grid-cols-8 py-4 px-4 text-sm text-center items-center bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg hover:bg-cp-bg/50 transition-all border-b border-cp-border/50 shadow-sm hover:shadow-md hover:-translate-y-0.5 ${isSelected ? "bg-cp-bg/40 border-l-2 border-l-teal-400 shadow-md" : ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={handleRowClick}
+      onKeyDown={(e) => e.key === "Enter" && handleRowClick()}
+      className={`grid grid-cols-8 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer ${isSelected ? "bg-cp-bg/40 border-l-2 border-l-teal-400 -ml-[2px]" : ""}`}
     >
       {/* 체크박스 열 */}
-      <div className="flex justify-center">
+      <div className="flex items-center justify-center h-full" onClick={handleCheckboxClick}>
         <input
           type="checkbox"
           checked={isSelected}
           onChange={(e) => onSelectChange(data.careTargetId, e.target.checked)}
-          className="custom-checkbox w-6 h-6 rounded-sm border-2 border-cp-border bg-cp-input focus:ring-2 focus:ring-teal-500/50 cursor-pointer shadow-md hover:border-teal-500/50 transition-all"
+          onClick={(e) => e.stopPropagation()}
+          className="custom-checkbox w-6 h-6 rounded-sm border-2 border-cp-border bg-cp-input focus:ring-2 focus:ring-teal-500/50 cursor-pointer transition-all"
         />
       </div>
 
       {/* 사진 열 */}
-      <div className="flex justify-center">
+      <div className="flex items-center justify-center h-full">
         <div className="w-11 h-11 rounded-full bg-cp-bg border border-cp-border overflow-hidden flex items-center justify-center shadow-md">
           {imageUrl && !imgError ? (
             <img
@@ -53,59 +69,41 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
       </div>
 
       {/* 이름 열 */}
-      <div className="font-bold text-cp-text text-base">
-        <span>{data?.name || "-"}</span>
+      <div className="flex items-center justify-center h-full">
+        <span className="text-cp-text text-base truncate">{data?.name || "-"}</span>
       </div>
+
+      {/* 성별 열 */}
+      <div className="flex items-center justify-center h-full">
+        <span className="text-cp-text text-base">{getGenderLabel(data?.gender)}</span>
+      </div>
+
       {/* 나이 열 */}
-      <div className="text-cp-text font-semibold text-base">
-        {data?.age ? (
-          <div className="flex items-center justify-center gap-1">
-            <span>{data.age}</span>
-          </div>
-        ) : (
-          <span className="text-cp-muted">-</span>
-        )}
+      <div className="flex items-center justify-center h-full">
+        <span className="text-cp-text text-base">{data?.age ?? "-"}세</span>
       </div>
 
       {/* 전화번호 열 */}
-      <div className="text-cp-text text-sm font-medium">
+      <div className="flex items-center justify-center h-full">
         {data?.careTargetPhone ? (
-          <div className="flex items-center justify-center gap-1">
-            <span className="font-mono">{data.careTargetPhone}</span>
-          </div>
+          <span className="text-cp-text text-sm font-mono truncate">{data.careTargetPhone}</span>
         ) : (
           <span className="text-cp-muted">-</span>
         )}
       </div>
 
       {/* 질환 열 */}
-      <div className="text-cp-text truncate px-2 font-medium text-sm">
-        {data?.disease ? (
-          <div className="flex items-center justify-center gap-1">
-            <span className="truncate">{data.disease}</span>
-          </div>
-        ) : (
-          <span className="text-cp-muted">-</span>
-        )}
+      <div className="flex items-center justify-center h-full">
+        <span className="text-cp-text truncate text-sm">{data?.disease || "-"}</span>
       </div>
 
       {/* 위험 레벨 열 */}
-      <div className="flex justify-center">
+      <div className="flex items-center justify-center h-full">
         <span
-          className={`px-3 py-1 text-xs font-bold border ${getRiskLevelStyle(displayRiskLevel)} shadow-sm`}
+          className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(displayRiskLevel)}`}
         >
           {getRiskLevelLabel(displayRiskLevel)}
         </span>
-      </div>
-
-      {/* 관리 버튼 열 */}
-      <div className="flex justify-center">
-        <button
-          onClick={handleDetailGo}
-          className="cp-link-muted font-bold text-sm"
-        >
-          상세
-        </button>
       </div>
     </div>
   );

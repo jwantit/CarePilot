@@ -9,7 +9,7 @@ import StatCardGrid from '../../components/common/StatCardGrid';
 import { deleteCareTarget, uploadCsvCareTarget, uploadOneCareTarget, getCareTargetAllList } from '../../api/caretarget/careTargetApi';
 import { makeCallTest } from '../../api/callApi';
 import { useAuth } from '../../hooks/useAuth';
-import { Users, AlertTriangle, Activity, Heart, Shield } from 'lucide-react';
+import { Users, AlertTriangle, AlertCircle, Activity, Shield } from 'lucide-react';
 
 function CareTargetPage() {
   const { user } = useAuth();
@@ -100,7 +100,7 @@ function CareTargetPage() {
     {
       value: stats.high,
       label: '위험',
-      icon: AlertTriangle,
+      icon: AlertCircle,
       iconColor: 'text-orange-400',
       valueColor: 'text-orange-400',
       hoverBorderColor: 'hover:border-orange-500/50'
@@ -148,7 +148,7 @@ function CareTargetPage() {
         for (const item of withPhone) {
           await makeCallTest({ to: item.careTargetPhone, scheduledTime: now });
         }
-        alert(`${withPhone.length}명에게 통화 요청이 등록되었습니다.`);
+        alert(`선택한 대상(${withPhone.length}명)에게 통화를 연결합니다.`);
         setSelectedIds([]);
       } catch (error) {
         if (error.response?.status === 403) {
@@ -253,28 +253,36 @@ function CareTargetPage() {
 
       <div className="bg-cp-card border border-cp-border overflow-hidden">
         {/* 테이블 헤더 - 터미널 스타일 */}
-        <div className="grid grid-cols-8 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-cp-text text-center items-center">
-          <div className="flex justify-center">
+        <div className="grid grid-cols-8 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+          <div className="flex items-center justify-center">
             <button
               onClick={handleSelectAll}
-              className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-600 dark:text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               전체선택
             </button>
           </div>
-          <div className="flex items-center justify-center gap-1 text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>프로필 사진</span>
           </div>
-          <div className="flex items-center justify-center gap-1 text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>이름</span>
           </div>
-          <div className="text-teal-400">나이</div>
-          <div className="text-teal-400">연락처</div>
-          <div className="text-teal-400">질환</div>
-          <div className="flex items-center justify-center gap-1 text-teal-400">
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
+            <span>성별</span>
+          </div>
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
+            <span>나이</span>
+          </div>
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
+            <span>연락처</span>
+          </div>
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
+            <span>질환</span>
+          </div>
+          <div className="flex items-center justify-center text-white dark:text-teal-400">
             <span>위험도</span>
           </div>
-          <div className="text-teal-400">상세보기</div>
         </div>
         
         <CareTarget 

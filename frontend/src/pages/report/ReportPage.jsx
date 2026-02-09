@@ -361,10 +361,10 @@ function ReportPage() {
 
           <button
             onClick={handleReset}
-            className="h-9 flex items-center gap-1.5 px-5 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-none"
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
           >
             <RotateCcw size={14} />
-            초기화
+            전체보기
           </button>
 
           <div className="flex-1" />
@@ -382,7 +382,7 @@ function ReportPage() {
           <nav className="flex gap-4">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "overview"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"
@@ -392,7 +392,7 @@ function ReportPage() {
             </button>
             <button
               onClick={() => setActiveTab("risk")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "risk"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"
@@ -402,7 +402,7 @@ function ReportPage() {
             </button>
             <button
               onClick={() => setActiveTab("call")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "call"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"
@@ -412,7 +412,7 @@ function ReportPage() {
             </button>
             <button
               onClick={() => setActiveTab("ai")}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-semibold text-base border-b-2 transition-colors ${
                 activeTab === "ai"
                   ? "border-teal-500 text-teal-400"
                   : "border-transparent text-cp-muted hover:text-cp-text"

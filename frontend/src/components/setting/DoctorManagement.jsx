@@ -9,7 +9,7 @@ import {
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import BulkUploadModal from "../../components/common/BulkUploadModal";
-import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle } from "lucide-react";
+import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle, RotateCcw } from "lucide-react";
 
 const inputClass =
   "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
@@ -75,6 +75,14 @@ function DoctorManagement() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      role: "",
+      isActive: "",
+      name: "",
+    });
   };
 
   const handleOpenModal = (doctor = null) => {
@@ -226,8 +234,8 @@ function DoctorManagement() {
 
       {/* 필터 섹션 */}
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               역할
             </label>
@@ -244,7 +252,7 @@ function DoctorManagement() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-1 min-w-[150px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
@@ -259,7 +267,7 @@ function DoctorManagement() {
             </select>
           </div>
 
-          <div>
+          <div className="flex-[2] min-w-[200px]">
             <label className="block text-sm font-semibold text-cp-muted mb-2">
               이름 검색
             </label>
@@ -268,97 +276,108 @@ function DoctorManagement() {
               value={filters.name}
               onChange={(e) => handleFilterChange("name", e.target.value)}
               placeholder="이름으로 검색"
-              className="w-full px-4 py-2 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
+              className="w-full h-9 px-4 border border-cp-border rounded-none bg-cp-input text-cp-text text-sm placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <RotateCcw size={14} />
+            전체보기
+          </button>
         </div>
       </div>
 
       {/* 테이블 */}
-      <div className="bg-cp-card border border-cp-border rounded-none overflow-hidden shadow-lg">
+      <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-cp-border">
-            <thead className="bg-cp-header">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  이름
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  이메일
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  전문과
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  역할
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  상태
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-teal-400 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cp-border">
+          <div className="w-full">
+            {/* 헤더 - CareTarget 스타일 동일 적용 (6열) */}
+            <div className="grid grid-cols-6 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+              <div className="text-white dark:text-teal-400">이름</div>
+              <div className="text-white dark:text-teal-400">이메일</div>
+              <div className="text-white dark:text-teal-400">전문과</div>
+              <div className="text-white dark:text-teal-400">역할</div>
+              <div className="text-white dark:text-teal-400">상태</div>
+              <div className="text-white dark:text-teal-400">관리</div>
+            </div>
+
+            {/* 데이터 행 */}
+            <div className="">
               {doctors.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-4 text-center text-cp-muted"
-                  >
-                    등록된 의료진이 없습니다.
-                  </td>
-                </tr>
+                <div className="py-20 text-center text-cp-muted bg-cp-card/30">
+                  등록된 의료진이 없습니다.
+                </div>
               ) : (
                 doctors.map((doctor) => (
-                  <tr key={doctor.doctorId} className="hover:bg-cp-bg/50 transition">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-cp-text">
-                      {doctor.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {doctor.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {doctor.specialty || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
-                      {getRoleLabel(doctor.role)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-cp-text">
+                  <div
+                    key={doctor.doctorId}
+                    onClick={() => handleOpenModal(doctor)}
+                    className="grid grid-cols-6 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate">
+                        {doctor.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate">
+                        {doctor.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-cp-text text-base">
+                        {doctor.specialty || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-cp-text text-base">
+                        {getRoleLabel(doctor.role)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
+                        className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${
                           doctor.isActive
-                            ? "bg-teal-500/20 text-teal-400 border border-teal-500/50"
-                            : "bg-cp-bg/50 text-cp-muted border border-cp-border"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50"
+                            : "bg-cp-bg text-cp-text border border-cp-border dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border"
                         }`}
                       >
                         {getStatusLabel(doctor.isActive)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    </div>
+                    <div className="flex items-center justify-center h-full gap-1">
                       <button
-                        onClick={() => handleOpenModal(doctor)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(doctor);
+                        }}
                         className="cp-link-blue"
                       >
                         수정
                       </button>
                       <button
-                        onClick={() => handleDelete(doctor.doctorId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(doctor.doctorId);
+                        }}
                         className="cp-link-red"
                       >
                         삭제
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
       </div>
 

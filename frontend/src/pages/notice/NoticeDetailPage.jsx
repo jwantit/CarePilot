@@ -105,7 +105,7 @@ function NoticeDetailPage() {
   if (!selectedNotice) {
     return (
       <div className="space-y-6">
-        <Breadcrumb items={["공지사항", "상세"]} />
+        <Breadcrumb items={[{ label: "공지사항", path: "/notice" }, "상세"]} />
         <div className="text-center py-12">
           <p className="text-cp-muted">로딩 중...</p>
         </div>
@@ -115,7 +115,7 @@ function NoticeDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={["공지사항", "상세"]} />
+      <Breadcrumb items={[{ label: "공지사항", path: "/notice" }, "상세"]} />
       
       <NoticeDetail
         selectedNotice={selectedNotice}

@@ -15,7 +15,7 @@ import { ListTodo, Clock, Play, CheckCircle } from "lucide-react";
 const TaskListTab = () => {
   const auth = useSelector((state) => state.auth);
   const organizationId = auth?.user?.organizationId;
-  const [searchParams] = useSearchParams(); // 작업 필터 로직
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     taskList,
@@ -23,6 +23,7 @@ const TaskListTab = () => {
     loading,
     filters,
     updateFilter,
+    resetFilters,
     handleCreateTask,
     handleUpdateTask,
     handleUpdateStatus,
@@ -115,6 +116,11 @@ const TaskListTab = () => {
     }
   };
 
+  const handleReset = () => {
+    resetFilters();
+    setSearchParams({});
+  };
+
   const handleDeleteTaskFromModal = async (taskId) => {
     try {
       await handleDeleteTask(taskId);
@@ -160,6 +166,7 @@ const TaskListTab = () => {
         updateFilter={updateFilter}
         staffList={staffList}
         onAddClick={handleOpenCreate}
+        onReset={handleReset}
       />
       <TaskTable
         taskList={filteredTaskList}

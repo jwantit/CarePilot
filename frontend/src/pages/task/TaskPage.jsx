@@ -12,28 +12,30 @@ const TaskPage = () => {
 
       {/* 탭 메뉴 - CallPage와 동일한 스타일 적용 */}
       <div className="flex border-b border-cp-border mb-4">
-        <button
-          type="button"
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === "task"
-              ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
-          }`}
-          onClick={() => setActiveTab("task")}
-        >
-          할 일 목록
-        </button>
-        <button
-          type="button"
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === "ai"
-              ? "border-b-2 border-teal-500 text-teal-400 font-bold"
-              : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
-          }`}
-          onClick={() => setActiveTab("ai")}
-        >
-          AI 처리 내역
-        </button>
+        <div className="flex -mb-px">
+          <button
+            type="button"
+            className={`px-4 py-2 font-medium text-base transition-colors ${
+              activeTab === "task"
+                ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
+            }`}
+            onClick={() => setActiveTab("task")}
+          >
+            할 일 목록
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 font-medium text-base transition-colors ${
+              activeTab === "ai"
+                ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
+            }`}
+            onClick={() => setActiveTab("ai")}
+          >
+            AI 처리 내역
+          </button>
+        </div>
       </div>
 
       {/* 컨텐츠 영역 - 불필요한 외곽 박스 제거 */}

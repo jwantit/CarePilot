@@ -11,7 +11,10 @@ const GroupRow = ({ data }) => {
   const remainingCount = careList.length - 3;
 
   return (
-    <div className="bg-cp-card border border-cp-border shadow-sm p-4 hover:shadow-md transition-all flex flex-col rounded-sm">
+    <div 
+      className="bg-cp-card border border-cp-border shadow-sm p-4 hover:shadow-md transition-all flex flex-col rounded-sm cursor-pointer"
+      onClick={() => navigate(`/care-target-group/detail/${data.groupId}`)}
+    >
       <div className="flex justify-between items-start mb-2">
         <span 
           className="inline-flex w-fit px-2 py-0.5 text-xs font-semibold border text-left bg-teal-500/10 text-teal-400 border-teal-500/30"

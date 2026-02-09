@@ -48,40 +48,10 @@ function BarChart({ title, data, labels, colors }) {
         backgroundColor: colors || '#008080',
         borderColor: colors || '#008080',
         borderWidth: 1,
+        barPercentage: 0.45,
+        categoryPercentage: 0.8,
       },
     ],
-  };
-
-  const barLabelsPlugin = {
-    id: 'barLabels',
-    afterDraw(chart) {
-      const { ctx, data } = chart;
-      ctx.save();
-      
-      chart.data.datasets.forEach((dataset, datasetIndex) => {
-        const meta = chart.getDatasetMeta(datasetIndex);
-        if (meta.hidden) return;
-
-        meta.data.forEach((element, index) => {
-          const dataValue = dataset.data[index];
-          if (dataValue === undefined || dataValue === null || dataValue === 0) return;
-
-          const { x, y } = element.tooltipPosition();
-          
-          ctx.fillStyle = textColor || (isDark ? '#f1f5f9' : '#0f172a');
-          ctx.font = 'bold 13px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          
-          ctx.shadowColor = 'rgba(0,0,0,0.8)';
-          ctx.shadowBlur = 3;
-          
-          ctx.fillText(dataValue.toLocaleString(), x, y - 5);
-        });
-      });
-      
-      ctx.restore();
-    }
   };
 
   const options = {
@@ -110,10 +80,16 @@ function BarChart({ title, data, labels, colors }) {
         top: 20
       }
     },
+    datasets: {
+      bar: {
+        barPercentage: 0.45,
+        categoryPercentage: 0.8,
+      },
+    },
     scales: {
       x: { 
         ticks: { color: mutedColor || (isDark ? '#94a3b8' : '#64748b'), font: { size: 11 } }, 
-        grid: { display: false } 
+        grid: { display: false },
       },
       y: {
         beginAtZero: true,
@@ -130,7 +106,7 @@ function BarChart({ title, data, labels, colors }) {
         key={isDark ? 'dark' : 'light'}
         data={chartData} 
         options={options} 
-        plugins={[barLabelsPlugin]} 
+        plugins={[]} 
       />
     </div>
   );

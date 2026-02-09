@@ -41,12 +41,17 @@ export const useAITaskList = () => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  const resetFilters = () => {
+    setFilters({ ...defaultFilters });
+  };
+
   return {
     aiTaskList,
     loading,
     filters,
     setFilters,
     updateFilter,
+    resetFilters,
     fetchAITasks,
   };
 };

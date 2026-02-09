@@ -30,7 +30,7 @@ const GroupActionHeader = ({ searchTerm, setSearchTerm, filterStatus, setFilterS
         
         <button
           onClick={onReset}
-          className="flex items-center justify-center gap-1.5 px-5 h-[42px] bg-cp-input hover:bg-cp-bg border border-cp-border text-cp-text text-sm font-semibold hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap flex-shrink-0 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
+          className="flex items-center justify-center gap-1.5 px-4 h-[42px] bg-cp-input hover:bg-cp-bg border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap flex-shrink-0 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
           title="필터 초기화"
         >
           <RotateCcw size={14} />

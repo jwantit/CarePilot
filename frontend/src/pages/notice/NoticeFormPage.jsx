@@ -103,7 +103,7 @@ function NoticeFormPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={["공지사항", isEditMode ? "수정" : "작성"]} />
+      <Breadcrumb items={[{ label: "공지사항", path: "/notice" }, isEditMode ? "수정" : "작성"]} />
       
       <NoticeForm
         title={title}

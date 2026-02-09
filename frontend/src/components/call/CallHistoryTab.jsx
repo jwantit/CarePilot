@@ -4,6 +4,7 @@ import { API_SERVER_HOST } from "../../api/apiClient";
 import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
 import { useAuth } from "../../hooks/useAuth";
 import Loading from "../common/Loading";
+import { RotateCcw } from "lucide-react";
 import {
   getRiskLevelLabel,
   getRiskLevelStyle,
@@ -95,9 +96,9 @@ const CallHistoryTab = () => {
   const getRiskLevelDisplay = (riskLevel) => {
     const displayLevel = riskLevel || "LOW";
     return (
-      <div className="flex justify-start items-center">
+      <div className="flex justify-center items-center">
         <span
-          className={`w-9 inline-flex justify-center px-0 py-0.5 rounded-sm text-[10px] font-black border ${getRiskLevelStyle(displayLevel)}`}
+          className={`inline-flex justify-center px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getRiskLevelStyle(displayLevel)}`}
         >
           {getRiskLevelLabel(displayLevel)}
         </span>
@@ -290,78 +291,70 @@ const CallHistoryTab = () => {
                   setFilterResult("");
                   setFilterRiskLevel("");
                 }}
-                className="h-9 flex items-center gap-1.5 px-4 bg-cp-input hover:bg-cp-bg text-cp-muted text-sm font-semibold border border-cp-border hover:border-cp-border hover:text-cp-text transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
-                초기화
+                <RotateCcw size={14} />
+                전체보기
               </button>
             </div>
           </div>
 
           {/* 테이블 */}
           <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-cp-header text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
+            <table className="w-full text-center">
+              <thead className="bg-cp-header text-white dark:text-cp-muted uppercase text-sm border-b-2 border-teal-500/30">
                 <tr>
-                  <th className="px-3 py-2 text-teal-400">시간</th>
-                  <th className="px-3 py-2 text-teal-400">ID</th>
-                  <th className="px-3 py-2 text-teal-400">케어 대상</th>
-                  <th className="px-3 py-2 text-teal-400">유형</th>
-                  <th className="px-3 py-2 text-teal-400">통화 시간</th>
-                  <th className="px-3 py-2 text-teal-400">결과</th>
-                  <th className="px-3 py-2 text-teal-400 text-center">
+                  <th className="px-3 py-3 text-white dark:text-teal-400">콜 ID</th>
+                  <th className="px-3 py-3 text-white dark:text-teal-400">시간</th>
+                  <th className="px-3 py-3 text-white dark:text-teal-400">케어 대상</th>
+                  <th className="px-3 py-3 text-white dark:text-teal-400">유형</th>
+                  <th className="px-3 py-3 text-white dark:text-teal-400">통화 시간</th>
+                  <th className="px-3 py-3 text-white dark:text-teal-400">결과</th>
+                  <th className="px-3 py-3 text-white dark:text-teal-400">
                     위험도 (점수)
                   </th>
-                  <th className="px-3 py-2 text-teal-400">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cp-border">
                 {filteredHistory.map((item) => (
                   <tr
                     key={item.callId}
-                    className="hover:bg-cp-bg/50 transition bg-cp-card/30"
+                    onClick={() => openDetailModal(item.callId)}
+                    className="hover:bg-cp-bg/50 transition bg-cp-card/30 cursor-pointer"
                   >
-                    <td className="px-3 py-2 text-sm text-cp-text">
-                      {item.startTime}
-                    </td>
-                    <td className="px-3 py-2 text-sm text-cp-text">
+                    <td className="px-3 py-4 text-base text-cp-text">
                       {item.callId}
                     </td>
-                    <td className="px-3 py-2 text-sm text-cp-text">
+                    <td className="px-3 py-4 text-base text-cp-text">
+                      {item.startTime}
+                    </td>
+                    <td className="px-3 py-4 text-base text-cp-text">
                       {item.careTargetName}
                     </td>
-                    <td className="px-3 py-2 text-sm text-cp-text">
+                    <td className="px-3 py-4 text-base text-cp-text">
                       {item.direction}
                     </td>
-                    <td className="px-3 py-2 text-sm text-cp-text">
+                    <td className="px-3 py-4 text-base text-cp-text">
                       {item.duration}
                     </td>
-                    <td className="px-3 py-2 text-sm text-cp-text">
+                    <td className="px-3 py-4 text-base text-cp-text">
                       {item.statusLabel || item.status}
                     </td>
-                    <td className="px-3 py-2 text-sm">
-                      <div className="flex items-center justify-start gap-2 pl-4">
+                    <td className="px-3 py-4">
+                      <div className="flex items-center justify-center gap-2">
                         {getRiskLevelDisplay(item.riskLevel)}
-                        <span className="text-cp-muted text-xs min-w-[45px]">
+                        <span className="text-cp-muted text-sm min-w-[45px]">
                           ({item.riskScore ?? 0}점)
                         </span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2 text-sm">
-                      <button
-                        type="button"
-                        className="cp-link-muted"
-                        onClick={() => openDetailModal(item.callId)}
-                      >
-                        상세
-                      </button>
                     </td>
                   </tr>
                 ))}
                 {filteredHistory.length === 0 && (
                   <tr>
                     <td
-                      className="px-3 py-10 text-center text-sm text-cp-muted"
-                      colSpan={8}
+                      className="px-3 py-10 text-center text-base text-cp-muted"
+                      colSpan={7}
                     >
                       표시할 통화 기록이 없습니다.
                     </td>

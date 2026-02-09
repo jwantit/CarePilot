@@ -48,38 +48,6 @@ function LineChart({ title, data, labels, datasets }) {
     datasets: datasets || []
   };
 
-  const lineLabelsPlugin = {
-    id: 'lineLabels',
-    afterDraw(chart) {
-      const { ctx, data } = chart;
-      ctx.save();
-      
-      chart.data.datasets.forEach((dataset, datasetIndex) => {
-        const meta = chart.getDatasetMeta(datasetIndex);
-        if (meta.hidden) return;
-
-        meta.data.forEach((element, index) => {
-          const dataValue = dataset.data[index];
-          if (dataValue === undefined || dataValue === null) return;
-
-          const { x, y } = element.tooltipPosition();
-          
-          ctx.fillStyle = dataset.borderColor || (isDark ? '#ffffff' : '#0f172a');
-          ctx.font = 'bold 14px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          
-          ctx.shadowColor = 'rgba(0,0,0,0.8)';
-          ctx.shadowBlur = 3;
-          
-          ctx.fillText(dataValue.toLocaleString(), x, y - 8);
-        });
-      });
-      
-      ctx.restore();
-    }
-  };
-
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -141,7 +109,7 @@ function LineChart({ title, data, labels, datasets }) {
         key={isDark ? 'dark' : 'light'}
         data={chartData} 
         options={options} 
-        plugins={[lineLabelsPlugin]} 
+        plugins={[]} 
       />
     </div>
   );

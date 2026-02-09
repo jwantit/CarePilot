@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { getAIConfig, updateAIConfig } from "../../api/aiConfigApi";
 import toast from "react-hot-toast";
+import { Bot, PhoneCall, MessageSquare } from "lucide-react";
 
 function AISetting() {
   const auth = useSelector((state) => state.auth);
@@ -78,13 +79,15 @@ function AISetting() {
     return labels[feature] || feature;
   };
 
-  const ToggleSwitch = ({ checked, onChange, label, disabled }) => (
-    <div className="flex items-center justify-between py-3">
-      <div>
-        <label className="text-base font-semibold text-cp-text">{label}</label>
-        <p className="text-sm text-cp-muted mt-1">
-          {checked ? "자동화가 활성화되어 있습니다." : "자동화가 비활성화되어 있습니다."}
-        </p>
+  const ToggleSwitch = ({ checked, onChange, label, icon: Icon, disabled }) => (
+    <div className="flex items-center justify-between p-4 bg-cp-bg/30 border border-cp-border/50 rounded-sm hover:border-teal-500/30 transition-all">
+      <div className="flex items-center gap-4">
+        <div className="p-2.5 bg-cp-bg rounded-sm border border-cp-border/50">
+          <Icon size={20} className="text-teal-400" />
+        </div>
+        <div>
+          <label className="text-base font-medium text-cp-text block">{label}</label>
+        </div>
       </div>
       <label className="relative inline-flex items-center cursor-pointer">
         <input
@@ -94,73 +97,74 @@ function AISetting() {
           disabled={disabled}
           className="sr-only peer"
         />
-        <div className={`w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-cp-bg after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+        <div className={`w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 peer-checked:after:bg-white ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
       </label>
     </div>
   );
 
   if (loading) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold mb-6 text-cp-text">AI 설정</h1>
-        <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6">
-          <div className="text-center py-8 text-cp-muted">로딩 중...</div>
+      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl overflow-hidden">
+          <div className="px-8 py-6 border-b border-cp-border flex items-center gap-3 bg-cp-bg/20">
+            <div className="p-2 bg-teal-500/10 rounded-sm">
+              <Bot className="text-teal-400" size={24} />
+            </div>
+            <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">AI 설정</h1>
+          </div>
+          <div className="p-8">
+            <div className="text-center py-8 text-cp-muted">로딩 중...</div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6 text-cp-text">AI 설정</h1>
-      <p className="text-cp-muted mb-6">
-        각 기능별 AI 자동화를 활성화하거나 비활성화할 수 있습니다.
-      </p>
-
-      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-6 space-y-6">
-        {/* 전화 자동화 섹션 */}
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-cp-text mb-4">
-            전화 자동화
-          </h2>
-          <ToggleSwitch
-            checked={configs.call}
-            onChange={(e) => handleToggle("call", e.target.checked)}
-            label="전화 자동화"
-            disabled={saving.call}
-          />
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl overflow-hidden">
+        {/* 헤더 */}
+        <div className="px-8 py-6 border-b border-cp-border flex items-center gap-3 bg-cp-bg/20">
+          <div className="p-2 bg-teal-500/10 rounded-sm">
+            <Bot className="text-teal-400" size={24} />
+          </div>
+          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">AI 설정</h1>
         </div>
 
-        {/* 구분선 */}
-        <div className="border-t border-cp-border"></div>
+        <div className="p-8 space-y-10">
+          {/* AI 자동화 섹션 */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
+              <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
+                AI 자동화
+              </h2>
+            </div>
 
-        {/* 문자 자동화 섹션 */}
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-cp-text mb-4">
-            문자 자동화
-          </h2>
-          <ToggleSwitch
-            checked={configs.sms}
-            onChange={(e) => handleToggle("sms", e.target.checked)}
-            label="문자 자동화"
-            disabled={saving.sms}
-          />
-        </div>
-
-        {/* 구분선 */}
-        <div className="border-t border-cp-border"></div>
-
-        {/* 챗봇 자동화 섹션 */}
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-cp-text mb-4">
-            챗봇 자동화
-          </h2>
-          <ToggleSwitch
-            checked={configs.chatbot}
-            onChange={(e) => handleToggle("chatbot", e.target.checked)}
-            label="챗봇 자동화"
-            disabled={saving.chatbot}
-          />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ToggleSwitch
+                checked={configs.call}
+                onChange={(e) => handleToggle("call", e.target.checked)}
+                label="전화 자동화"
+                icon={PhoneCall}
+                disabled={saving.call}
+              />
+              <ToggleSwitch
+                checked={configs.sms}
+                onChange={(e) => handleToggle("sms", e.target.checked)}
+                label="문자 자동화"
+                icon={MessageSquare}
+                disabled={saving.sms}
+              />
+              <ToggleSwitch
+                checked={configs.chatbot}
+                onChange={(e) => handleToggle("chatbot", e.target.checked)}
+                label="챗봇 자동화"
+                icon={Bot}
+                disabled={saving.chatbot}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

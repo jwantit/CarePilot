@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   UserPlus,
   Activity,
+  AlertCircle,
   Loader2,
   Shield,
   AlertTriangle,
@@ -23,6 +24,7 @@ import {
   addCareTargetGroup,
   getScenarioList,
 } from "../../api/caretarget/careTargetGroupApi";
+import { getFileUrl } from "../../hooks/fileHelper";
 import { useAuth } from "../../hooks/useAuth";
 import Breadcrumb from "../../components/common/Breadcrumb";
 import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";
@@ -57,6 +59,14 @@ const CareTargetGroupDetailPage = () => {
   // 2. 대상자 추가 모달 상태
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+
+  const getGenderLabel = (gender) => {
+    if (!gender) return "-";
+    const g = String(gender).toUpperCase();
+    if (g === "M" || g === "MALE" || g === "남" || g === "남성") return "남성";
+    if (g === "F" || g === "FEMALE" || g === "여" || g === "여성") return "여성";
+    return gender;
+  };
 
   const fetchDetail = async () => {
     if (!organizationId || !groupId) return;
@@ -187,36 +197,36 @@ const CareTargetGroupDetailPage = () => {
   const statCards = useMemo(
     () => [
       {
-        value: formData?.low || 0,
-        label: "일반 대상자",
-        icon: Shield,
-        iconColor: "text-emerald-400",
-        valueColor: "text-emerald-400",
-        hoverBorderColor: "hover:border-emerald-500/50",
-      },
-      {
-        value: formData?.medium || 0,
-        label: "주의 대상자",
+        value: formData?.critical || 0,
+        label: "긴급",
         icon: AlertTriangle,
-        iconColor: "text-yellow-400",
-        valueColor: "text-yellow-400",
-        hoverBorderColor: "hover:border-yellow-500/50",
+        iconColor: "text-red-400",
+        valueColor: "text-red-400",
+        hoverBorderColor: "hover:border-red-500/50",
       },
       {
         value: formData?.high || 0,
-        label: "위험 대상자",
-        icon: AlertTriangle,
+        label: "위험",
+        icon: AlertCircle,
         iconColor: "text-orange-400",
         valueColor: "text-orange-400",
         hoverBorderColor: "hover:border-orange-500/50",
       },
       {
-        value: formData?.critical || 0,
-        label: "긴급 대상자",
-        icon: AlertTriangle,
-        iconColor: "text-red-400",
-        valueColor: "text-red-400",
-        hoverBorderColor: "hover:border-red-500/50",
+        value: formData?.medium || 0,
+        label: "보통",
+        icon: Activity,
+        iconColor: "text-yellow-400",
+        valueColor: "text-yellow-400",
+        hoverBorderColor: "hover:border-yellow-500/50",
+      },
+      {
+        value: formData?.low || 0,
+        label: "낮음",
+        icon: Shield,
+        iconColor: "text-emerald-400",
+        valueColor: "text-emerald-400",
+        hoverBorderColor: "hover:border-emerald-500/50",
       },
     ],
     [formData?.low, formData?.medium, formData?.high, formData?.critical],
@@ -249,7 +259,7 @@ const CareTargetGroupDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={["케어 그룹", formData?.groupName ?? "상세"]} />
+      <Breadcrumb items={[{ label: "케어 그룹", path: "/care-target-group" }, formData?.groupName ?? "상세"]} />
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border px-5 py-3 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         <div className="flex items-center gap-3">
           <button
@@ -294,10 +304,10 @@ const CareTargetGroupDetailPage = () => {
       <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border p-8 mb-6 shadow-lg hover:shadow-xl transition-shadow rounded-sm">
         {/* 그룹 제목 및 설명 */}
         <div className="mb-8 pb-6 border-b border-cp-border/50">
-          <h1 className="text-3xl font-black text-cp-text tracking-tight mb-3">
+          <h1 className="text-3xl font-bold text-cp-text tracking-tight mb-3">
             {formData.groupName}
           </h1>
-          <p className="text-base text-cp-muted font-medium leading-relaxed">
+          <p className="text-base text-cp-muted font-normal leading-relaxed">
             {formData.groupDescription}
           </p>
         </div>
@@ -307,18 +317,18 @@ const CareTargetGroupDetailPage = () => {
           {/* 시나리오 정보 - 전체 너비 사용 */}
           <div className="space-y-4 pb-6 border-b border-cp-border/50">
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
+              <p className="text-xs font-bold text-cp-muted uppercase tracking-widest">
                 시나리오명
               </p>
-              <p className="text-base font-bold text-cp-text break-words">
+              <p className="text-lg font-normal text-cp-text break-words">
                 {formData.scenarioName || "-"}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
+              <p className="text-xs font-bold text-cp-muted uppercase tracking-widest">
                 시나리오 설명
               </p>
-              <p className="text-base font-bold text-cp-text break-words leading-relaxed">
+              <p className="text-lg font-normal text-cp-text break-words leading-relaxed">
                 {formData.scenarioDescription || "-"}
               </p>
             </div>
@@ -340,11 +350,11 @@ const CareTargetGroupDetailPage = () => {
               { label: "그룹 생성자", value: formData.createdByName },
             ].map((item, idx) => (
               <div key={idx} className="space-y-1">
-                <p className="text-[10px] font-black text-cp-muted uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-cp-muted uppercase tracking-widest">
                   {item.label}
                 </p>
                 <p
-                  className={`text-base font-bold ${item.highlight ? "text-teal-400" : "text-cp-text"}`}
+                  className={`text-base font-normal ${item.highlight ? "text-teal-400" : "text-cp-text"}`}
                 >
                   {item.value || "-"}
                 </p>
@@ -371,76 +381,90 @@ const CareTargetGroupDetailPage = () => {
           </span>
         </div>
         <div className="overflow-y-auto flex-1 modal-scrollbar">
-          <table className="w-full text-left border-separate border-spacing-0">
-            <thead className="sticky top-0 bg-cp-header border-b-2 border-teal-500/30 z-10">
-              <tr className="text-xs font-semibold text-cp-muted">
-                <th className="px-8 py-3.5">
-                  <div className="flex items-center gap-1 text-teal-400">
-                    <Users className="w-3.5 h-3.5" />
-                    <span>성명</span>
-                  </div>
-                </th>
-                <th className="px-8 py-3.5">
-                  <div className="flex items-center gap-1 text-teal-400">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>성별/나이</span>
-                  </div>
-                </th>
-                <th className="px-8 py-3.5">
-                  <div className="flex items-center gap-1 text-teal-400">
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>연락처</span>
-                  </div>
-                </th>
-                <th className="px-8 py-3.5 text-center">
-                  <div className="flex items-center justify-center gap-1 text-teal-400">
-                    <Activity className="w-3.5 h-3.5" />
-                    <span>위험도</span>
-                  </div>
-                </th>
-                <th className="px-8 py-3.5 text-right text-teal-400">관리</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cp-border">
-              {formData.careList?.map((p) => (
-                <tr
+          {/* 테이블 헤더 - CareTarget 스타일 동일 적용 (체크박스 제외 7열) */}
+          <div className="grid grid-cols-7 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px] sticky top-0 z-10">
+            <div className="text-white dark:text-teal-400">프로필 사진</div>
+            <div className="text-white dark:text-teal-400">이름</div>
+            <div className="text-white dark:text-teal-400">성별</div>
+            <div className="text-white dark:text-teal-400">나이</div>
+            <div className="text-white dark:text-teal-400">연락처</div>
+            <div className="text-white dark:text-teal-400">질환</div>
+            <div className="text-white dark:text-teal-400">위험도</div>
+          </div>
+
+          <div className="divide-y divide-cp-border">
+            {formData.careList?.map((p) => {
+              const imageUrl = getFileUrl(p.thumbnailStoragePath);
+              return (
+                <div
                   key={p.careTargetId}
-                  className="hover:bg-cp-bg/50 transition-colors group bg-cp-card/50"
+                  onClick={() => navigate(`/care-target/detail/${p.careTargetId}`)}
+                  className="grid grid-cols-7 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
                 >
-                  <td className="px-8 py-5">
-                    <div className="font-bold text-cp-text group-hover:text-teal-400 transition-colors">
-                      {p.name}
+                  {/* 사진 열 */}
+                  <div className="flex items-center justify-center h-full">
+                    <div className="w-11 h-11 rounded-full bg-cp-bg border border-cp-border overflow-hidden flex items-center justify-center shadow-md">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full bg-cp-bg">
+                          <User size={20} className="text-cp-muted" strokeWidth={2} />
+                        </div>
+                      )}
                     </div>
-                  </td>
-                  <td className="px-8 py-5 text-sm font-bold text-cp-text">
-                    {p.gender} <span className="mx-1 text-cp-muted">|</span>{" "}
-                    {p.age}세
-                  </td>
-                  <td className="px-8 py-5 font-bold text-cp-text">
-                    {p.careTargetPhone || "미등록"}
-                  </td>
-                  <td className="px-8 py-5 text-center">
+                  </div>
+
+                  {/* 이름 열 */}
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-cp-text text-base truncate group-hover:text-teal-400 transition-colors">
+                      {p.name}
+                    </span>
+                  </div>
+
+                  {/* 성별 열 */}
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-cp-text text-base">
+                      {getGenderLabel(p.gender)}
+                    </span>
+                  </div>
+
+                  {/* 나이 열 */}
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-cp-text text-base">
+                      {p.age}세
+                    </span>
+                  </div>
+
+                  {/* 연락처 열 */}
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-cp-text text-sm font-medium font-mono truncate">
+                      {p.careTargetPhone || "미등록"}
+                    </span>
+                  </div>
+
+                  {/* 질환 열 */}
+                  <div className="flex items-center justify-center h-full px-2">
+                    <span className="text-cp-text truncate font-medium text-sm">
+                      {p.disease || "-"}
+                    </span>
+                  </div>
+
+                  {/* 위험도 열 */}
+                  <div className="flex items-center justify-center h-full">
                     <span
-                      className={`px-3 py-1 rounded-sm text-[10px] font-black tracking-tighter border ${getRiskLevelStyle(p.riskLevel)} shadow-sm`}
+                      className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(p.riskLevel)}`}
                     >
                       {getRiskLevelLabel(p.riskLevel) || "보통"}
                     </span>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <button
-                      onClick={() =>
-                        navigate(`/care-target/detail/${p.careTargetId}`)
-                      }
-                      className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
-                    >
-                      <span className="font-mono text-teal-400">&gt;</span>
-                      <span>상세보기</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

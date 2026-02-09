@@ -10,22 +10,23 @@ const RISK_LEVEL_LABEL = {
   LOW: "낮음",
 };
 
-// 위험도 레벨별 그라데이션 스타일 (다크 테마)
+// 위험도 레벨별 그라데이션 스타일
+// 라이트모드: 가시성 높은 단색 배경, 다크모드: 기존 반투명 스타일 유지
 const RISK_LEVEL_STYLE = {
-  CRITICAL: "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50 shadow-md",
-  URGENT: "bg-gradient-to-br from-red-500/20 to-red-600/20 text-red-400 border border-red-500/50 shadow-md",
-  HIGH: "bg-gradient-to-br from-orange-500/20 to-orange-600/20 text-orange-400 border border-orange-500/50 shadow-md",
-  MEDIUM: "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50 shadow-md",
-  NORMAL: "bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 text-yellow-400 border border-yellow-500/50 shadow-md",
-  LOW: "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 text-emerald-400 border border-emerald-500/50 shadow-md",
+  CRITICAL: "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50",
+  URGENT: "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50",
+  HIGH: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50",
+  MEDIUM: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50",
+  NORMAL: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50",
+  LOW: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50",
 };
 
 // 알림 심각도별 스타일 (NotificationTable, NotificationPage용)
 const SEVERITY_STYLE = {
-  CRITICAL: { label: "긴급", color: "bg-red-500/20 text-red-400 border-red-500/50" },
-  HIGH: { label: "위험", color: "bg-orange-500/20 text-orange-400 border-orange-500/50" },
-  MEDIUM: { label: "보통", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/50" },
-  LOW: { label: "낮음", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50" },
+  CRITICAL: { label: "긴급", color: "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50" },
+  HIGH: { label: "위험", color: "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50" },
+  MEDIUM: { label: "보통", color: "bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50" },
+  LOW: { label: "낮음", color: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50" },
 };
 
 /**

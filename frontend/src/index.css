@@ -8,7 +8,7 @@
     color-scheme: light;
     --bg-main: #f8fafc;    /* slate-50: 배경 */
     --bg-card: #ffffff;    /* pure white: 카드/섹션 */
-    --bg-header: #e2e8f0;   /* slate-200: 테이블 헤더행 */
+    --bg-header: #0d9488;   /* slate-200: 테이블 헤더행 */
     --text-main: #0f172a;  /* slate-900: 주 텍스트 */
     --text-muted: #64748b; /* slate-500: 보조 텍스트 */
     --border-main: #cbd5e1; /* slate-300: 경계선 (선명하게) */
@@ -103,12 +103,18 @@
   }
 }
 
-/* react-virtualized 스크롤바 스타일 - 어두운 계열 (전역 스타일) */
+/* react-virtualized 스크롤바 스타일 (전역 스타일) */
 .ReactVirtualized__Grid,
 .ReactVirtualized__List,
 .ReactVirtualized__Grid__innerScrollContainer {
   scrollbar-width: thin !important;
-  scrollbar-color: #475569 #1e293b !important;
+  scrollbar-color: #cbd5e1 transparent !important; /* light mode: slate-300 */
+}
+
+.dark .ReactVirtualized__Grid,
+.dark .ReactVirtualized__List,
+.dark .ReactVirtualized__Grid__innerScrollContainer {
+  scrollbar-color: #475569 #1e293b !important; /* dark mode: slate-600, slate-800 */
 }
 
 .ReactVirtualized__Grid::-webkit-scrollbar,
@@ -121,27 +127,50 @@
 .ReactVirtualized__Grid::-webkit-scrollbar-track,
 .ReactVirtualized__List::-webkit-scrollbar-track,
 .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-track {
-  background: #1e293b !important; /* slate-800 */
+  background: #f1f5f9 !important; /* light mode: slate-100 */
   border-radius: 4px;
+}
+
+.dark .ReactVirtualized__Grid::-webkit-scrollbar-track,
+.dark .ReactVirtualized__List::-webkit-scrollbar-track,
+.dark .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-track {
+  background: #1e293b !important; /* dark mode: slate-800 */
 }
 
 .ReactVirtualized__Grid::-webkit-scrollbar-thumb,
 .ReactVirtualized__List::-webkit-scrollbar-thumb,
 .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb {
-  background: #475569 !important; /* slate-600 */
+  background: #cbd5e1 !important; /* light mode: slate-300 */
   border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .ReactVirtualized__Grid::-webkit-scrollbar-thumb,
+.dark .ReactVirtualized__List::-webkit-scrollbar-thumb,
+.dark .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* dark mode: slate-600 */
   border: 1px solid #334155;
 }
 
 .ReactVirtualized__Grid::-webkit-scrollbar-thumb:hover,
 .ReactVirtualized__List::-webkit-scrollbar-thumb:hover,
 .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb:hover {
-  background: #64748b !important; /* slate-500 */
+  background: #94a3b8 !important; /* light mode: slate-400 */
 }
 
-/* 모달 스크롤바 스타일 - 어두운 계열 */
+.dark .ReactVirtualized__Grid::-webkit-scrollbar-thumb:hover,
+.dark .ReactVirtualized__List::-webkit-scrollbar-thumb:hover,
+.dark .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important; /* dark mode: slate-500 */
+}
+
+/* 모달 스크롤바 스타일 */
 .modal-scrollbar {
   scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.dark .modal-scrollbar {
   scrollbar-color: #475569 #1e293b !important;
 }
 
@@ -150,38 +179,71 @@
 }
 
 .modal-scrollbar::-webkit-scrollbar-track {
-  background: #1e293b !important; /* slate-800 */
+  background: #f1f5f9 !important; /* light mode */
   border-radius: 4px;
 }
 
+.dark .modal-scrollbar::-webkit-scrollbar-track {
+  background: #1e293b !important; /* dark mode */
+}
+
 .modal-scrollbar::-webkit-scrollbar-thumb {
-  background: #475569 !important; /* slate-600 */
+  background: #cbd5e1 !important; /* light mode */
   border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* dark mode */
   border: 1px solid #334155;
 }
 
 .modal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #64748b !important; /* slate-500 */
+  background: #94a3b8 !important; /* light mode */
+}
+
+.dark .modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important; /* dark mode */
 }
 
 /* 달력 셀 스크롤바 - 얇고 살짝 보이게 */
 .calendar-cell-scrollbar {
   scrollbar-width: thin !important;
-  scrollbar-color: #64748b #334155 !important; /* thumb: slate-500, track: slate-700 */
+  scrollbar-color: #cbd5e1 transparent !important;
 }
+
+.dark .calendar-cell-scrollbar {
+  scrollbar-color: #64748b #334155 !important;
+}
+
 .calendar-cell-scrollbar::-webkit-scrollbar {
   width: 4px !important;
 }
+
 .calendar-cell-scrollbar::-webkit-scrollbar-track {
-  background: #334155 !important; /* slate-700 */
+  background: #f8fafc !important; /* light mode: slate-50 */
   border-radius: 2px;
 }
+
+.dark .calendar-cell-scrollbar::-webkit-scrollbar-track {
+  background: #334155 !important; /* dark mode */
+}
+
 .calendar-cell-scrollbar::-webkit-scrollbar-thumb {
-  background: #64748b !important; /* slate-500 - 살짝 보이게 */
+  background: #cbd5e1 !important; /* light mode */
   border-radius: 2px;
 }
+
+.dark .calendar-cell-scrollbar::-webkit-scrollbar-thumb {
+  background: #64748b !important; /* dark mode */
+}
+
 .calendar-cell-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8 !important; /* slate-400 */
+  background: #94a3b8 !important; /* light mode */
+}
+
+.dark .calendar-cell-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important; /* dark mode */
 }
 
 /* 통화 상세 모달 - 녹취 파일 오디오 플레이어 다크 테마 */
@@ -322,13 +384,13 @@
 
   /* --- 링크형 텍스트 버튼 (통화 스케줄 스타일) --- */
   .cp-link-blue {
-    @apply text-blue-400 hover:text-blue-300 underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    @apply text-blue-400 hover:text-blue-300 underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
   }
   .cp-link-red {
-    @apply text-red-400 hover:text-red-300 underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    @apply text-red-400 hover:text-red-300 underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
   }
   .cp-link-muted {
-    @apply underline text-xs font-medium transition-colors cursor-pointer bg-transparent border-0 p-0;
+    @apply underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
     color: var(--text-muted);
   }
   .cp-link-muted:hover {
