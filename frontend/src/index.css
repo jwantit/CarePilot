@@ -60,6 +60,7 @@
     background-color: var(--bg-main) !important;
     color: var(--text-main);
     width: 100%;
+    min-width: 600px; /* 전체 레이아웃 최소 너비 600px 유지 */
     margin: 0;
     padding: 0;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -100,6 +101,50 @@
   .custom-checkbox:checked:hover {
     background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
     border-color: #2dd4bf;
+  }
+}
+
+/* 메뉴 반응형 전용 CSS (1150px 기준) */
+.menu-desktop {
+  display: flex;
+}
+
+.menu-mobile-toggle {
+  display: none;
+}
+
+@media (max-width: 1150px) {
+  .menu-desktop {
+    display: none;
+  }
+
+  .menu-mobile-toggle {
+    display: inline-flex;
+  }
+}
+
+/* 대시보드 상단 카드 그리드: 1150px 이내에서는 2x2, 그 이상에서는 4개 한 줄 */
+.dashboard-top-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1150px) {
+  .dashboard-top-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 대시보드 메인 레이아웃:
+   - 기본: Tailwind lg:grid-cols-12 + lg:col-span-8/4 (넓은 화면에서 8/4 레이아웃)
+   - 1150px 이하일 때만 1열로 강제해서, 즉시조치 아래로 공지/오늘의 일정이 세로로 쌓이도록 조정 */
+@media (max-width: 1150px) {
+  /* 즉시조치/공지/일정이 들어있는 두 개의 메인 그리드(첫 번째, 두 번째 행 모두)에 적용 */
+  .grid.grid-cols-1.lg\:grid-cols-12 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  .grid.grid-cols-1.lg\:grid-cols-12 > * {
+    grid-column: span 1 / span 1 !important;
   }
 }
 

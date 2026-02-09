@@ -1,6 +1,8 @@
 package com.carepilot.service.dashBoard;
 
 import com.carepilot.domain.call.CallStatus;
+import com.carepilot.domain.call.ScheduleStatus;
+import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.notification.NotificationStatus;
 import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
@@ -46,7 +48,7 @@ public class DashBoardServiceImpl implements DashBoardService{
     private final NotificationRepository notificationRepository;
     private final UserUtil userUtil;
 
-    //문제해경**      오늘의 통화 ---------------------------------------------------------
+    //오늘의 통화 ---------------------------------------------------------
     @Override
     public Map<String, Object> calculateCallStats(Long organizationId) {
         LocalDateTime now = LocalDateTime.now();
@@ -108,8 +110,6 @@ public class DashBoardServiceImpl implements DashBoardService{
         Map<String, Object> taskStats = new HashMap<>();
         taskStats.put("total", (int) totalToday);
         taskStats.put("waiting", (int) waitingToday);
-
-        log.info("작업 통계(DB 최적화): 오늘 전체 {}건, 대기 {}건", totalToday, waitingToday);
         return taskStats;
     }
 
@@ -196,6 +196,8 @@ public class DashBoardServiceImpl implements DashBoardService{
             return aTimeStr.compareTo(bTimeStr);
         });
 
+
+
         return todaySchedules.stream()
                 .limit(5)
                 .map(schedule -> {
@@ -211,6 +213,7 @@ public class DashBoardServiceImpl implements DashBoardService{
                     String timeStr = schedule.getScheduledTime() != null ? schedule.getScheduledTime() : schedule.getNextRunAt();
                     map.put("formattedTime", formatTimeForDisplay(timeStr));
                     map.put("displayStatus", calculateScheduleStatus(schedule));
+                    map.put("scheduleType", schedule.getType());
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -288,7 +291,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 
     @Override
     public List<Map<String, Object>> getRecentItems(Long organizationId, Long userId) {
-        return taskRepository.findTop5RecentActivityTasks(organizationId, PageRequest.of(0, 5))
+        return taskRepository.findTop5RecentActivityTasks(organizationId, PageRequest.of(0, 6))
                 .stream()
                 .map(task -> {
                     Map<String, Object> item = new HashMap<>();
@@ -343,15 +346,16 @@ public class DashBoardServiceImpl implements DashBoardService{
     // --------------------------------------------------------------------------------
 
     private String calculateScheduleStatus(ScheduleResponseDTO schedule) {
-        if (schedule.getStatus() != null && "COMPLETED".equals(schedule.getStatus())) return "[완료됨✓]";
-        if (schedule.getScheduledTime() == null) return "[예정]";
+
+        if (schedule.getStatus() == null) {
+            return ScheduleStatus.SCHEDULED.getKoName();
+        }
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            LocalDateTime scheduledDate = LocalDateTime.parse(schedule.getScheduledTime(), formatter);
-            if (!LocalDateTime.now().isBefore(scheduledDate)) return "[진행 중..]";
-            return "[예정]";
-        } catch (Exception e) {
-            return "[예정]";
+            return ScheduleStatus
+                    .valueOf(schedule.getStatus())
+                    .getKoName();
+        } catch (IllegalArgumentException e) {
+            return ScheduleStatus.SCHEDULED.getKoName();
         }
     }
 

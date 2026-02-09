@@ -17,7 +17,8 @@ export const useNavigation = () => {
       } else {
         navigate('/call');
       }
-    },  // 통화 0건 필터 로직
+    },
+    navigateToCallSchedule: () => navigate('/call?tab=schedule'),
 
     // 케어 대상자 관련
     navigateToCareTarget: () => navigate('/care-target'),
@@ -34,6 +35,10 @@ export const useNavigation = () => {
     
     // 알림 관련
     navigateToNotification: () => navigate('/notification'),
+    
+    // 공지사항 관련
+    navigateToNotice: () => navigate('/notice'),
+    navigateToNoticeDetail: (noticeId) => navigate(`/notice/${noticeId}`),
     
     // 케어 그룹 관련
     navigateToCareTargetGroup: () => navigate('/care-target-group'),

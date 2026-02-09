@@ -4,6 +4,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      screens: {
+        dashboard: "1150px",
+      },
       colors: {
         cp: {
           bg: "var(--bg-main)",
@@ -15,7 +18,6 @@ export default {
           accent: "var(--accent-teal)",
           input: "var(--input-bg)",
         },
-        // teal 강조색을 CSS 변수로 통일 → 라이트/다크 동일한 초록
         teal: {
           300: "var(--accent-teal)",
           400: "var(--accent-teal)",
