@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendSmsTestRequestDTO {
+public class SendSmsRequestDTO {
 
     /** 수신자 번호 (예: 010-1234-5678, +821012345678) */
     private String to;

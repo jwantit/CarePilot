@@ -795,7 +795,7 @@ public class TwilioController {
     }
 
     /**
-     * [테스트용] 수신 SMS/MMS 웹훅 - Twilio 콘솔에서 "A MESSAGE COMES IN" URL로 설정
+     * 수신 SMS/MMS 웹훅 - Twilio 콘솔에서 "A MESSAGE COMES IN" URL로 설정
      * POST /api/twilio/sms/inbound
      */
     @PostMapping("/sms/inbound")

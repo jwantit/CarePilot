@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendSmsTestResponseDTO {
+public class SendSmsResponseDTO {
 
     private String message;
     private String messageSid;  // Twilio Message SID

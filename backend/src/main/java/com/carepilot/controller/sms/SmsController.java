@@ -3,10 +3,9 @@ package com.carepilot.controller.sms;
 import com.carepilot.domain.sms.InboundSms;
 import com.carepilot.domain.sms.OutboundSms;
 import com.carepilot.domain.sms.SentBy;
-import com.carepilot.dto.sms.InboundSmsResponseDTO;
 import com.carepilot.dto.sms.SmsMessageDTO;
-import com.carepilot.dto.sms.SendSmsTestRequestDTO;
-import com.carepilot.dto.sms.SendSmsTestResponseDTO;
+import com.carepilot.dto.sms.SendSmsRequestDTO;
+import com.carepilot.dto.sms.SendSmsResponseDTO;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.sms.InboundSmsRepository;
@@ -35,39 +34,9 @@ public class SmsController {
     private final TwilioService twilioService;
     private final UserUtil userUtil;
 
-    // [테스트용] 수신 SMS/MMS 목록 조회 - 로그인한 업체의 케어대상에 연관된 수신만 반환
-    @GetMapping("/test/inbound-sms")
-    public ResponseEntity<List<InboundSmsResponseDTO>> getInboundSmsList() {
-        Long organizationId = userUtil.getCurrentUserDTO().getOrganizationId();
-        List<InboundSms> list = inboundSmsRepository.findByCareTarget_Organization_OrganizationIdOrderByCreatedAtDesc(organizationId);
-        List<InboundSmsResponseDTO> result = list.stream()
-                .map(sms -> {
-                    List<String> mediaUrls = Collections.emptyList();
-                    if (sms.getMediaPaths() != null && !sms.getMediaPaths().isEmpty()) {
-                        mediaUrls = Stream.of(sms.getMediaPaths().split(","))
-                                .map(p -> "/display/" + p.trim())
-                                .collect(Collectors.toList());
-                    }
-                    return InboundSmsResponseDTO.builder()
-                            .inboundSmsId(sms.getInboundSmsId())
-                            .messageSid(sms.getMessageSid())
-                            .fromNumber(sms.getFromNumber())
-                            .toNumber(sms.getToNumber())
-                            .body(sms.getBody())
-                            .mediaUrls(mediaUrls)
-                            .receivedAt(sms.getCreatedAt())
-                            .careTargetId(sms.getCareTarget() != null ? sms.getCareTarget().getCareTargetId() : null)
-                            .careTargetName(sms.getCareTarget() != null ? sms.getCareTarget().getName() : null)
-                            .smsType(sms.getSmsType() != null ? sms.getSmsType().name() : null)
-                            .build();
-                })
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
-    }
-
-    // [테스트용] Postman으로 SMS 발송 테스트 (발신 저장: USER)
-    @PostMapping("/test/send-sms")
-    public ResponseEntity<SendSmsTestResponseDTO> sendSmsTest(@RequestBody SendSmsTestRequestDTO request) {
+    // SMS 발송 (발신 저장: USER)
+    @PostMapping("/send-sms")
+    public ResponseEntity<SendSmsResponseDTO> sendSms(@RequestBody SendSmsRequestDTO request) {
         if (request.getTo() == null || request.getTo().trim().isEmpty()) {
             throw new IllegalArgumentException("전화번호가 입력되지 않았습니다.");
         }
@@ -84,14 +53,14 @@ public class SmsController {
                 .sentBy(SentBy.USER)
                 .build();
         outboundSmsRepository.save(outbound);
-        return ResponseEntity.ok(SendSmsTestResponseDTO.builder()
+        return ResponseEntity.ok(SendSmsResponseDTO.builder()
                 .message("문자 발송이 완료되었습니다.")
                 .messageSid(messageSid)
                 .build());
     }
 
     /** 수신+발신 통합 목록 (나/AI/수신 구분용). 로그인한 업체 기준으로만 조회. 최신순 정렬. */
-    @GetMapping("/test/messages")
+    @GetMapping("/messages")
     public ResponseEntity<List<SmsMessageDTO>> getMessages() {
         Long organizationId = userUtil.getCurrentUserDTO().getOrganizationId();
 
