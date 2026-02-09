@@ -96,7 +96,7 @@ function CareTarget({
             width={width}
             height={height}
             rowCount={careTargetList.length}
-            rowHeight={60} // CareTargetRow의 높이 조정
+            rowHeight={64} // CareTargetRow의 높이와 일치시킴
             rowRenderer={rowRenderer}
             overscanRowCount={5} // 성능 최적화를 위한 추가 렌더링 행 수
           />

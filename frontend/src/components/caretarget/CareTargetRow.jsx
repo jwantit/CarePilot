@@ -37,7 +37,7 @@ function CareTargetRow({ data, organizationId, isSelected, onSelectChange }) {
       tabIndex={0}
       onClick={handleRowClick}
       onKeyDown={(e) => e.key === "Enter" && handleRowClick()}
-      className={`grid grid-cols-8 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer ${isSelected ? "bg-cp-bg/40 border-l-2 border-l-teal-400 -ml-[2px]" : ""}`}
+      className={`grid grid-cols-8 py-0 px-4 text-sm text-center items-center h-full bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer ${isSelected ? "bg-cp-bg/40 border-l-2 border-l-teal-400 -ml-[2px]" : ""}`}
     >
       {/* 체크박스 열 */}
       <div className="flex items-center justify-center h-full" onClick={handleCheckboxClick}>
