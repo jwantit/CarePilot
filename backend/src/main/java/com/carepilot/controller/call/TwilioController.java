@@ -44,6 +44,7 @@ import java.time.LocalDateTime;
 
 import com.carepilot.service.sms.ScheduleNotificationService;
 import com.carepilot.service.call.TwilioService;
+import com.carepilot.util.PhoneNumberUtil;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Gather;
 import com.twilio.twiml.voice.Say;
@@ -865,55 +866,61 @@ public class TwilioController {
     private void saveCallData(String speechResult, String callSid, String fromNumber) {
         try {
             // 1) Twilio 번호 정규화 (+8210... -> 010...)
-            String normalizedFromNumber = "01000000000";
-            if (fromNumber != null && !fromNumber.isEmpty()) {
-                if (fromNumber.startsWith("+82")) {
-                    normalizedFromNumber = "0" + fromNumber.substring(3).replaceAll("[^0-9]", "");
-                } else {
-                    normalizedFromNumber = fromNumber.replaceAll("[^0-9]", "");
-                    if (!normalizedFromNumber.startsWith("0") && normalizedFromNumber.length() > 9) {
-                        normalizedFromNumber = "0" + normalizedFromNumber;
-                    }
-                }
-            }
+            String normalizedFromNumber = PhoneNumberUtil.normalizePhoneNumber(fromNumber);
             final String finalTwilioPhone = normalizedFromNumber;
 
-            // 2) Organization 기본값 (현재 구현 유지)
-            List<Organization> orgs = organizationRepository.findAll();
-            if (orgs.isEmpty()) return;
-            Organization organization = orgs.get(0);
+            // 2) CallSid로 기존 Call 조회
+            Optional<Call> callOpt = callRepository.findByCallSid(callSid);
+            Call call;
 
-            // 3) CareTarget 조회 (DB의 하이픈 제거 후 비교)
-            CareTarget careTarget = careTargetRepository.findAll().stream()
-                    .filter(t -> t.getTargetPhone() != null &&
-                            t.getTargetPhone().replaceAll("[^0-9]", "").equals(finalTwilioPhone))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        List<CareTarget> all = careTargetRepository.findAll();
-                        return all.isEmpty() ? null : all.get(0);
-                    });
+            if (callOpt.isPresent()) {
+                call = callOpt.get();
+                log.info("saveCallData: 기존 Call 엔티티 사용. callId={}, callSid={}", call.getCallId(), callSid);
+            } else {
+                // 3) 기존 Call이 없으면 새로 생성 (인바운드 등)
+                log.info("saveCallData: CallSid로 Call을 찾을 수 없어 새로 생성 시도: callSid={}, from={}", callSid, fromNumber);
+                
+                // Organization 기본값
+                List<Organization> orgs = organizationRepository.findAll();
+                if (orgs.isEmpty()) return;
+                Organization organization = orgs.get(0);
 
-            if (careTarget == null) return;
+                // CareTarget 조회
+                CareTarget careTarget = careTargetRepository.findAll().stream()
+                        .filter(t -> t.getTargetPhone() != null &&
+                                t.getTargetPhone().replaceAll("[^0-9]", "").equals(finalTwilioPhone))
+                        .findFirst()
+                        .orElseGet(() -> {
+                            List<CareTarget> all = careTargetRepository.findAll();
+                            return all.isEmpty() ? null : all.get(0);
+                        });
 
-            Call call = callRepository.save(Call.builder()
-                    .organization(organization)
-                    .careTarget(careTarget)
-                    .direction(CallDirection.OUTBOUND)
-                    .callType(CallType.REGULAR_MONITORING)
-                    .status(CallStatus.SUCCESS)
-                    .startTime(java.time.LocalDateTime.now())
-                    .endTime(java.time.LocalDateTime.now())
-                    .summary(null)  // summary에 저장하지 않음
-                    .callerId(finalTwilioPhone)  // 전화번호 저장
-                    .callSid(callSid)  // Twilio CallSid 저장
-                    .build());
+                if (careTarget == null) return;
 
-            // stt.txt 파일 저장 제거, CallRecording만 생성
+                call = Call.builder()
+                        .organization(organization)
+                        .careTarget(careTarget)
+                        .direction(CallDirection.OUTBOUND)
+                        .callType(CallType.REGULAR_MONITORING)
+                        .status(CallStatus.SUCCESS)
+                        .startTime(java.time.LocalDateTime.now())
+                        .endTime(java.time.LocalDateTime.now())
+                        .summary(null)
+                        .callerId(finalTwilioPhone)
+                        .callSid(callSid)
+                        .build();
+                
+                call = callRepository.save(call);
+            }
+
+            // CallRecording 생성 및 저장
             callRecordingRepository.save(CallRecording.builder()
                     .call(call)
-                    .file(null)  // 파일은 나중에 녹음 파일 저장될 때 설정됨
+                    .file(null)
                     .transcript(speechResult)
                     .build());
+            
+            log.info("saveCallData: CallRecording 저장 완료. callId={}", call.getCallId());
         } catch (Exception e) {
             log.error("saveCallData 에러: {}", e.getMessage(), e);
         }
