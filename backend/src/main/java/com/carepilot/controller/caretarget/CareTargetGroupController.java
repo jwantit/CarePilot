@@ -1,21 +1,14 @@
-package com.carepilot.controller;
+package com.carepilot.controller.caretarget;
 
 
-import com.carepilot.domain.user.User;
 import com.carepilot.dto.auth.UserDTO;
-import com.carepilot.dto.caretarget.*;
 import com.carepilot.dto.caretarget.caretargetgroup.*;
 import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.caretarget.CareGroupService;
-import com.carepilot.service.caretarget.CareService;
-import com.carepilot.util.CsvUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

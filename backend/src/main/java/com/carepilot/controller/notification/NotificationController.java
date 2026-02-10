@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.notification;
 
 import com.carepilot.domain.notification.Notification;
 import com.carepilot.domain.notification.NotificationType;

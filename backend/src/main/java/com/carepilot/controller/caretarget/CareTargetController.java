@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.caretarget;
 
 import com.carepilot.domain.caretarget.Gender;
 import com.carepilot.dto.auth.UserDTO;

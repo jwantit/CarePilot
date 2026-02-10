@@ -1,4 +1,4 @@
-package com.carepilot.controller;
+package com.carepilot.controller.notice;
 
 import com.carepilot.dto.notice.CommentResponseDTO;
 import com.carepilot.dto.notice.CommentSaveRequest;

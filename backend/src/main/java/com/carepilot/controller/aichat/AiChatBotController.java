@@ -1,7 +1,7 @@
-package com.carepilot.controller;
+package com.carepilot.controller.aichat;
 
-import com.carepilot.dto.aiChat.AiChatRequest;
-import com.carepilot.dto.aiChat.ChatLogResponseDTO;
+import com.carepilot.dto.aichat.AiChatRequest;
+import com.carepilot.dto.aichat.ChatLogResponseDTO;
 import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.aiChat.CarePilotPromptProviderService;
@@ -13,23 +13,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j

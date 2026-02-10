@@ -2,16 +2,14 @@ package com.carepilot.service.aiChat;
 
 import com.carepilot.domain.chat.ChatLog;
 import com.carepilot.domain.user.User;
-import com.carepilot.dto.aiChat.ChatLogResponseDTO;
-import com.carepilot.repository.aiChat.ChatLogRepository;
+import com.carepilot.dto.aichat.ChatLogResponseDTO;
+import com.carepilot.repository.aichat.ChatLogRepository;
 import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 

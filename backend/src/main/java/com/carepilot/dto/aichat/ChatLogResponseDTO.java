@@ -1,4 +1,4 @@
-package com.carepilot.dto.aiChat;
+package com.carepilot.dto.aichat;
 
 import com.carepilot.domain.chat.ChatLog;
 import lombok.AllArgsConstructor;

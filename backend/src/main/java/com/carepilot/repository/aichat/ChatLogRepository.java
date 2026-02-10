@@ -1,4 +1,4 @@
-package com.carepilot.repository.aiChat;
+package com.carepilot.repository.aichat;
 
 import com.carepilot.domain.chat.ChatLog;
 import org.springframework.data.jpa.repository.JpaRepository;

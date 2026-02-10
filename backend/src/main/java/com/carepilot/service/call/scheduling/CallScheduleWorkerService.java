@@ -1,4 +1,4 @@
-package com.carepilot.service.call;
+package com.carepilot.service.call.scheduling;
 
 import com.carepilot.domain.caretarget.CareTargetGroupMap;
 import com.carepilot.domain.call.CallSchedule;
@@ -7,6 +7,7 @@ import com.carepilot.domain.call.ScheduleStatus;
 import com.carepilot.domain.call.ScheduleType;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.caretarget.CareTargetGroupMapRepository;
+import com.carepilot.service.call.CallService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;

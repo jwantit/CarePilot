@@ -1,4 +1,4 @@
-package com.carepilot.service.call;
+package com.carepilot.service.call.scheduling;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
