@@ -171,11 +171,11 @@ public class DashBoardController {
     }
 
     /**
-     * 즉시 조치 필요 항목 통합 조회 (환자+작업+알림, 시간 정렬, 최대 5개)
+     * 즉시 조치 필요 항목 통합 조회 (환자+작업+알림, 최신순 정렬, 최대 5개)
      * 
      * @param organizationId 조직 ID
      * @param userId 사용자 ID
-     * @return 즉시 조치 필요 항목 목록 (시간 순 정렬, 최대 5개)
+     * @return 즉시 조치 필요 항목 목록 (최신순 정렬, 최대 5개)
      */
     @GetMapping("/{organizationId}/urgent-items")
     public ResponseEntity<List<Map<String, Object>>> getUrgentItems(

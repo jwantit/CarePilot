@@ -283,7 +283,7 @@ public class DashBoardServiceImpl implements DashBoardService{
             if (timeA == null && timeB == null) return 0;
             if (timeA == null) return 1;
             if (timeB == null) return -1;
-            return timeA.compareTo(timeB);
+            return timeB.compareTo(timeA); // 최신순 정렬 (내림차순)
         });
 
         return items.stream().limit(5).collect(Collectors.toList());
