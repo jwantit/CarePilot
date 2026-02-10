@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import { apiClient } from '../apiClient';
 
 /**
  * 통계 데이터 조회

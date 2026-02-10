@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { API_SERVER_HOST } from "../../api/apiClient";
-import { getCallHistoryWithPaging, getCallDetail } from "../../api/callApi";
+import { getCallHistoryWithPaging, getCallDetail } from "../../api/call/callApi";
 import { useAuth } from "../../hooks/useAuth";
 import Loading from "../common/Loading";
 import { RotateCcw, X } from "lucide-react";

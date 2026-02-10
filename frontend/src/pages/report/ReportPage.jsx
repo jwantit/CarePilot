@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getStatistics, getDiseaseList } from "../../api/reportApi";
+import { getStatistics, getDiseaseList } from "../../api/report/reportApi";
 import { getCareGroupList } from "../../api/caretarget/careTargetGroupApi";
 import { useAuth } from "../../hooks/useAuth";
 import html2pdf from "html2pdf.js";

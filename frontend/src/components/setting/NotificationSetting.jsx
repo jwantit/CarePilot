@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   getNotificationConfig,
   updateNotificationConfig,
-} from "../../api/notificationConfigApi";
+} from "../../api/setting/notificationConfigApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { Bell, ShieldAlert, MessageSquare, Mail, Save, AlertTriangle, PhoneCall } from 'lucide-react';

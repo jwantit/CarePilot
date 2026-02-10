@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getRiskConfig, updateRiskConfig } from "../../api/riskConfigApi";
+import { getRiskConfig, updateRiskConfig } from "../../api/setting/riskConfigApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { ShieldAlert, Save, AlertTriangle, AlertCircle, Activity, ShieldCheck } from "lucide-react";

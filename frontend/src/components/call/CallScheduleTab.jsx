@@ -3,7 +3,7 @@ import {
   getUpcomingSchedules,
   deleteSchedule,
   restoreSchedule,
-} from "../../api/callApi";
+} from "../../api/call/callApi";
 import ScheduleModal from "./ScheduleModal";
 import { useSelector } from "react-redux";
 import { CalendarDays } from "lucide-react";

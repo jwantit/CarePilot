@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { noticeApi } from "../../api/noticeApi";
+import { noticeApi } from "../../api/notice/noticeApi";
 import NoticeForm from "../../components/notice/NoticeForm";
 import { useAuth } from "../../hooks/useAuth";
 import Breadcrumb from "../../components/common/Breadcrumb";

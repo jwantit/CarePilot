@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as authApi from '../../api/authApi';
+import * as authApi from '../../api/auth/authApi';
 import { extractUserInfo } from '../../utils/authUtils';
 
 // 초기 상태

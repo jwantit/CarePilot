@@ -1,4 +1,4 @@
-import { authClient, loginClient } from './apiClient';
+import { authClient, loginClient } from '../apiClient';
 
 /**
  * 업체 회원가입 (MANAGER)

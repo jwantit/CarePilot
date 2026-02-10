@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getSmsMessages, sendSms } from '../api/smsApi';
+import { getSmsMessages, sendSms } from '../api/sms/smsApi';
 import { getCareTargetAllList } from '../api/caretarget/careTargetApi';
 import { useAuth } from './useAuth';
 

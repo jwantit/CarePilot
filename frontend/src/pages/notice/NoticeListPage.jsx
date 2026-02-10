@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { noticeApi } from "../../api/noticeApi";
+import { noticeApi } from "../../api/notice/noticeApi";
 import Pagination from "../../components/notice/Pagination";
 import NoticeList from "../../components/notice/NoticeList";
 import useCustomMove from "../../hooks/useCustomMove";

@@ -1,14 +1,14 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from "../apiClient";
 
 const host = `/calls`;
 
-// 1. 통화 이력 목록 조회 (전체)
+// 1. ?�화 ?�력 목록 조회 (?�체)
 export const getCallHistory = async (organizationId) => {
   const res = await apiClient.get(`${host}/${organizationId}/history`);
   return res.data;
 };
 
-// 1-1. 통화 이력 목록 조회 (페이징)
+// 1-1. ?�화 ?�력 목록 조회 (?�이�?
 export const getCallHistoryWithPaging = async (organizationId, page = 1, size = 10) => {
   const res = await apiClient.get(`${host}/${organizationId}/history/paged`, {
     params: { page, size },
@@ -16,13 +16,13 @@ export const getCallHistoryWithPaging = async (organizationId, page = 1, size = 
   return res.data;
 };
 
-// 2. 통화 상세 정보 조회
+// 2. ?�화 ?�세 ?�보 조회
 export const getCallDetail = async (organizationId, callId) => {
   const res = await apiClient.get(`${host}/${organizationId}/${callId}`);
   return res.data;
 };
 
-// 3. 다가올 일정 조회
+// 3. ?��????�정 조회
 export const getUpcomingSchedules = async (organizationId) => {
   const res = await apiClient.get(
     `${host}/${organizationId}/schedules/upcoming`,
@@ -30,7 +30,7 @@ export const getUpcomingSchedules = async (organizationId) => {
   return res.data;
 };
 
-// 4. 새로운 일정 등록
+// 4. ?�로???�정 ?�록
 export const createSchedule = async (organizationId, scheduleData) => {
   const res = await apiClient.post(
     `${host}/${organizationId}/schedules`,
@@ -39,7 +39,7 @@ export const createSchedule = async (organizationId, scheduleData) => {
   return res.data;
 };
 
-// 5. 일정 수정
+// 5. ?�정 ?�정
 export const updateSchedule = async (
   organizationId,
   scheduleId,
@@ -52,7 +52,7 @@ export const updateSchedule = async (
   return res.data;
 };
 
-// 6. 일정 삭제 (Soft delete)
+// 6. ?�정 ??�� (Soft delete)
 export const deleteSchedule = async (organizationId, scheduleId) => {
   const res = await apiClient.delete(
     `${host}/${organizationId}/schedules/${scheduleId}`,
@@ -60,7 +60,7 @@ export const deleteSchedule = async (organizationId, scheduleId) => {
   return res.data;
 };
 
-// 7. 일정 복구
+// 7. ?�정 복구
 export const restoreSchedule = async (organizationId, scheduleId) => {
   const res = await apiClient.post(
     `${host}/${organizationId}/schedules/${scheduleId}/restore`,
@@ -68,7 +68,7 @@ export const restoreSchedule = async (organizationId, scheduleId) => {
   return res.data;
 };
 
-// 8. [테스트용] 즉시 발신 로그 등록 (make-call-test)
+// 8. [?�스?�용] 즉시 발신 로그 ?�록 (make-call-test)
 export const makeCallTest = async ({ to, scheduledTime }) => {
   // const res = await apiClient.post(`${host}/make-call-test`, {
   //   to,
@@ -77,7 +77,7 @@ export const makeCallTest = async ({ to, scheduledTime }) => {
   // return res.data;
 };
 
-// 9. [테스트용] 위험 감지 알림 생성 테스트
+// 9. [?�스?�용] ?�험 감�? ?�림 ?�성 ?�스??
 export const testRiskDetectionNotification = async (
   careTargetId,
   riskScore = 75,

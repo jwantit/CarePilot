@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { getNotificationConfig } from "../api/notificationConfigApi";
+import { getNotificationConfig } from "../api/setting/notificationConfigApi";
 
 /**
  * 알림 설정 관리 커스텀 훅

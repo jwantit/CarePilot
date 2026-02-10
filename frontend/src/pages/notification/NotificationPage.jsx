@@ -5,8 +5,8 @@ import {
   getUnreadCount,
   markAsRead,
   createTestNotification,
-} from "../../api/notificationApi";
-import { testRiskDetectionNotification } from "../../api/callApi";
+} from "../../api/notification/notificationApi";
+import { testRiskDetectionNotification } from "../../api/call/callApi";
 import NotificationTable from "../../components/notification/NotificationTable";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";

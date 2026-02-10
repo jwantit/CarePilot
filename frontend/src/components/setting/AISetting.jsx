@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { getAIConfig, updateAIConfig } from "../../api/aiConfigApi";
+import { getAIConfig, updateAIConfig } from "../../api/setting/aiConfigApi";
 import toast from "react-hot-toast";
 import { Bot, PhoneCall, MessageSquare } from "lucide-react";
 
@@ -28,7 +28,7 @@ function AISetting() {
 
   const loadAllConfigs = async () => {
     if (!organizationId) return;
-    
+
     try {
       setLoading(true);
       const [callConfig, smsConfig, chatbotConfig] = await Promise.all([
@@ -59,7 +59,9 @@ function AISetting() {
     try {
       await updateAIConfig(organizationId, featureName, enabled);
       setConfigs((prev) => ({ ...prev, [feature]: enabled }));
-      toast.success(`${getFeatureLabel(feature)} 자동화가 ${enabled ? "활성화" : "비활성화"}되었습니다.`);
+      toast.success(
+        `${getFeatureLabel(feature)} 자동화가 ${enabled ? "활성화" : "비활성화"}되었습니다.`,
+      );
     } catch (error) {
       console.error(`${feature} 설정 저장 실패:`, error);
       toast.error("설정 저장에 실패했습니다.");
@@ -86,7 +88,9 @@ function AISetting() {
           <Icon size={20} className="text-teal-400" />
         </div>
         <div>
-          <label className="text-base font-medium text-cp-text block">{label}</label>
+          <label className="text-base font-medium text-cp-text block">
+            {label}
+          </label>
         </div>
       </div>
       <label className="relative inline-flex items-center cursor-pointer">
@@ -97,7 +101,9 @@ function AISetting() {
           disabled={disabled}
           className="sr-only peer"
         />
-        <div className={`w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 peer-checked:after:bg-white ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+        <div
+          className={`w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 peer-checked:after:bg-white ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+        ></div>
       </label>
     </div>
   );
@@ -110,7 +116,9 @@ function AISetting() {
             <div className="p-2 bg-teal-500/10 rounded-sm">
               <Bot className="text-teal-400" size={24} />
             </div>
-            <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">AI 설정</h1>
+            <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">
+              AI 설정
+            </h1>
           </div>
           <div className="p-8">
             <div className="text-center py-8 text-cp-muted">로딩 중...</div>
@@ -128,7 +136,9 @@ function AISetting() {
           <div className="p-2 bg-teal-500/10 rounded-sm">
             <Bot className="text-teal-400" size={24} />
           </div>
-          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">AI 설정</h1>
+          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">
+            AI 설정
+          </h1>
         </div>
 
         <div className="p-8 space-y-10">

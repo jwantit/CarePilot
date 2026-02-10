@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from "../apiClient";
 
 const host = `/scenarios`;
 
@@ -14,9 +14,9 @@ export const getScenariosByFilter = async (
   category,
 ) => {
   const params = {};
-  if (status && status !== "전체") params.status = status;
-  if (riskLevel && riskLevel !== "전체") params.riskLevel = riskLevel;
-  if (category && category !== "전체") params.category = category;
+  if (status && status !== "?�체") params.status = status;
+  if (riskLevel && riskLevel !== "?�체") params.riskLevel = riskLevel;
+  if (category && category !== "?�체") params.category = category;
 
   const res = await apiClient.get(
     `${host}/organization/${organizationId}/filter`,
@@ -56,3 +56,4 @@ export const updateScenarioEnabledStatus = async (scenarioId, enabled) => {
   });
   return res.data;
 };
+

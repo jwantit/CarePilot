@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { noticeApi } from "../../api/noticeApi";
+import { noticeApi } from "../../api/notice/noticeApi";
 import { User, Edit2, Trash2, Reply } from "lucide-react";
 
 const CommentItem = ({

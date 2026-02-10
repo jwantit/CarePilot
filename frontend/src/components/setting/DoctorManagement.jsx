@@ -5,11 +5,22 @@ import {
   updateDoctor,
   deleteDoctor,
   uploadDoctorCsv,
-} from "../../api/doctorApi";
+} from "../../api/setting/doctorApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import BulkUploadModal from "../../components/common/BulkUploadModal";
-import { X, User, ShieldCheck, Mail, Phone, Stethoscope, Briefcase, FileText, PlusCircle, RotateCcw } from "lucide-react";
+import {
+  X,
+  User,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Stethoscope,
+  Briefcase,
+  FileText,
+  PlusCircle,
+  RotateCcw,
+} from "lucide-react";
 
 const inputClass =
   "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
@@ -245,10 +256,18 @@ function DoctorManagement() {
               className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="">전체</option>
-              <option value="ADMIN" className="bg-cp-card">관리자</option>
-              <option value="DOCTOR" className="bg-cp-card">의사</option>
-              <option value="NURSE" className="bg-cp-card">간호사</option>
-              <option value="OPERATOR" className="bg-cp-card">운영자</option>
+              <option value="ADMIN" className="bg-cp-card">
+                관리자
+              </option>
+              <option value="DOCTOR" className="bg-cp-card">
+                의사
+              </option>
+              <option value="NURSE" className="bg-cp-card">
+                간호사
+              </option>
+              <option value="OPERATOR" className="bg-cp-card">
+                운영자
+              </option>
             </select>
           </div>
 
@@ -262,8 +281,12 @@ function DoctorManagement() {
               className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="">전체</option>
-              <option value="true" className="bg-cp-card">활성</option>
-              <option value="false" className="bg-cp-card">비활성</option>
+              <option value="true" className="bg-cp-card">
+                활성
+              </option>
+              <option value="false" className="bg-cp-card">
+                비활성
+              </option>
             </select>
           </div>
 
@@ -403,7 +426,10 @@ function DoctorManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar"
+            >
               <div className="grid grid-cols-2 gap-5">
                 {/* 섹션 1: 의료진 기본 정보 */}
                 <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
@@ -487,10 +513,18 @@ function DoctorManagement() {
                     required
                     className={selectClass}
                   >
-                    <option value="ADMIN" className="bg-cp-card">관리자</option>
-                    <option value="DOCTOR" className="bg-cp-card">의사</option>
-                    <option value="NURSE" className="bg-cp-card">간호사</option>
-                    <option value="OPERATOR" className="bg-cp-card">운영자</option>
+                    <option value="ADMIN" className="bg-cp-card">
+                      관리자
+                    </option>
+                    <option value="DOCTOR" className="bg-cp-card">
+                      의사
+                    </option>
+                    <option value="NURSE" className="bg-cp-card">
+                      간호사
+                    </option>
+                    <option value="OPERATOR" className="bg-cp-card">
+                      운영자
+                    </option>
                   </select>
                 </div>
 
@@ -504,7 +538,9 @@ function DoctorManagement() {
                       <button
                         key={status.label}
                         type="button"
-                        onClick={() => setFormData({ ...formData, isActive: status.value })}
+                        onClick={() =>
+                          setFormData({ ...formData, isActive: status.value })
+                        }
                         className={`flex-1 py-2.5 rounded-sm font-medium border transition-all shadow-md ${
                           formData.isActive === status.value
                             ? "bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 hover:from-teal-500 hover:to-teal-600"
@@ -544,7 +580,11 @@ function DoctorManagement() {
                   disabled={loading}
                   className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
                 >
-                  {loading ? "저장 중..." : (editingDoctor ? "저장 완료" : "의료진 등록 완료")}
+                  {loading
+                    ? "저장 중..."
+                    : editingDoctor
+                      ? "저장 완료"
+                      : "의료진 등록 완료"}
                 </button>
               </div>
             </form>

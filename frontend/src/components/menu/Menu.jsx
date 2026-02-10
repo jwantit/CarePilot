@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getUnreadCount } from "../../api/notificationApi";
+import { getUnreadCount } from "../../api/notification/notificationApi";
 import { useAuth } from "../../hooks/useAuth";
 import ThemeToggle from "../common/ThemeToggle";
 

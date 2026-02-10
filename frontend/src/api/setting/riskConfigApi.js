@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from "../apiClient";
 
 const host = `/risk-config`;
 
@@ -11,3 +11,4 @@ export const updateRiskConfig = async (organizationId, config) => {
   const res = await apiClient.put(`${host}/${organizationId}`, config);
   return res.data;
 };
+

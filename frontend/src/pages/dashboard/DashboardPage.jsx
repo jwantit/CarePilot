@@ -9,8 +9,8 @@ import {
   getRecentItems,
 } from "../../api/dashboard/dashboardApi";
 import { getCareGroupList } from "../../api/caretarget/careTargetGroupApi";
-import { noticeApi } from "../../api/noticeApi";
-import { makeCallTest } from "../../api/callApi";
+import { noticeApi } from "../../api/notice/noticeApi";
+import { makeCallTest } from "../../api/call/callApi";
 import { 
   Phone, 
   AlertCircle, 

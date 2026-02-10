@@ -7,7 +7,7 @@ import CareTargetActionBar from '../../components/caretarget/CareTargetActionBar
 import Breadcrumb from '../../components/common/Breadcrumb';
 import StatCardGrid from '../../components/common/StatCardGrid';
 import { deleteCareTarget, uploadCsvCareTarget, uploadOneCareTarget, getCareTargetAllList } from '../../api/caretarget/careTargetApi';
-import { makeCallTest } from '../../api/callApi';
+import { makeCallTest } from '../../api/call/callApi';
 import { useAuth } from '../../hooks/useAuth';
 import { Users, AlertTriangle, AlertCircle, Activity, Shield } from 'lucide-react';
 
@@ -313,3 +313,4 @@ function CareTargetPage() {
 }
 
 export default CareTargetPage;
+

@@ -7,7 +7,7 @@ import {
   FileText,
   CalendarClock,
 } from "lucide-react";
-import { createSchedule, updateSchedule } from "../../api/callApi";
+import { createSchedule, updateSchedule } from "../../api/call/callApi";
 import { getCareTargetAllList } from "../../api/caretarget/careTargetApi";
 import {
   getScenarioList,

@@ -5,7 +5,7 @@ import {
   updateScenario,
   deleteScenario,
   getScenarioById,
-} from "../../api/scenarioApi";
+} from "../../api/scenario/scenarioApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";

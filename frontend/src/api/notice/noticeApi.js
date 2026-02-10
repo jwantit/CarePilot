@@ -1,23 +1,23 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from "../apiClient";
 
 const host = "/notices";
-const commentsHost = "/notice-comments"; // 댓글 전용 호스트 추가
+const commentsHost = "/notice-comments"; // ?��? ?�용 ?�스??추�?
 
 export const noticeApi = {
-  // 공지사항 관련
+  // 공�??�항 관??
   getNotices: (page, size = 10) =>
     apiClient.get(`${host}?page=${page}&size=${size}`),
 
   getNotice: (noticeId) => apiClient.get(`${host}/${noticeId}`),
 
-  createNotice: (data, userId, files) => { // files 파라미터 추가
+  createNotice: (data, userId, files) => { // files ?�라미터 추�?
     const formData = new FormData();
     formData.append("notice", new Blob([JSON.stringify(data)], { type: "application/json" }));
     if (files) {
       files.forEach(file => formData.append("files", file));
     }
     formData.append("userId", userId);
-    formData.append("organizationId", data.organizationId); // organizationId 추가 (백엔드에 맞춰)
+    formData.append("organizationId", data.organizationId); // organizationId 추�? (백엔?�에 맞춰)
 
     return apiClient.post(host, formData, {
       headers: {
@@ -26,14 +26,14 @@ export const noticeApi = {
     });
   },
 
-  updateNotice: (noticeId, data, userId, files) => { // files 파라미터 추가
+  updateNotice: (noticeId, data, userId, files) => { // files ?�라미터 추�?
     const formData = new FormData();
     formData.append("notice", new Blob([JSON.stringify(data)], { type: "application/json" }));
     if (files) {
       files.forEach(file => formData.append("files", file));
     }
     formData.append("userId", userId);
-    formData.append("organizationId", data.organizationId); // organizationId 추가 (백엔드에 맞춰)
+    formData.append("organizationId", data.organizationId); // organizationId 추�? (백엔?�에 맞춰)
 
     return apiClient.put(`${host}/${noticeId}`, formData, {
       headers: {
@@ -45,7 +45,7 @@ export const noticeApi = {
   deleteNotice: (noticeId, userId) =>
     apiClient.delete(`${host}/${noticeId}`, { params: { userId } }),
 
-  // 댓글 관련
+  // ?��? 관??
   getComments: (noticeId) => apiClient.get(`${commentsHost}/${noticeId}/comments`),
 
   createComment: (noticeId, data) =>
@@ -59,7 +59,7 @@ export const noticeApi = {
   deleteComment: (commentId, userId) =>
     apiClient.delete(`${commentsHost}/${commentId}`, { params: { userId } }),
 
-  // 파일 다운로드 관련 (NoticeController에 통합)
+  // ?�일 ?�운로드 관??(NoticeController???�합)
   getAttachment: (fileId) => apiClient.get(`${host}/files/${fileId}/download`, { responseType: 'blob' }),
   getThumbnail: (fileId) => apiClient.get(`${host}/files/${fileId}/thumbnail`, { responseType: 'blob' }),
 };

@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from '../apiClient';
 
 const host = `/doctors`;
 
@@ -51,8 +51,8 @@ export const deleteDoctor = async (doctorId) => {
 };
 
 /**
- * 의료진 대량 등록 (CSV/EXCEL)
- * formData: files(List), organizationId, isActive(기본 상태)
+ * ?�료�??�???�록 (CSV/EXCEL)
+ * formData: files(List), organizationId, isActive(기본 ?�태)
  */
 export const uploadDoctorCsv = async (formData) => {
   const res = await apiClient.post(
