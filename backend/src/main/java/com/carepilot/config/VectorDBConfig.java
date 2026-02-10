@@ -79,10 +79,6 @@ public class VectorDBConfig {
     }
 
 
-    //임베딩 모델 기존
-    @Value("${spring.ai.ollama.embedding.options.model}")
-    private String mxbaiModelName;
-
     //bge
     @Value("${spring.ai.ollama.embedding.options.model.bge}")
     private String bgeModelName;
@@ -99,20 +95,7 @@ public class VectorDBConfig {
         );
     }
     //-----------------------------------------------------------------------------------------------------
-    //임베딩 옵션2 MXDAI-------------------------------------------------------------------------------------------
-    @Primary
-    @Bean
-    public OllamaEmbeddingModel mxbaiEmbeddingModel(OllamaApi ollamaApi, ObservationRegistry observationRegistry) {
-        return new OllamaEmbeddingModel(
-                ollamaApi,
-                OllamaOptions.builder()
-                        .model(mxbaiModelName) // model() 사용
-                        .build(),
-                observationRegistry, // 주입받은 registry를 그대로 사용
-                ModelManagementOptions.builder().build()   // 또는 ModelManagementOptions.defaults()
-        );
-    }
-    //-----------------------------------------------------------------------------------------------------
+
 
 
         //bg3 임베팅 + 저장소1-----------------------------------------------------------------------------------------------------
@@ -133,7 +116,7 @@ public class VectorDBConfig {
         }
 
 
-//mxbai 임베팅 + 저장소2-----------------------------------------------------------------------------------------------------
+//저장소2-----------------------------------------------------------------------------------------------------
     // [Bean 2] 전화 기록/시나리오 전용 저장소
     @Bean(name = "callLogVectorStore")
     public VectorStore callLogVectorStore(@Qualifier("bgeEmbeddingModel") OllamaEmbeddingModel embeddingModel, JedisPooled jedis) {
