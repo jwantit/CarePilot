@@ -15,12 +15,29 @@ import Breadcrumb from "../../components/common/Breadcrumb";
 
 function getSeverityBadge(severity) {
   const map = {
-    LOW: { label: "낮음", color: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
-    MEDIUM: { label: "보통", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" },
-    HIGH: { label: "위험", color: "bg-orange-500/10 text-orange-400 border-orange-500/30" },
-    CRITICAL: { label: "긴급", color: "bg-red-500/10 text-red-400 border-red-500/30" },
+    LOW: {
+      label: "낮음",
+      color: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+    },
+    MEDIUM: {
+      label: "보통",
+      color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+    },
+    HIGH: {
+      label: "위험",
+      color: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+    },
+    CRITICAL: {
+      label: "긴급",
+      color: "bg-red-500/10 text-red-400 border-red-500/30",
+    },
   };
-  return map[severity] || { label: severity, color: "bg-cp-bg text-cp-text border-cp-border" };
+  return (
+    map[severity] || {
+      label: severity,
+      color: "bg-cp-bg text-cp-text border-cp-border",
+    }
+  );
 }
 
 function NotificationPage() {
@@ -244,7 +261,7 @@ function NotificationPage() {
     <>
       <div className="space-y-6">
         <Breadcrumb items={["알림 관리"]} />
-        
+
         {/* 탭 메뉴 */}
         <div className="flex justify-between items-end border-b border-cp-border mb-4">
           <div className="flex -mb-px">
@@ -269,8 +286,8 @@ function NotificationPage() {
               전체 알림
             </button>
           </div>
-          
-          <div className="flex gap-2 mb-2">
+
+          <div className="flex gap-2 mb-2 hidden">
             <button
               onClick={handleCreateTestNotification}
               className="px-4 py-2 bg-cp-input hover:bg-cp-bg text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
@@ -390,12 +407,18 @@ function NotificationPage() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">알림 제목</label>
-                <p className="text-lg font-bold text-cp-text leading-tight">{selectedNotification.title}</p>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">
+                  알림 제목
+                </label>
+                <p className="text-lg font-bold text-cp-text leading-tight">
+                  {selectedNotification.title}
+                </p>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">상세 내용</label>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">
+                  상세 내용
+                </label>
                 <div className="bg-cp-bg/50 p-4 rounded-sm border border-cp-border text-sm text-cp-text whitespace-pre-wrap leading-relaxed min-h-[120px]">
                   {selectedNotification.description}
                 </div>
@@ -403,12 +426,20 @@ function NotificationPage() {
 
               <div className="grid grid-cols-2 gap-6 pt-2">
                 <div>
-                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">케어대상자</label>
-                  <p className="text-sm font-bold text-cp-text">{selectedNotification.careTarget?.name || "-"}</p>
+                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">
+                    케어대상자
+                  </label>
+                  <p className="text-sm font-bold text-cp-text">
+                    {selectedNotification.careTarget?.name || "-"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">상태</label>
-                  <p className="text-sm font-bold text-cp-text">{getStatusLabel(selectedNotification.status)}</p>
+                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">
+                    상태
+                  </label>
+                  <p className="text-sm font-bold text-cp-text">
+                    {getStatusLabel(selectedNotification.status)}
+                  </p>
                 </div>
               </div>
 
