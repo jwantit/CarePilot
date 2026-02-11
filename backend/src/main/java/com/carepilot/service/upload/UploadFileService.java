@@ -317,8 +317,7 @@ public class UploadFileService {
         if (targetType == UploadTargetType.INBOUND_SMS) return UploadFileType.IMAGE;
 
         if (contentType.contains("image")) return UploadFileType.IMAGE;
-        if (contentType.contains("pdf") || contentType.contains("word") || contentType.contains("text")) return UploadFileType.DOCUMENT;
-
+        if (contentType.contains("pdf") || contentType.contains("word") || contentType.contains("haansoftdocx")) return UploadFileType.DOCUMENT;
         throw new IllegalArgumentException("지원하지 않는 형식입니다.");
     }
     //---------------------------

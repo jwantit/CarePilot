@@ -289,16 +289,21 @@ const AiChatBot = () => {
     fileInputRef.current?.click();
   };
 
+  
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     // 같은 파일을 다시 선택해도 change 이벤트가 발생하도록 초기화
     e.target.value = '';
 
     if (!file || isLoading) return;
-    if (!file.type?.startsWith('image/')) {
+    if (!file.type?.startsWith('image/') && !file.type?.startsWith('application/')) {
       setMessages((prev) => [
         ...prev,
-        { id: Date.now(), text: "이미지 파일만 선택할 수 있습니다.", sender: 'ai' },
+        { 
+          id: Date.now(), 
+          text: "이미지 또는 문서 파일만 선택할 수 있습니다.", 
+          sender: 'ai' 
+        },
       ]);
       return;
     }

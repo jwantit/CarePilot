@@ -17,14 +17,11 @@ import {
   ClipboardList, 
   Bell, 
   Calendar, 
-  Activity, 
   Users, 
   ChevronRight,
   Clock,
   CheckCircle2,
-  TrendingUp,
   UserPlus,
-  Megaphone
 } from "lucide-react";
 
 function DashboardPage() {
@@ -438,7 +435,7 @@ function DashboardPage() {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-bold text-teal-500">{schedule.formattedTime}</span>
                           <span className="px-1.5 py-0.5 rounded bg-cp-bg border border-cp-border text-[11px] font-black text-cp-muted uppercase">
-                          {schedule.scheduleType === "ONE_TIME" ? "단발성 통화" : "정기통화"}
+                            {schedule.callType || "정기통화"}
                           </span>
                           <span className={`px-1.5 py-0.5 rounded border text-[11px] font-black uppercase ${statusColor}`}>
                             {statusText}
@@ -488,49 +485,58 @@ function DashboardPage() {
                 <h3 className="text-lg font-black text-cp-text tracking-tight uppercase">미처리 업무 현황</h3>
               </div>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-              {recentItems.length === 0 ? (
-                <p className="col-span-2 text-center py-10 text-cp-muted font-bold text-sm">기록된 활동이 없습니다.</p>
-              ) : (
-                recentItems.map((item) => {
-                  const task = item.data;
-                  const timeStr = formatDateTime(task.dueDate || task.createdAt);
-                  
-                  // 상태 텍스트 및 스타일 설정
-                  let statusText = "대기";
-                  let statusColor = "text-amber-500 bg-amber-500/10 border-amber-500/20";
-                  
-                  if (task.status === "PROGRESS" || task.status === "IN_PROGRESS") {
-                    statusText = "진행중";
-                    statusColor = "text-blue-500 bg-blue-500/10 border-blue-500/20";
-                  } else if (task.status === "COMPLETED") {
-                    statusText = "완료";
-                    statusColor = "text-teal-500 bg-teal-500/10 border-teal-500/20";
-                  }
+            {/* 부모 컨테이너에 고정 높이를 주어 6개가 들어갈 공간을 확보합니다. */}
+<div className="p-6 grid grid-cols-1 md:grid-cols-2 grid-rows-3 gap-4 flex-1 content-start overflow-y-auto">
+  {recentItems.length === 0 ? (
+    <div className="col-span-2 flex items-center justify-center py-20">
+      <p className="text-cp-muted font-bold text-sm">기록된 활동이 없습니다.</p>
+    </div>
+  ) : (
+    <>
+      {/* 데이터가 많아도 최대 6개까지만 렌더링하도록 제한 */}
+      {recentItems.slice(0, 6).map((item) => {
+        const task = item.data;
+        const timeStr = formatDateTime(task.dueDate || task.createdAt);
+        
+        let statusText = "대기";
+        let statusColor = "text-amber-500 bg-amber-500/10 border-amber-500/20";
+        
+        if (task.status === "PROGRESS" || task.status === "IN_PROGRESS") {
+          statusText = "진행중";
+          statusColor = "text-blue-500 bg-blue-500/10 border-blue-500/20";
+        } else if (task.status === "COMPLETED") {
+          statusText = "완료";
+          statusColor = "text-teal-500 bg-teal-500/10 border-teal-500/20";
+        }
 
-                  return (
-                    <div key={`recent-${task.taskId}`} className="flex items-center gap-3 p-3 rounded-lg bg-cp-bg/30 border border-cp-border/50 hover:bg-cp-bg/50 transition-all group">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`px-1.5 py-0.5 rounded text-[11px] font-black border uppercase ${statusColor}`}>
-                            {statusText}
-                          </span>
-                          <span className="text-sm font-bold text-cp-muted">{timeStr}</span>
-                        </div>
-                        <p className="text-base font-bold text-cp-text truncate">{task.title}</p>
-                      </div>
-                      
-                      <button 
-                        onClick={() => navigateToTask()}
-                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-cp-input hover:bg-cp-bg text-teal-400 px-2.5 py-1.5 font-bold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap text-[10px] shadow-sm hover:-translate-y-0.5"
-                      >
-                        처리하기
-                      </button>
-                    </div>
-                  );
-                })
-              )}
+        return (
+          <div 
+            key={`recent-${task.taskId}`} 
+            /* h-[80px] 등 고정 높이를 주어 1개일 때 커지는 것을 방지합니다. */
+            className="flex items-center gap-3 p-3 h-[85px] rounded-lg bg-cp-bg/30 border border-cp-border/50 hover:bg-cp-bg/50 transition-all group"
+          >
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`px-1.5 py-0.5 rounded text-[11px] font-black border uppercase ${statusColor}`}>
+                  {statusText}
+                </span>
+                <span className="text-sm font-bold text-cp-muted">{timeStr}</span>
+              </div>
+              <p className="text-base font-bold text-cp-text truncate">{task.title}</p>
             </div>
+            
+            <button 
+              onClick={() => navigateToTask()}
+              className="opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-cp-input hover:bg-cp-bg text-teal-400 px-2.5 py-1.5 font-bold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap text-[10px] shadow-sm"
+            >
+              처리하기
+            </button>
+          </div>
+        );
+      })}
+    </>
+  )}
+</div>
           </div>
         </div>
 
