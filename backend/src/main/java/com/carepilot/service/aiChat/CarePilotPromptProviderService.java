@@ -12,7 +12,7 @@ public class CarePilotPromptProviderService {
     public String getDynamicPrompt(String history, Long organizationId, String userName, String userMessage, Long userId, Long fileId) {
         String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm (EEEE)"));
 
-        boolean isRiskRelated = userMessage.contains("공지사항")
+        boolean isInsertBoard = userMessage.contains("공지사항")
                 || userMessage.contains("게시판")
                 || userMessage.contains("게시글")
                 || userMessage.contains("노트")
@@ -52,8 +52,7 @@ public class CarePilotPromptProviderService {
 
         String fileIdStr = (fileId == null) ? "null" : String.valueOf(fileId);
 
-        // A. 위험도 질문인 경우 (전용 프롬프트 Return)
-        if (isRiskRelated) {
+        if (isInsertBoard) {
             return String.format("""
                 너는 'CarePilot' 시스템의 위험 분석 비서야.
                 ### [접속 정보] ###

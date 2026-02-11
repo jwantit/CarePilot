@@ -12,11 +12,20 @@ import org.springframework.stereotype.Repository;
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
     long countByIsPinnedTrue();
 
-    Page<Notice> findAllByOrderByIsPinnedDescCreatedAtDesc(Pageable pageable);
+
+
+    @Query("SELECT n FROM Notice n " +
+            "WHERE n.organization.organizationId = :organizationId ")
+    Page<Notice> findAllByOrderByIsPinnedDescCreatedAtDesc(
+            @Param("organizationId") Long organizationId,
+            Pageable pageable
+    );
+
 
     @Query("SELECT n FROM Notice n " +
            "LEFT JOIN FETCH n.user " +
            "LEFT JOIN FETCH n.uploadFiles " +
            "WHERE n.noticeId = :noticeId")
-    java.util.Optional<Notice> findByIdWithUser(@Param("noticeId") Long noticeId);
+    java.util.Optional<Notice> findByIdWithUser(
+            @Param("noticeId") Long noticeId);
 }

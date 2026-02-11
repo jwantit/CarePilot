@@ -48,8 +48,8 @@ public class VectorIndexingService {
 
     private final VectorStore vectorStore;
 
-    public VectorIndexingService(@Qualifier("ChatBotVectorStore") VectorStore vectorStore1) {
-        this.vectorStore = vectorStore1;
+    public VectorIndexingService(@Qualifier("ChatBotVectorStore") VectorStore vectorStore) {
+        this.vectorStore = vectorStore;
     }
 
 

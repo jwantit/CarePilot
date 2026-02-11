@@ -180,7 +180,10 @@ public class DashBoardServiceImpl implements DashBoardService{
         String todayDateStr = String.format("%04d-%02d-%02d", now.getYear(), now.getMonthValue(), now.getDayOfMonth());
 
         List<ScheduleResponseDTO> todaySchedules = monthSchedules.stream()
-                .filter(s -> s.getScheduledTime() != null && s.getScheduledTime().startsWith(todayDateStr))
+                .filter(s -> {
+                    String timeToCheck = s.getScheduledTime() != null ? s.getScheduledTime() : s.getNextRunAt();
+                    return timeToCheck != null && timeToCheck.startsWith(todayDateStr);
+                })
                 .collect(Collectors.toList());
 
         Map<String, Integer> priorityOrder = Map.of("URGENT", 4, "HIGH", 3, "MEDIUM", 2, "LOW", 1);

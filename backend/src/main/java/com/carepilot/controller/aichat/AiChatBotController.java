@@ -35,7 +35,6 @@ public class AiChatBotController {
     private final UserUtil userUtil;
     private final Map<String, ChatClient> chatClients;
     private final ChatMemory chatMemory;
-    private final VectorStore vectorStore; //백터 임베딩
     private final CarePilotToolsService carePilotToolsService; // 실제 행동을 수행할 도구
     private final CarePilotPromptProviderService carePilotPromptProviderService;
     private final VectorService vectorService;
@@ -56,7 +55,6 @@ public class AiChatBotController {
         this.userUtil = userUtil;
         this.chatClients = chatClients;
         this.chatMemory = chatMemory;
-        this.vectorStore = chatBotVectorStore;
         this.carePilotToolsService = carePilotToolsService;
         this.carePilotPromptProviderService = carePilotPromptProviderService;
         this.vectorService = vectorService;

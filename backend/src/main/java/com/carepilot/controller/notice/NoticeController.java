@@ -1,7 +1,9 @@
 package com.carepilot.controller.notice;
 
+import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.dto.notice.NoticeResponseDTO;
 import com.carepilot.dto.notice.NoticeSaveRequest;
+import com.carepilot.security.util.UserUtil;
 import com.carepilot.service.notice.NoticeService;
 import com.carepilot.repository.upload.UploadFileRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +33,16 @@ public class NoticeController {
 
     private final NoticeService noticeService;
     private final UploadFileRepository uploadFileRepository;
+    private final UserUtil userUtil;
 
     // 목록 조회
     @GetMapping
     public ResponseEntity<Page<NoticeResponseDTO>> getAllNotices(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(noticeService.getAllNotices(pageable));
+        UserDTO userDTO = userUtil.getCurrentUserDTO();
+        Long organizationId = userDTO.getOrganizationId();
+
+        return ResponseEntity.ok(noticeService.getAllNotices(pageable, organizationId));
     }
 
     // 상세 조회

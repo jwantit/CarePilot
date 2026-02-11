@@ -38,8 +38,8 @@ public class NoticeServiceImpl implements NoticeService {
 
     // 모든 공지사항 조회
     @Override
-    public Page<NoticeResponseDTO> getAllNotices(Pageable pageable) {
-        Page<Notice> notices = noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(pageable);
+    public Page<NoticeResponseDTO> getAllNotices(Pageable pageable, Long organizationId) {
+        Page<Notice> notices = noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(organizationId, pageable);
         
         // User를 명시적으로 초기화하여 Lazy Loading 문제 해결
         notices.getContent().forEach(notice -> {

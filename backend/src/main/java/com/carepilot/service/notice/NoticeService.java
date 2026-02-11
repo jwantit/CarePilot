@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface NoticeService {
 
-    Page<NoticeResponseDTO> getAllNotices(Pageable pageable);
+    Page<NoticeResponseDTO> getAllNotices(Pageable pageable, Long organizationId);
 
     NoticeResponseDTO getNoticeById(Long noticeId);
 
