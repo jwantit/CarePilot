@@ -56,7 +56,7 @@ const TaskRow = ({
       {/* 할당자 */}
       <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
         <select
-          value={task.assignedTo || ""}
+          value={task.assignedToUserId || ""}
           onChange={(e) => onAssignChange(task.taskId, e.target.value)}
           className="bg-cp-bg border border-cp-border text-cp-text text-sm rounded-sm px-2 py-1 focus:outline-none focus:ring-1 focus:ring-teal-500"
         >
