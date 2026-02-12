@@ -62,11 +62,13 @@ function LoginForm() {
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-sm text-sm font-bold text-center animate-shake">
-          {typeof error === 'string' ? error : error?.message || '로그인 정보를 다시 확인해주세요.'}
-        </div>
-      )}
+      <div className="h-4 flex items-center justify-center -my-2">
+        {error && (
+          <p className="text-red-500 text-[13px] font-bold text-center">
+            {typeof error === 'string' ? error : error?.message || '로그인 정보를 다시 확인해주세요.'}
+          </p>
+        )}
+      </div>
 
       <div className="space-y-4">
         <button
@@ -114,4 +116,3 @@ function LoginForm() {
 }
 
 export default LoginForm;
-
