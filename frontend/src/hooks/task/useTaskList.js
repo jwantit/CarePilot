@@ -106,6 +106,11 @@ export const useTaskList = () => {
 
   /** 시작: PROGRESS로 변경 (백엔드에서 자동으로 CALL/SMS 자동화 분기 처리) */
   const handleStart = useCallback(async (task) => {
+    if (!task || !task.taskId) {
+      toast.error('작업 정보가 올바르지 않습니다.');
+      return;
+    }
+    
     // AI가 감지한 Task인지 확인 (SCHEDULE_CHANGE 타입이고 CALL 또는 SMS 연결됨)
     const isAiDetectedTask = task?.type === 'SCHEDULE_CHANGE' && (task?.callId || task?.inboundSmsId);
     
@@ -127,11 +132,23 @@ export const useTaskList = () => {
   }, [fetchTasks]);
 
   const handleUpdateAssign = useCallback(async (taskId, assignedToUserId) => {
+    // 낙관적 업데이트: 즉시 UI 업데이트
+    setTaskList((prevList) =>
+      prevList.map((task) =>
+        task.taskId === taskId
+          ? { ...task, assignedToUserId: assignedToUserId || null }
+          : task
+      )
+    );
+
     try {
       await updateTaskAssign(taskId, assignedToUserId);
       toast.success('할당자가 변경되었습니다.');
+      // 서버에서 최신 데이터 다시 가져오기
       fetchTasks();
     } catch (err) {
+      // 실패 시 원래 상태로 복구
+      fetchTasks();
       const msg = err?.response?.data?.message || err?.message || '할당 변경에 실패했습니다.';
       toast.error(msg);
     }

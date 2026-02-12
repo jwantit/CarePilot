@@ -25,7 +25,7 @@ const TaskRow = ({
       <div className="flex items-center justify-center">
         <span
           className={`inline-block px-3 py-1 rounded-sm text-xs font-bold border ${getPriorityColor(
-            task.priority
+            task.priority,
           )} shadow-sm`}
         >
           {getPriorityLabel(task.priority)}
@@ -54,10 +54,18 @@ const TaskRow = ({
       </div>
 
       {/* 할당자 */}
-      <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         <select
           value={task.assignedToUserId || ""}
-          onChange={(e) => onAssignChange(task.taskId, e.target.value)}
+          onChange={(e) =>
+            onAssignChange(
+              task.taskId,
+              e.target.value ? Number(e.target.value) : null,
+            )
+          }
           className="bg-cp-bg border border-cp-border text-cp-text text-sm rounded-sm px-2 py-1 focus:outline-none focus:ring-1 focus:ring-teal-500"
         >
           <option value="">미지정</option>
@@ -80,7 +88,7 @@ const TaskRow = ({
       <div className="flex items-center justify-center">
         <span
           className={`inline-block px-3 py-1 rounded-sm text-xs font-bold border ${getTaskStatusColor(
-            task.status
+            task.status,
           )} shadow-sm`}
         >
           {getTaskStatusLabel(task.status)}
@@ -88,10 +96,13 @@ const TaskRow = ({
       </div>
 
       {/* 관리 버튼 */}
-      <div className="flex items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center justify-center gap-2"
+        onClick={(e) => e.stopPropagation()}
+      >
         {task.status === "WAITING" && (
           <button
-            onClick={() => onStart(task.taskId)}
+            onClick={() => onStart(task)}
             className="px-2 py-1 bg-teal-600/20 text-teal-400 border border-teal-500/50 rounded-sm text-xs hover:bg-teal-600/40 transition"
           >
             시작
@@ -117,4 +128,3 @@ const TaskRow = ({
 };
 
 export default TaskRow;
-
