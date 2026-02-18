@@ -36,45 +36,115 @@ AI 자동 통화를 통해 케어 대상자의 상태를 수집하고
 | <a href="https://github.com/junhwan0427"><img src="https://github.com/junhwan0427.png" width="100px;" alt=""/><br /><b>조준환</b><br />팀장</a> | <a href="https://github.com/jwantit"><img src="https://github.com/jwantit.png" width="100px;" alt=""/><br /><b>김지원</b><br />팀원</a> | <a href="https://github.com/JeonHaSung"><img src="https://github.com/JeonHaSung.png" width="100px;" alt=""/><br /><b>전하성</b><br />팀원</a> | <a href="https://github.com/leegh063"><img src="https://github.com/leegh063.png" width="100px;" alt=""/><br /><b>이건호</b><br />팀원</a> |
 | :---------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: |
 
-### 조준환 (팀장)
+### 📝조준환 (팀장)
 
 **[Front-end]**
 
--ㅇ
+- Redux Toolkit 기반 전역 상태 관리 및 사용자 인증(Auth) 흐름 구축
+- Tailwind CSS를 활용한 전체 스타일링 및 다크/라이트 모드 테마 시스템 구현
+- 채팅 인터페이스 기반의 SMS 위젯(UI) 개발
+- 알림 설정 프론트 연동
 
 **[Back-end]**
 
--ㅇ
+- Spring Security + JWT 기반 보안 인증 체계 구축
+- Redis 기반 토큰 관리 및 보안 강화
+- 조직 기반 데이터 필터링 및 접근 제어
+- 카카오 OAuth2 소셜 로그인 및 회원가입 로직
+- SMTP 기반 메일 인증 및 승인 알림
+- Twilio API 연동 SMS/MMS 수발신 로직 구현
+- 폴링(Polling) + 워커(Worker) 기반 통화 스케줄러
+- 시그널 기반 위험도 점수 산정 로직
 
-### 김지원 (팀원)
+**[Server AI (Spring AI)]**
+
+- LLM Vision을 활용한 처방전 AI OCR
+- 통화 기록 자동 요약 시스템
+
+### 📝김지원 (팀원)
 
 **[Front-end]**
 
--ㅇ
+- React Router v6 기반 SPA 구조 설계 및 모듈화
+- React.lazy/Suspense 활용 라우트 단위 코드 스플리팅
+- react-virtualized 기반 대용량 리스트 무한스크롤
+- Chart.js 활용 통화 통계 및 위험도 추이 시각화
+- Toast 공용 알림 컴포넌트 제작 및 전역 상태 연동
+- 시나리오/의료진/위험도 관리 등 설정 UI 구현
+- 통화 이력 및 스케줄 등록/관리 페이지 구현
 
 **[Back-end]**
 
--ㅇ
+- Twilio API 기반 자동 전화 발신 인프라 구축
+- STOMP 프로토콜 기반 WebSocket 실시간 알림 시스템
+- Spring Data JPA 기반 통화 이력/스케줄 CRUD 및 조직별 데이터 필터링/접근 제어 로직 구현
+- 실시간 긴급 상황 감지 및 의료진 SMS 발송 로직
+- 대화 중 감지된 요청사항 시스템 자동 반영 로직
+- 통화 녹음 파일 저장 및 스트리밍 데이터 처리
+- 통화 상태(성공/실패/무응답) 실시간 동기화
 
-### 전하성 (팀원)
+**[Server AI (Spring AI)]**
+
+- OpenAI GPT-4o 활용 실시간 지능형 질문 생성
+- Redis VectorStore 연동 RAG 기반 맥락 검색
+- 비동기 벡터 인덱싱 처리를 통한 대화 지연 최적화
+- 통화 내용 자동 요약 및 핵심 요청사항 추출 파이프라인
+- 페르소나 기반 개인화 프롬프트 엔지니어링 수행
+- 실시간 대화 데이터 임베딩 및 벡터화 자동화
+
+
+### 📝이건호 (팀원)
 
 **[Front-end]**
 
--ㅇ
+- Multipart(FormData) 기반 게시글 데이터 및 파일 통합 전송 구현
+- 재귀 렌더링 아키텍처를 활용한 계층형 대댓글 트리 UI 구축
+- 답글 시 부모 댓글 작성자 자동 태깅(@) 및 삭제 댓글 필터링 UX 구현
+- 다중 API 병렬 호출(Parallel Fetching)을 통한 대시보드 로딩 처리
+- 독립 위젯 기반 컴포넌트 설계 및 상세 페이지 이동을 위한 허브 UI 구현
 
 **[Back-end]**
 
--ㅇ
+- 게시물 상단 고정(isPinned) 및 생성일 역순 기반의 복합 정렬 조회 구현
+- HashMap 자료구조를 활용한 부모-자식 관계의 댓글 트리 변환 로직 구축
+- 이기종 엔티티(통화·작업·알림) 데이터 병합 및 조직별 동적 집계 API 개발
+- 게시글 수정/삭제 시나리오에 따른 업로드 파일 생애주기 관리 시스템 구축
+- validateWriter 기반 작성자 본인 검증 및 Soft Delete 적용으로 데이터 관리
 
-### 이건호 (팀원)
+### 📝전하성 (팀원)
 
 **[Front-end]**
 
--ㅇ
+- Redux Toolkit을 활용한 전역 상태 관리
+- Chart.js 기반 케어 대상자 위험추이 트렌드 차트 구현
+- React-Draggable/Resizable 기반의 자유로운 드래그 및 크기 조절이 가능한 플로팅 채팅창 구현
+- 사용자 선택에 따른 Cloud(OpenAI) & On-device(Ollama) 모델 실시간 스위칭 UI 로직 구축
+- FormData 기반 이미지 업로드 및 미리보기 인터페이스 구현
+- 케어 그룹 및 대상자 목록의 조직별 권한에 따른 조건부 렌더링 시스템 구축
+- Tailwind CSS 기반 반응형 UI 구현 (모바일/태블릿/데스크톱 대응)
 
 **[Back-end]**
 
--ㅇ
+- Spring Data JPA 기반 케어 대상자/그룹 CRUD 및 조직별 데이터 필터링/접근 제어 로직 구현
+- MultipartFile 기반 파일 처리 시스템 및 대용량 데이터 관리를 위한 스토리지 연동
+- Apache POI를 활용한 CSV/Excel 파싱 및 벌크 인서트(Bulk Insert)를 통한 대량 등록 성능 최적화
+- Querydsl을 활용한 동적 쿼리 처리로 케어 대상자 상세 검색 및 필터링 기능 강화
+
+**[Server AI (Spring AI)]**
+
+- @Qualifier & @Bean을 활용한 다중 LLM(GPT-4o-mini 등) 공급 체계 구축
+- Redis Vector Store를 활용한 고성능 벡터 검색 인프라 구축
+- 목적별(챗봇용/전화용) Vector Store 분리 운영 전략 수립 및 데이터 격리 구현
+- VectorIndexingService를 통한 배치 기반 문서 파싱 및 벡터화(Vectorization) 파이프라인 구축
+- ChatMemory 기반 컨텍스트 관리 시스템 구현으로 매끄러운 멀티턴 대화(Multi-turn) 지원
+- Spring AI Tools (Function Calling)를 활용하여 DB 데이터를 직접 조회/수정하는 실행형 에이전트 구현
+- Prompt Template 구조화 및 동적 프롬프트 생성을 통한 RAG 답변 정확도 최적화
+
+**[On-device AI]**
+
+- Ollama를 활용한 로컬 LLM 환경별 동적 주입 구현
+- BGE-M3 임베딩 모델을 결합한 로컬 벡터화 엔진 구축
+- 임베딩 모델 직접 연동을 통한 온디바이스 벡터 파이프라인 구축
 
 ## 📂주요 기능
 
@@ -85,13 +155,14 @@ AI 자동 통화를 통해 케어 대상자의 상태를 수집하고
 - **케어 그룹 관리** - 유사성이 같은 대상자들을 그룹별로 관리하여 모니터링
 - **통화** - (그룹/개인) 통화 스케줄 예약 및 자동화
   - Call(STT 음성인식 + Twilio) - 음성인식을 통해 대상자의 상태 확인
-  - AI 분석(LLM) - 실시간 긴급상태 감지, 위험도 산정, 다음 예약 변경 자동화
-  - SMS(Twilio) - 문자 수발신 예약 수정 / 처방전 / 알림
-- **작업** - 할일 목록 / AI 처리 작업 대기
-- **알림** - 통화 실시간 긴급 알림 / 위험도
-- **공지사항** - 대댓글 및 파일 첨부 기능
-- **반응형 UI** - PC / 태블릿 / 모바일
-- **AI 챗봇** - 대상자 정보 조회 / 예약 등록 / 공지사항 등록
+  - AI 분석(LLM) - 실시간 긴급상태 감지, 위험도 산정, 통화 요약
+- **SMS 서비스** - 양방향 문자 수발신, 인공지능 기반 예약 변경 감지, 처방전 AI OCR
+- **통계 및 리포트** - 위험도 추이 및 통화 성공률 분석, PDF 리포트 다운로드
+- **작업** - 효율적인 업무 처리를 위한 할일 목록 및 이력 관리
+- **실시간 알림** - WebSocket 기반 긴급 상황 실시간 푸시 알림
+- **AI 챗봇** - RAG 기반 정보 검색 및 Function Calling 기반 데이터 관리
+- **커뮤니티** - 계층형 댓글 구조의 공지사항 및 파일 첨부
+- **UX/UI** - 반응형 레이아웃(PC/태블릿/모바일), 다크/라이트 모드 지원
 
 ## 📂 사용 스택
 
@@ -117,6 +188,8 @@ AI 자동 통화를 통해 케어 대상자의 상태를 수집하고
 ![Spring Mail](https://img.shields.io/badge/Spring_Mail-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Apache POI](https://img.shields.io/badge/Apache_POI-D22128?style=for-the-badge)
 ![ModelMapper](https://img.shields.io/badge/ModelMapper-4E4E4E?style=for-the-badge)
+![Querydsl](https://img.shields.io/badge/Querydsl-0769AD?style=for-the-badge&logo=querydsl&logoColor=white)
+![Lombok](https://img.shields.io/badge/Lombok-BC2139?style=for-the-badge)
 
 🤖 **AI/ML**  
 ![SpringAI 1.0.0-M6](https://img.shields.io/badge/SpringAI-1.0.0--M6-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
@@ -158,9 +231,6 @@ AI 자동 통화를 통해 케어 대상자의 상태를 수집하고
 ![배포](./img/배포.png)
 ---
 
-
----
-
 ## 📂ERD & 유스케이스
 
 ### 🔹ERD
@@ -174,9 +244,12 @@ AI 자동 통화를 통해 케어 대상자의 상태를 수집하고
 ## 📂기능 소개
 
 #### 시연영상 보러가기
-[![YouTube Badge](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=CI3Fi-axLiY)
+[![YouTube Badge](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/5eAaIeB0pl8)
 
 ### 🔹 로그인 및 회원가입 (소셜 로그인)
+ 
+ JWT 보안 인증 및 카카오 소셜 로그인을 통해 간편하고 안전한 접속 환경을 제공합니다.
+ 
 
 - JWT를 이용한 보안 처리 및 Spring Security 활용
 - 카카오 소셜 로그인
@@ -195,6 +268,9 @@ public OAuth2LoginResponseDTO processKakaoLogin(String email, String name) {
 ---
 
 ### 🔹 직원 관리
+ 
+ 조직 내 구성원의 가입 승인 및 권한 등급(Admin, Manager, User)을 체계적으로 관리합니다.
+ 
 
 - 가입 승인 및 권한 관리
 - 역할 기반 접근 제어 (ADMIN, MANAGER, USER)
@@ -204,6 +280,9 @@ public OAuth2LoginResponseDTO processKakaoLogin(String email, String name) {
 ---
 
 ### 🔹 대시보드
+ 
+ 실시간 알림, 통화 스케줄, 업무 현황을 한눈에 파악할 수 있는 통합 관제 센터를 제공합니다.
+ 
 
 - 오늘의 일정 - 오늘 날짜의 통화 스케줄 조회 및 상태 표시
 - 즉시 조치 필요한 알림 - 긴급 알림(CRITICAL, HIGH) 및 위험도 높은 대상자 표시
@@ -229,6 +308,9 @@ public ResponseEntity<Map<String, Object>> getDashboardStats(@PathVariable Long 
 ---
 
 ### 🔹 통계
+ 
+ 축적된 케어 데이터를 바탕으로 위험도 추이 및 자동화 성과를 시각적으로 분석한 리포트를 제공합니다.
+ 
 
 - **대상자 및 그룹별 상세 리포트 제공**
 - **위험도 분석** - 전체/그룹별 위험도 분포 및 추이 시각화
@@ -251,11 +333,14 @@ public Map<String, Object> getStatistics(String start, String end, Long groupId,
 ---
 
 ### 🔹 작업
+ 
+ AI 자동화 설정이 꺼져 있을 때, 시스템이 감지한 중요 요청들을 '할일 목록'으로 자동 분류하여 실무자가 하나도 놓치지 않고 수동으로 처리할 수 있는 대기 보드 역할을 합니다.
+ 
 
-- **할일 목록 (자동화 OFF)**
-  - **통화/SMS 예약 변경** - 통화 및 SMS에서 감지된 예약 변경 요청이 대기 목록에 추가되며, '시작' 버튼으로 승인 시 자동 처리
-  - **AI 챗봇 요청** - 챗봇을 통해 접수된 작업이 대기 목록에 추가되며, '시작' 버튼으로 승인 시 자동 처리
-- **AI 처리 이력** - AI가 수행한 모든 자동 및 수동 처리 내역 관리 
+- **유연한 업무 처리 (Automation-to-Manual)**
+  - **수동 승인 대기열** - 자동화 모드가 꺼진 경우, AI가 감지한 예약 변경이나 챗봇 요청이 할일 목록에 쌓이며 '시작' 버튼 클릭 시 즉시 시스템에 반영됩니다.
+  - **업무 가시성 확보** - 현재 대기 중인 작업과 처리 중인 업무를 실시간으로 구분하여 팀 내 업무 분담과 진행 상황을 명확히 알 수 있습니다.
+- **통합 이력 관리** - AI가 조치한 자동 기록과 사용자가 직접 완료한 수동 처리 건을 모두 기록하여 작업의 투명성을 보장합니다.
 
 ```java
 // AI 챗봇 자동화 작업 분류 및 처리
@@ -274,12 +359,22 @@ private void processChatbotAutomation(Long taskId) {
 ---
 
 ### 🔹 알림
+ 
+ 긴급 상황이나 주요 이벤트 발생 시 웹소켓을 통해 즉각적인 실시간 푸시 알림을 제공합니다.
+ 
 
-- 통화 실시간 긴급 알림 - 통화 중 긴급 상황 감지 시 즉시 알림
-- 위험도 알림 - 대상자 위험도 변화 시 알림
-- 알림 심각도 분류 - CRITICAL, HIGH, MEDIUM, LOW
-- 알림 읽음/미읽음 상태 관리
-- 조직별 알림 필터링
+- **실시간 WebSocket 알림** - STOMP 프로토콜 기반의 WebSocket을 통해 서버에서 발생한 긴급 상황 및 이벤트를 프론트엔드로 즉시 Push합니다.
+- **조직별 브로드캐스트** - 보안과 효율성을 위해 조직(Organization) 단위의 전용 토픽(/topic/org/{orgId})으로 실시간 알림을 격리 송출합니다.
+- **알림 심각도 및 상태 관리** - CRITICAL, HIGH, MEDIUM, LOW 심각도 분류와 읽음/미읽음 상태를 관리합니다.
+
+```java
+// WebSocket 실시간 알림 전송 로직
+public void sendRealTimeNotification(Long orgId, Map<String, Object> message) {
+    String topic = "/topic/org/" + orgId;
+    messagingTemplate.convertAndSend(topic, message);
+    log.info("WebSocket 실시간 알림 전송 완료: topic={}", topic);
+}
+```
 
 ![알림](./img/alarm.gif)
 ![알림](./img/alarmimg.png)
@@ -287,12 +382,14 @@ private void processChatbotAutomation(Long taskId) {
 ---
 
 ### 🔹 AI 챗봇
+ 
+ 자연어 대화를 통해 대상자 정보를 조회하거나 예약을 등록하는 등 지능형 가상 비서 기능을 제공합니다.
+ 
 
-- 대상자 정보 조회 - 자연어로 케어 대상자 정보 검색 및 조회
-- 예약 등록 - 통화 스케줄 예약 자동화 (일회성/반복 예약 지원)
-- 공지사항 등록 - 챗봇을 통한 공지사항 작성 요청 및 자동화
-- RAG 기반 컨텍스트 검색 - RedisStack 벡터 검색을 통한 관련 정보 제공
-- SpringAI 기반 LLM 통합 - OpenAI 및 Ollama 모델 지원
+- **대상자 정보 조회 및 관리 (Function Calling)** - Spring AI의 Function Calling 기능을 통해 LLM이 직접 DB를 조회하거나 수정하여 대상자 정보 조회 및 예약 등록을 수행합니다.
+- **RAG 기반 지식 검색** - RedisStack 벡터 데이터베이스와 BGE-M3 임베딩 모델을 활용한 RAG(Retrieval-Augmented Generation) 시스템으로 정확한 맥락 파악 및 답변을 제공합니다.
+- **하이브리드 LLM 지원** - 성능 중심의 OpenAI GPT-4o와 데이터 보안 중심의 Local LLM(Ollama Qwen2.5)을 실시간으로 스위칭하여 사용 가능합니다.
+- **멀티턴 대화 (Chat Memory)** - ChatMemory 시스템을 통해 이전 대화 맥락을 유지하며 매끄러운 소통을 지원합니다.
 
 ```java
 // RAG 기반 AI 챗봇 응답 생성
@@ -361,6 +458,9 @@ public void createGroup(GroupDTO dto) {
 ![대상자 그룹 시연](./img/group.gif)
 
 ## 🔹 공지사항
+ 
+ 조직 내 원활한 소통을 위해 파일 첨부 및 계층형 댓글 기능을 지원하는 게시판을 제공합니다.
+ 
 
 - 공지 등록 및 댓글 작성
 - 대댓글 기능
@@ -378,6 +478,9 @@ public void createNotice(NoticeDTO dto, List<MultipartFile> files) {
 ![대댓글](./img/comment.gif)
 
 ## 🔹 설정
+ 
+ 통화 시나리오 설계, 위험 임계값 및 AI 자동화 여부 등 시스템 운영 전반을 관리할 수 있는 환경을 제공합니다.
+ 
 
 - **시나리오 관리(CRUD)** - 통화 연결 시 대상자에게 전달될 질문지 관리
 - **위험 설정** - LLM이 산출한 위험 점수가 미리 설정한 임계값(Threshold)을 초과할 경우, 해당 등급(긴급, 위험, 보통, 낮음)으로 자동 분류
@@ -387,7 +490,7 @@ public void createNotice(NoticeDTO dto, List<MultipartFile> files) {
   - 위험 감지 - 케어 대상자 위험 감지 알림
   - 통화 실패 - 정기 통화 실패 시 알림
   - 긴급 상황 - 긴급 상황 시 즉시 알림 (통화 중 긴급 상황인 경우 실시간 긴급 알림)
-- **AI 설정** - 챗봇 자동화, LLM 모델 선택 등
+- **AI 설정** - 챗봇 자동화, SMS/통화 자동화 설정
 - **의료진 관리**
 
 ```java
@@ -405,16 +508,20 @@ public void updateRiskConfig(RiskConfigDTO dto) {
 ![설정 시나리오](./img/scenario.gif)
 
 ## 🔹 통화
+ 
+ 개인 및 그룹별 통화 스케줄을 예약·관리하고, Twilio와 AI를 연동하여 예약된 시간에 자동으로 전화를 걸어 대상자의 건강 상태를 확인하며 모든 통화 이력을 체계적으로 관리합니다.
+ 
 
 - **통화 스케줄** - 개인/그룹 스케줄 등록 (일회성/반복 예약 지원)
 - **통화 이력** - 통화 전문, AI 요약, 녹취 파일
-- **자동 통화 실행** - Twilio + STT 음성 인식을 통한 대상자 상태 확인
-- **AI 분석** - 실시간 긴급 상태 감지, 위험도 산정, 다음 예약 변경 자동화
-- **SMS 발송** - 예약 수정, 처방전, 알림 문자 발송
+- **자동 통화 실행 (Twilio + STT)** - Twilio Programmable Voice와 STT(Speech-to-Text)를 연동하여 대상자의 음성 응답을 실시간 텍스트로 변환합니다.
+- **실시간 긴급 상태 감지 (GPT-4o)** - 통화 중 "살려달라", "너무 아프다"와 같은 위급 키워드 및 맥락을 GPT-4o가 실시간 분석하여 의료진에게 긴급 알림을 즉시 전송합니다.
+- **위험도 스코어링 및 요약** - 통화 종료 후 전체 대화 내용을 요약하고, 대상자의 현재 위험도를 점수화하여 주별 추이 그래프로 시각화합니다.
+- **페르소나 기반 대화** - 각 대상자의 특성에 맞춘 개인화 프롬프트 엔지니어링을 통해 자연스러운 상호작용을 제공합니다.
 
 **자동화 프로세스**
 - 스케줄 기반 자동 통화 실행 → 시나리오 질문 자동 진행 → STT 음성 인식으로 응답 수집
-- 실시간 긴급 상태 감지 (LLM 기반) → 위험도 산정 및 알림 생성 → 다음 예약 자동 변경
+- 실시간 긴급 상태 감지 (LLM 기반) → 위험도 산정 및 알림 생성
 
 ```java
 // 통화 스케줄 등록
@@ -430,7 +537,42 @@ public boolean detectEmergency(String response) {
 
 ![예약](./img/call.gif)
 
+## 🔹 SMS
+ 
+ Twilio API와 AI를 결합하여 예약 안내부터 변경 요청 처리, 처방전 사진 수신까지 대상자와의 소통 창구를 하나로 통합하여 관리 효율을 높입니다.
+ 
+- **자동 예약 알림 및 안내** - 예정된 통화 일정을 대상자에게 문자로 자동 안내하여 참여율을 높이고, 신뢰할 수 있는 소통 채널을 유지합니다.
+- **간편한 예약 변경** - 대상자가 보낸 문자의 의도를 분석하여 복잡한 조작 없이도 통화 스케줄을 손쉽게 변경하거나 할일 목록에 등록할 수 있습니다.
+- **디지털 처방전 수집** - 대상자가 MMS로 보낸 처방전 이미지를 AI Vision이 분석하여 약물 정보와 진단명을 자동으로 기록하므로 수기 입력의 번거로움이 사라집니다.
+- **실시간 양방향 채팅** - 대시보드 내 대화창에서 실시간으로 문자를 주고받으며, 번호 매칭을 통해 누구와 대화하는지 즉시 확인하고 대응할 수 있습니다.
+
+```java
+// SMS 발송 처리
+@PostMapping("/send-sms")
+public ResponseEntity<SendSmsResponseDTO> sendSms(@RequestBody SendSmsRequestDTO request) {
+    String parsedPhoneNumber = PhoneNumberUtil.parsePhoneNumber(request.getTo());
+    String messageSid = twilioService.sendSms(parsedPhoneNumber, request.getMessage());
+    
+    OutboundSms outbound = OutboundSms.builder()
+            .messageSid(messageSid)
+            .fromNumber(twilioService.getFromNumber())
+            .toNumber(parsedPhoneNumber)
+            .body(request.getMessage())
+            .sentBy(SentBy.USER)
+            .build();
+    outboundSmsRepository.save(outbound);
+    return ResponseEntity.ok(SendSmsResponseDTO.builder()
+            .message("문자 발송이 완료되었습니다.")
+            .messageSid(messageSid)
+            .build());
+}
+```
+![sms](./img/sms.png)
+
 ## 🔹 반응형 UI
+ 
+ 다양한 디바이스(PC, 태블릿, 모바일) 환경에서 최적화된 사용자 경험을 제공하기 위한 반응형 레이아웃을 지원합니다.
+ 
 
 - PC / 태블릿 / 모바일 지원
 - 브레이크포인트별 레이아웃 최적화
@@ -439,6 +581,9 @@ public boolean detectEmergency(String response) {
 
 
 ## 🔹 화면 모드
+ 
+ 사용자의 시력 보호와 가독성 향상을 위해 다크 모드와 라이트 모드 테마를 모두 지원합니다.
+ 
 - 다크모드 / 라이트모드 지원
 
 ![반응형 UI](./img/light.png)
