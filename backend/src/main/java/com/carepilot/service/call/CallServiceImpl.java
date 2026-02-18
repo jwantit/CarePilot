@@ -43,7 +43,8 @@ import com.carepilot.domain.organization.Organization;
 import com.carepilot.repository.call.RiskScoreRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.caretarget.CareTargetGroupRepository;
-import com.carepilot.repository.organization.OrganizationRepository;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.time.LocalDateTime;
 
 @Service
@@ -198,12 +199,18 @@ public class CallServiceImpl implements CallService {
         CallSchedule schedule = dto.toEntity(organization, careTarget, group, user, scenario);
         schedule = callScheduleRepository.save(schedule);
 
-        // 3. 예약확인 문자 발송
-        try {
-            scheduleNotificationService.sendScheduleConfirmationSms(schedule);
-        } catch (Exception e) {
-            log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", schedule.getScheduleId(), e.getMessage());
-        }
+        // 3. 예약확인 문자 발송 (트랜잭션 커밋 후 실행)
+        final CallSchedule finalSchedule = schedule;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    scheduleNotificationService.sendScheduleConfirmationSms(finalSchedule);
+                } catch (Exception e) {
+                    log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", finalSchedule.getScheduleId(), e.getMessage());
+                }
+            }
+        });
 
         return schedule.getScheduleId();
     }
@@ -296,11 +303,16 @@ public class CallServiceImpl implements CallService {
         callScheduleRepository.save(existing);
 
         if (isOnlyDateChanged && dto.getScheduledTime().isAfter(LocalDateTime.now())) {
-            try {
-                scheduleNotificationService.sendScheduleConfirmationSms(existing);
-            } catch (Exception e) {
-                log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", scheduleId, e.getMessage());
-            }
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        scheduleNotificationService.sendScheduleConfirmationSms(existing);
+                    } catch (Exception e) {
+                        log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", scheduleId, e.getMessage());
+                    }
+                }
+            });
         }
     }
 
