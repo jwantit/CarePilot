@@ -244,7 +244,7 @@ AI 자동 통화를 통해 케어 대상자의 상태를 수집하고
 ## 📂기능 소개
 
 #### 시연영상 보러가기
-[![YouTube Badge](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/5eAaIeB0pl8)
+[![YouTube Badge](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=Hm7-xYQ_wCM)
 
 ### 🔹 로그인 및 회원가입 (소셜 로그인)
  
