@@ -1,152 +1,189 @@
 import React, { useState } from "react";
-import { noticeApi } from "../../api/noticeApi";
+import { noticeApi } from "../../api/notice/noticeApi";
+import { User, Edit2, Trash2, Reply } from "lucide-react";
 
 const CommentItem = ({
   comment,
-  isChild = false,
   selectedNotice,
   loadComments,
   setReplyTo,
-  setCommentContent,
   currentUserId,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editingContent, setEditingContent] = useState(comment.content);
+  const [editContent, setEditContent] = useState(comment.content);
 
-  const isDeleted = comment.content === "삭제된 댓글입니다";
-
-  // 권한 로직 : id 비교
-  const isOwner = comment.userId === currentUserId;
-
-  // 댓글 수정 로직
-  const handleUpdate = async () => {
-    if (!editingContent.trim()) return;
-    try {
-      const updateData = {
-        content: editingContent,
-        userId: currentUserId,
-      };
-
-      await noticeApi.updateComment(
-        comment.commentId,
-        updateData,
-        currentUserId,
-      );
-
-      setIsEditing(false);
-      loadComments(selectedNotice.noticeId);
-    } catch (error) {
-      alert(error.response?.data?.message || "수정 실패");
-    }
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    
+    return `${year}.${month}.${day}. ${hours}:${minutes}`;
   };
 
-  // 댓글 삭제 로직
   const handleDelete = async () => {
-    if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
     try {
       await noticeApi.deleteComment(comment.commentId, currentUserId);
       loadComments(selectedNotice.noticeId);
     } catch (error) {
-      alert(error.response?.data?.message || "삭제 실패");
+      alert("삭제 권한이 없거나 오류가 발생했습니다.");
     }
   };
 
+  const handleUpdate = async () => {
+    if (!editContent.trim()) return;
+    try {
+      await noticeApi.updateComment(
+        comment.commentId,
+        { content: editContent, userId: currentUserId },
+        currentUserId,
+      );
+      setIsEditing(false);
+      loadComments(selectedNotice.noticeId);
+    } catch (error) {
+      alert("수정 권한이 없거나 오류가 발생했습니다.");
+    }
+  };
+
+  const isDeleted = comment.content === "삭제된 댓글입니다";
+  const displayName = comment.userName || comment.writerName;
+
   return (
-    <div className={`${isChild ? "ml-6 mt-3" : "mb-6"}`}>
-      <div
-        className={`p-4 rounded-lg shadow-sm border ${isChild ? "bg-white" : "bg-gray-100"}`}
-      >
-        <div className="flex justify-between items-start mb-2">
-          <span className="font-bold text-gray-700 text-sm">
-            {isDeleted ? "(알 수 없음)" : comment.userName}
-          </span>
-          <div className="flex gap-2">
-            <span className="text-[10px] text-gray-400">
-              {comment.createdAt
-                ? new Date(comment.createdAt).toLocaleString()
-                : ""}
-            </span>
-
-            {/* 삭제되지 않은 댓글일 때만 수정/삭제 노출 */}
-            {!isDeleted && isOwner && (
-              <>
-                <button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditingContent(comment.content);
-                  }}
-                  className="text-[10px] text-gray-500 hover:text-blue-500 underline"
-                >
-                  수정
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="text-[10px] text-gray-500 hover:text-red-500 underline"
-                >
-                  삭제
-                </button>
-              </>
-            )}
-          </div>
+    <div
+      className={`${comment.parentCommentId ? "ml-8 pl-5 border-l-2 border-cp-border mt-4" : "border-b border-cp-border/50 pb-6 mb-6 last:border-0"}`}
+    >
+      {isDeleted ? (
+        <div className="text-cp-muted text-base italic py-3 bg-cp-bg/40 px-5 rounded-sm border border-cp-border">
+          {comment.content}
         </div>
+      ) : (
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-cp-bg border-2 border-cp-border flex items-center justify-center flex-shrink-0 shadow-lg">
+            <User size={20} className="text-cp-text" />
+          </div>
 
-        {isEditing ? (
-          <div className="mt-2">
-            <textarea
-              value={editingContent}
-              onChange={(e) => setEditingContent(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-400"
-              rows="2"
-            />
-            <div className="flex justify-end gap-2 mt-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="font-bold text-cp-text text-base tracking-tight">
+                {displayName || "익명"}
+              </span>
+              {comment.userId === currentUserId && (
+                <span className="text-[10px] font-black text-teal-300 bg-teal-600/30 border border-teal-500/50 px-1.5 py-0.5 rounded-sm uppercase tracking-widest shadow-sm">
+                  Author
+                </span>
+              )}
+              <span className="text-xs text-cp-muted font-mono font-medium">
+                {formatDateTime(comment.createdAt)}
+              </span>
+              {comment.userId === currentUserId && !isEditing && (
+                <div className="flex gap-3 ml-auto">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-cp-muted hover:text-teal-400 transition-all transform hover:scale-110"
+                    title="수정"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="text-cp-muted hover:text-red-400 transition-all transform hover:scale-110"
+                    title="삭제"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {isEditing ? (
+              <div className="mb-5 animate-in fade-in slide-in-from-top-2 duration-200">
+                <textarea
+                  className="w-full p-4 border border-cp-border rounded-sm bg-cp-input text-cp-text text-base outline-none focus:ring-2 focus:ring-teal-500/50 resize-none h-28 shadow-inner leading-relaxed"
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                />
+                <div className="flex justify-end gap-3 mt-2.5">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="text-xs font-bold text-cp-muted hover:text-cp-text px-3 py-1.5 transition-colors"
+                  >
+                    취소하기
+                  </button>
+                  <button
+                    onClick={handleUpdate}
+                    className="bg-teal-600 text-white border border-teal-500 text-xs font-black px-5 py-1.5 rounded-sm hover:bg-teal-500 transition-all shadow-lg"
+                  >
+                    수정 완료
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4 text-left">
+                <p className="text-cp-text text-lg leading-relaxed whitespace-pre-wrap font-medium tracking-wide">
+                  {(() => {
+                    const renderContentWithMentions = (text) => {
+                      if (!text) return text;
+                      const mentionRegex = /(@[^\s\n]+)/g;
+                      const parts = text.split(mentionRegex);
+                      
+                      return parts.map((part, index) => {
+                        if (part.match(mentionRegex)) {
+                          return (
+                            <span key={index} className="text-teal-400 font-bold decoration-teal-500/30 underline-offset-4">
+                              {part}
+                            </span>
+                          );
+                        }
+                        return part;
+                      });
+                    };
+
+                    if (comment.parentCommentId && comment.parentUserName) {
+                      const mentionText = `@${comment.parentUserName}`;
+                      if (comment.content.trim().startsWith(mentionText)) {
+                        return renderContentWithMentions(comment.content);
+                      } else {
+                        return (
+                          <>
+                            <span className="text-teal-400 font-bold">@{comment.parentUserName}</span>{" "}
+                            {renderContentWithMentions(comment.content)}
+                          </>
+                        );
+                      }
+                    } else {
+                      return renderContentWithMentions(comment.content);
+                    }
+                  })()}
+                </p>
+              </div>
+            )}
+
+            <div className="text-left">
               <button
-                onClick={() => setIsEditing(false)}
-                className="text-xs px-2 py-1 bg-gray-200 rounded"
+                onClick={() => setReplyTo(comment)}
+                className="flex items-center gap-1.5 text-xs font-black text-cp-muted hover:text-teal-400 transition-all bg-cp-bg/80 px-3 py-1.5 rounded-sm border border-cp-border hover:border-teal-500/50 shadow-sm"
               >
-                취소
-              </button>
-              <button
-                onClick={handleUpdate}
-                className="text-xs px-2 py-1 bg-blue-500 text-white rounded"
-              >
-                저장
+                <Reply size={12} className="rotate-180" />
+                답글 달기
               </button>
             </div>
           </div>
-        ) : (
-          <>
-            <p
-              className={`text-sm mb-2 ${isDeleted ? "text-gray-400 italic" : "text-gray-700"}`}
-            >
-              {comment.content}
-            </p>
-            {!isDeleted && (
-              <button
-                onClick={() => {
-                  setReplyTo(comment.commentId);
-                  setCommentContent(`@${comment.userName} `);
-                  document.getElementById("comment-textarea")?.focus();
-                }}
-                className="text-xs text-gray-500 hover:text-blue-500 underline font-medium"
-              >
-                답글 달기
-              </button>
-            )}
-          </>
-        )}
-      </div>
+        </div>
+      )}
 
       {comment.children && comment.children.length > 0 && (
-        <div className="border-l-2 border-gray-200">
+        <div className="mt-2 space-y-4">
           {comment.children.map((child) => (
             <CommentItem
               key={child.commentId}
               comment={child}
-              isChild={true}
               selectedNotice={selectedNotice}
               loadComments={loadComments}
               setReplyTo={setReplyTo}
-              setCommentContent={setCommentContent}
               currentUserId={currentUserId}
             />
           ))}

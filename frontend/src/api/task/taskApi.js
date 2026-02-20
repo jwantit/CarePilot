@@ -2,7 +2,7 @@ import { apiClient } from "../apiClient";
 
 const host = `/tasks`;
 
-// 작업 목록 조회 (필터: status, priority, type, assignedToUserId)
+// 작업 목록 조회 (필터: sourceType=USER|AI, status, priority, type, assignedToUserId)
 export const getTaskList = async (params = {}) => {
   const res = await apiClient.get(host, { params });
   return res.data;
@@ -41,5 +41,11 @@ export const updateTaskAssign = async (taskId, assignedToUserId) => {
 // 작업 삭제
 export const deleteTask = async (taskId) => {
   const res = await apiClient.delete(`${host}/${taskId}`);
+  return res.data;
+};
+
+// SCHEDULE_CHANGE + inboundSms 연결 작업: '시작' 시 AI 예약 변경 자동 처리 트리거
+export const triggerScheduleChange = async (taskId) => {
+  const res = await apiClient.post(`${host}/${taskId}/trigger-schedule-change`);
   return res.data;
 };

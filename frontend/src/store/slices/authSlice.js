@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as authApi from '../../api/authApi';
+import * as authApi from '../../api/auth/authApi';
 import { extractUserInfo } from '../../utils/authUtils';
 
 // 초기 상태
@@ -41,6 +41,8 @@ export const loginAsync = createAsyncThunk(
         message = '이메일 또는 비밀번호가 올바르지 않습니다.';
       } else if (backendError === 'NOT_APPROVED') {
         message = '승인되지 않은 계정입니다. 관리자 승인 후 로그인할 수 있습니다.';
+      } else if (backendError === 'LOCKED_ACCOUNT') {
+        message = '비밀번호를 5회 이상 틀려 30분간 로그인이 제한됩니다.';
       } else if (error.response?.data?.message) {
         message = error.response.data.message;
       } else if (error.message) {

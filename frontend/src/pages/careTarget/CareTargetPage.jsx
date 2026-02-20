@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import CareTarget from '../../components/caretarget/CareTarget';
 import CareTargetUploadModal from '../../components/caretarget/CareTargetUploadModal';
 import CareTargetInsertModal from '../../components/caretarget/CareTargetInsertModal';
 import CareTargetActionBar from '../../components/caretarget/CareTargetActionBar'; 
-import { deleteCareTarget, uploadCsvCareTarget, uploadOneCareTarget } from '../../api/caretarget/careTargetApi';
+import Breadcrumb from '../../components/common/Breadcrumb';
+import StatCardGrid from '../../components/common/StatCardGrid';
+import { deleteCareTarget, uploadCsvCareTarget, uploadOneCareTarget, getCareTargetAllList } from '../../api/caretarget/careTargetApi';
+import { makeCallTest } from '../../api/call/callApi';
 import { useAuth } from '../../hooks/useAuth';
+import { Users, AlertTriangle, AlertCircle, Activity, Shield } from 'lucide-react';
 
 function CareTargetPage() {
   const { user } = useAuth();
@@ -26,6 +30,30 @@ function CareTargetPage() {
   const [currentList, setCurrentList] = useState([]); // 현재 렌더링된 환자 리스트 저장용
   //--------------------------------------------------------------------
 
+  // 통계 데이터 상태
+  const [stats, setStats] = useState({
+    total: 0,
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0
+  });
+
+  // 통계 데이터 계산
+  useEffect(() => {
+    if (currentList.length > 0) {
+      const newStats = {
+        total: currentList.length,
+        critical: currentList.filter(p => p.riskLevel === 'CRITICAL').length,
+        high: currentList.filter(p => p.riskLevel === 'HIGH').length,
+        medium: currentList.filter(p => p.riskLevel === 'MEDIUM').length,
+        low: currentList.filter(p => p.riskLevel === 'LOW' || !p.riskLevel).length
+      };
+      setStats(newStats);
+    } else {
+      setStats({ total: 0, critical: 0, high: 0, medium: 0, low: 0 });
+    }
+  }, [currentList]);
 
   //단일 체크박스 선택시 set-------------------------------------------------------------------------
   const handleSelectChange = (id, checked) => {
@@ -37,14 +65,13 @@ function CareTargetPage() {
   };
   //-------------------------------------------------------------------------
 
-
   //전체체크시시---------------------------------------------------------------------
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
       const allIds = currentList.map(item => item.careTargetId);
       setSelectedIds(allIds);
-    } else {
-      setSelectedIds([]);
     }
   };
   //--------------------------------------------------------------------
@@ -52,6 +79,49 @@ function CareTargetPage() {
   const isAllSelected = currentList.length > 0 && selectedIds.length === currentList.length;
   // //--------- [체크박스 영역] 끝 ---------
 
+  // 통계 카드 데이터 준비
+  const statCards = useMemo(() => [
+    {
+      value: stats.total,
+      label: '대상',
+      icon: Users,
+      iconColor: 'text-teal-400',
+      valueColor: 'text-cp-text',
+      hoverBorderColor: 'hover:border-teal-500/50'
+    },
+    {
+      value: stats.critical,
+      label: '긴급',
+      icon: AlertTriangle,
+      iconColor: 'text-red-400',
+      valueColor: 'text-red-400',
+      hoverBorderColor: 'hover:border-red-500/50'
+    },
+    {
+      value: stats.high,
+      label: '위험',
+      icon: AlertCircle,
+      iconColor: 'text-orange-400',
+      valueColor: 'text-orange-400',
+      hoverBorderColor: 'hover:border-orange-500/50'
+    },
+    {
+      value: stats.medium,
+      label: '보통',
+      icon: Activity,
+      iconColor: 'text-yellow-400',
+      valueColor: 'text-yellow-400',
+      hoverBorderColor: 'hover:border-yellow-500/50'
+    },
+    {
+      value: stats.low,
+      label: '낮음',
+      icon: Shield,
+      iconColor: 'text-emerald-400',
+      valueColor: 'text-emerald-400',
+      hoverBorderColor: 'hover:border-emerald-500/50'
+    }
+  ], [stats]);
 
   // //--------- [통합 액션 핸들러 영역] 타입별 분기 처리 ---------
   const handleAction = async (type) => {
@@ -61,8 +131,32 @@ function CareTargetPage() {
     }
 
     if (type === "CALL") {
-      // 통화 로직은 나중에 구현 (생략)
-      console.log("통화 요청 ID 리스트:", selectedIds);
+      const selectedItems = currentList.filter((item) => selectedIds.includes(item.careTargetId));
+      const withPhone = selectedItems.filter((item) => item.careTargetPhone);
+      const noPhone = selectedItems.filter((item) => !item.careTargetPhone);
+
+      if (noPhone.length > 0) {
+        alert(`전화번호가 없는 대상 ${noPhone.length}명은 제외됩니다.\n(${noPhone.map((p) => p.name).join(', ')})`);
+      }
+      if (withPhone.length === 0) {
+        alert("통화 가능한 대상이 없습니다. 전화번호를 확인해 주세요.");
+        return;
+      }
+
+      const now = new Date().toISOString().slice(0, 19);
+      try {
+        for (const item of withPhone) {
+          await makeCallTest({ to: item.careTargetPhone, scheduledTime: now });
+        }
+        alert(`선택한 대상(${withPhone.length}명)에게 통화를 연결합니다.`);
+        setSelectedIds([]);
+      } catch (error) {
+        if (error.response?.status === 403) {
+          alert("권한이 없습니다.");
+        } else {
+          alert("통화 요청 중 오류가 발생했습니다.");
+        }
+      }
     } 
     else if (type === "DELETE") {
       // 2. 삭제 로직
@@ -88,7 +182,6 @@ function CareTargetPage() {
   };
 
   //체크박스 end---------------------------------------------------
-
 
   //-------------------------------------------
   const handleSearch = () => {
@@ -139,59 +232,69 @@ function CareTargetPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">케어 대상자 관리</h1>
-        <p className="text-gray-500">케어 대상자 정보를 등록하고 관리할 수 있습니다.</p>
-        
-        {selectedIds.length > 0 && (
-          <div className="mt-2 inline-flex items-center px-3 py-1 bg-teal-50 border border-teal-200 rounded-full">
-            <span className="text-[#008080] text-sm font-bold">
-              {selectedIds.length}명 선택됨
-            </span>
-          </div>
-        )}
-      </div>
+    <>
+      <div className="space-y-6">
+        <Breadcrumb items={['케어 대상자']} />
 
-      <CareTargetActionBar 
-        onInsertClick={() => setIsInsertModalOpen(true)}
-        onUploadClick={() => setIsModalOpen(true)}
-        // //--------- [액션바 연결] 통합 핸들러 전달 ---------
-        onActionClick={handleAction}
-        // //--------- [액션바 연결] 끝 ---------
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        handleSearch={handleSearch}
-        handleReset={handleReset}
-      />
+          {/* 통계 카드 섹션 */}
+          <StatCardGrid cards={statCards} />
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mt-4">
-        <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200 py-3 px-4 text-sm font-semibold text-gray-600 text-center items-center">
-          <div className="flex justify-center">
-            <input 
-              type="checkbox" 
-              className="w-4 h-4 text-[#008080] rounded border-gray-300 focus:ring-[#008080] cursor-pointer"
-              checked={isAllSelected}
-              onChange={handleSelectAll}
-            />
-          </div>
-          <div>사진</div>
-          <div>이름(성별)</div>
-          <div>나이</div>
-          <div>전화번호</div>
-          <div>질환</div>
-          <div>위험 레벨</div>
-          <div>관리</div>
-        </div>
-        
-        <CareTarget 
-          organizationId={organizationId} 
-          setRefreshHandler={setRefreshCareList}
-          keyword={keywordParam}
-          selectedIds={selectedIds}
-          onSelectChange={handleSelectChange}
-          onListFetched={setCurrentList}
+        <CareTargetActionBar 
+          onInsertClick={() => setIsInsertModalOpen(true)}
+          onUploadClick={() => setIsModalOpen(true)}
+          // //--------- [액션바 연결] 통합 핸들러 전달 ---------
+          onActionClick={handleAction}
+          // //--------- [액션바 연결] 끝 ---------
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          handleSearch={handleSearch}
+          handleReset={handleReset}
+          selectedCount={selectedIds.length}
         />
+
+        <div className="bg-cp-card border border-cp-border overflow-hidden">
+          {/* 테이블 헤더 - 터미널 스타일 */}
+          <div className="grid grid-cols-8 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+            <div className="flex items-center justify-center">
+              <button
+                onClick={handleSelectAll}
+                className="px-3 py-1 bg-cp-input hover:bg-cp-bg text-teal-600 dark:text-teal-400 text-xs font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                전체선택
+              </button>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>프로필 사진</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>이름</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>성별</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>나이</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>연락처</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>질환</span>
+            </div>
+            <div className="flex items-center justify-center text-white dark:text-teal-400">
+              <span>위험도</span>
+            </div>
+          </div>
+          
+          <CareTarget 
+            organizationId={organizationId} 
+            setRefreshHandler={setRefreshCareList}
+            keyword={keywordParam}
+            selectedIds={selectedIds}
+            onSelectChange={handleSelectChange}
+            onListFetched={setCurrentList}
+          />
+        </div>
       </div>
 
       <CareTargetUploadModal 
@@ -205,8 +308,9 @@ function CareTargetPage() {
         isOpen={isInsertModalOpen} onClose={() => setIsInsertModalOpen(false)}
         organizationId={organizationId} onInsert={handleInsert} isUploading={isUploading}
       />
-    </div>
+    </>
   );
 }
 
 export default CareTargetPage;
+

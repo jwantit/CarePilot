@@ -7,6 +7,7 @@ import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.enums.*;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,9 +17,13 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "call_schedule")
+@Table(name = "call_schedule", indexes = {
+        @Index(name = "idx_call_schedule_status_next_run", columnList = "status, next_run_at"),
+        @Index(name = "idx_call_schedule_status_scheduled", columnList = "status, scheduled_time")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CallSchedule extends BaseEntity {
 
     @Id
@@ -47,6 +52,10 @@ public class CallSchedule extends BaseEntity {
     @Column(name = "scheduled_time")
     private LocalDateTime scheduledTime;
 
+    /** 워커가 "다음에 실행할 시각" 기준 (폴링용). 최초는 scheduledTime과 동일, 반복 시 실행 후 갱신. */
+    @Column(name = "next_run_at")
+    private LocalDateTime nextRunAt;
+
     @Enumerated(EnumType.STRING)
     // @Column(name = "type", nullable = false)
     @Column(name = "type")
@@ -65,8 +74,7 @@ public class CallSchedule extends BaseEntity {
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
-    // @Column(name = "status", nullable = false)
-    @Column(name = "status")
+    @Column(name = "status", length = 20)
     private ScheduleStatus status = ScheduleStatus.SCHEDULED;
 
     @Column(name = "completed_at")
@@ -91,6 +99,7 @@ public class CallSchedule extends BaseEntity {
     @Builder
     public CallSchedule(Organization organization, ScheduleTargetType targetType,
                        CareTarget careTarget, CareTargetGroup group, LocalDateTime scheduledTime,
+                       LocalDateTime nextRunAt,
                        ScheduleType type, ScheduleRecurrence recurrence, LocalDateTime recurrenceEndDate,
                        Priority priority, ScheduleStatus status, LocalDateTime completedAt,
                        Call call, Scenario scenario, String memo, User createdBy) {
@@ -99,6 +108,7 @@ public class CallSchedule extends BaseEntity {
         this.careTarget = careTarget;
         this.group = group;
         this.scheduledTime = scheduledTime;
+        this.nextRunAt = nextRunAt;
         this.type = type;
         this.recurrence = recurrence;
         this.recurrenceEndDate = recurrenceEndDate;
@@ -111,7 +121,13 @@ public class CallSchedule extends BaseEntity {
         this.createdBy = createdBy;
     }
 
+    /** 시나리오 변경 (통화 시 사용할 시나리오) */
+    public void updateScenario(com.carepilot.domain.config.Scenario scenario) {
+        this.scenario = scenario;
+    }
+
     public void applyUpdates(CareTarget careTarget,
+                             CareTargetGroup group,
                              LocalDateTime scheduledTime,
                              ScheduleType type,
                              ScheduleRecurrence recurrence,
@@ -120,6 +136,13 @@ public class CallSchedule extends BaseEntity {
                              String memo) {
         if (careTarget != null) {
             this.careTarget = careTarget;
+            this.group = null;  // 개인 대상자로 변경 시 그룹 제거
+            this.targetType = ScheduleTargetType.CARE_TARGET;
+        }
+        if (group != null) {
+            this.group = group;
+            this.careTarget = null;  // 그룹으로 변경 시 개인 대상자 제거
+            this.targetType = ScheduleTargetType.GROUP;
         }
         if (scheduledTime != null) {
             this.scheduledTime = scheduledTime;
@@ -164,6 +187,46 @@ public class CallSchedule extends BaseEntity {
         this.recurrenceEndDate = (type == ScheduleType.RECURRING) ? recurrenceEndDate : null;
         this.priority = priority;
         this.memo = memo;
+    }
+
+    /** next_run_at 미설정 시 scheduledTime으로 보정 (단일 서버용) */
+    public void ensureNextRunAtInitialized() {
+        if (this.nextRunAt == null) {
+            this.nextRunAt = this.scheduledTime;
+        }
+    }
+
+    /** 단일 서버용: 실행 중 표시 (추후 다중 서버 시 locked_until, locked_by 추가) */
+    public void markAsRunning() {
+        this.status = ScheduleStatus.RUNNING;
+    }
+
+    /** 반복 스케줄: 다음 실행 시각 갱신 후 대기 상태로 */
+    public void releaseToScheduled(LocalDateTime nextRunAt) {
+        this.nextRunAt = nextRunAt;
+        this.status = ScheduleStatus.SCHEDULED;
+    }
+
+    /** 반복 스케줄 실행 후: 주기 기준 시각(scheduled_time)을 다음 발생일로 한 주기만큼 진행 */
+    public void advanceScheduledTime(LocalDateTime newScheduledTime) {
+        this.scheduledTime = newScheduledTime;
+    }
+
+    /** 단발 스케줄: 완료 처리 */
+    public void completeOneTime(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+        this.status = ScheduleStatus.COMPLETED;
+    }
+
+    /** 통화 실패 시 스케줄 실패 처리 */
+    public void markAsFailed(LocalDateTime failedAt) {
+        this.status = ScheduleStatus.FAILED;
+        this.completedAt = null; // 실패 시에는 completedAt을 null로 설정
+    }
+
+    /** 스케줄 수정 시 다음 실행 시각만 갱신 (예: 사용자가 scheduledTime 변경 시) */
+    public void rescheduleNextRunAt(LocalDateTime nextRunAt) {
+        this.nextRunAt = nextRunAt;
     }
 }
 

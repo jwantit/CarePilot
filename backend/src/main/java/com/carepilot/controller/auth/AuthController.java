@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -41,6 +43,9 @@ public class AuthController {
     private final SignupService signupService;
     private final UserUtil userUtil;
     private final CookieUtil cookieUtil;
+    
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
     
     @PostMapping("/signup/organization")
     public ResponseEntity<OrganizationSignupResponseDTO> signupOrganization(
@@ -71,23 +76,33 @@ public class AuthController {
     }
     
     @GetMapping("/approve")
-    public ResponseEntity<ApprovalResponseDTO> approveUser(
-            @RequestParam("token") String token) {
+    public void approveUser(
+            @RequestParam("token") String token,
+            HttpServletResponse response) throws IOException {
         // 토큰 마스킹 (보안: 앞 6자리만 표시)
         String maskedToken = token != null && token.length() > 6 
                 ? token.substring(0, 6) + "***" 
                 : "***";
         log.info("GET /auth/approve 요청 수신: token={}", maskedToken);
         try {
-            ApprovalResponseDTO response = authService.approveUser(token);
-            log.info("GET /auth/approve 성공: email={}, status={}", response.getEmail(), response.getStatus());
-            return ResponseEntity.ok(response);
+            ApprovalResponseDTO approvalResult = authService.approveUser(token);
+            log.info("GET /auth/approve 성공: email={}, status={}", 
+                    approvalResult.getEmail(), approvalResult.getStatus());
+            
+            // 승인 성공 시 프론트엔드 홈페이지로 리다이렉트
+            response.sendRedirect(frontendUrl + "/");
         } catch (IllegalArgumentException e) {
             log.warn("GET /auth/approve 실패 (잘못된 요청): {}", e.getMessage());
-            return ResponseEntity.badRequest().build(); // 400 Bad Request
+            // 에러 발생 시 프론트엔드 승인 페이지로 리다이렉트 (에러 표시용)
+            String redirectUrl = frontendUrl + "/approve?token=" + token + "&error=" + 
+                    java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+            response.sendRedirect(redirectUrl);
         } catch (Exception e) {
             log.error("GET /auth/approve 실패 (서버 오류): {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // 500 Internal Server Error
+            // 에러 발생 시 프론트엔드 승인 페이지로 리다이렉트 (에러 표시용)
+            String redirectUrl = frontendUrl + "/approve?token=" + token + "&error=" + 
+                    java.net.URLEncoder.encode("승인 처리 중 오류가 발생했습니다.", java.nio.charset.StandardCharsets.UTF_8);
+            response.sendRedirect(redirectUrl);
         }
     }
     

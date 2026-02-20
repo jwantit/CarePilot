@@ -2,17 +2,23 @@ package com.carepilot.service.notice;
 
 import com.carepilot.dto.notice.NoticeResponseDTO;
 import com.carepilot.dto.notice.NoticeSaveRequest;
+import com.carepilot.dto.upload.UploadFileResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface NoticeService {
 
-    Page<NoticeResponseDTO> getAllNotices(Pageable pageable);
+    Page<NoticeResponseDTO> getAllNotices(Pageable pageable, Long organizationId);
 
-    NoticeResponseDTO getNoticeById(Long id);
+    NoticeResponseDTO getNoticeById(Long noticeId);
 
-    void saveNotice(NoticeSaveRequest request, Long userId);
-    void updateNotice(Long id, NoticeSaveRequest request, Long userId);
-    void deleteNotice(Long id, Long userId);
-    void incrementViewCount(Long id);
+    void saveNotice(NoticeSaveRequest request, Long userId, Long organizationId, List<MultipartFile> files);
+    void updateNotice(Long noticeId, NoticeSaveRequest request, Long userId, Long organizationId, List<MultipartFile> files);
+    void deleteNotice(Long noticeId, Long userId);
+    void incrementViewCount(Long noticeId);
+
+    List<UploadFileResponseDTO> getAttachedFilesByNoticeId(Long noticeId);
 }

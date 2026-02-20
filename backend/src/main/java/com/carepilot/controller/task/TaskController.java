@@ -21,15 +21,16 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    //작업 목록 조회 (필터: status, priority, type, assignedToUserId)
+    //작업 목록 조회 (필터: sourceType=USER|AI, status, priority, type, assignedToUserId)
     @GetMapping
     public ResponseEntity<List<TaskListResponseDTO>> getTaskList(
+            @RequestParam(required = false) String sourceType,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Long assignedToUserId) {
-        log.info("GET /api/tasks 요청: status={}, priority={}, type={}, assignedToUserId={}", status, priority, type, assignedToUserId);
-        return ResponseEntity.ok(taskService.getTaskList(status, priority, type, assignedToUserId));
+        log.info("GET /api/tasks 요청: sourceType={}, status={}, priority={}, type={}, assignedToUserId={}", sourceType, status, priority, type, assignedToUserId);
+        return ResponseEntity.ok(taskService.getTaskList(sourceType, status, priority, type, assignedToUserId));
     }
 
     //작업 상세 조회
@@ -83,5 +84,13 @@ public class TaskController {
         log.info("DELETE /api/tasks/{} 요청", taskId);
         taskService.deleteTask(taskId);
         return ResponseEntity.ok(Map.of("message", "삭제되었습니다."));
+    }
+
+    //할일에서 '시작' 클릭 시 SCHEDULE_CHANGE+inboundSms 연결 작업은 AI 자동 처리 트리거
+    @PostMapping("/{taskId}/trigger-schedule-change")
+    public ResponseEntity<Map<String, String>> triggerScheduleChange(@PathVariable Long taskId) {
+        log.info("POST /api/tasks/{}/trigger-schedule-change 요청", taskId);
+        taskService.triggerScheduleChange(taskId);
+        return ResponseEntity.ok(Map.of("message", "AI 예약 변경 처리가 시작되었습니다."));
     }
 }

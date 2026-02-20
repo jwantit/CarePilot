@@ -3,8 +3,493 @@
 @tailwind utilities;
 
 @layer base {
-  body {
+  :root {
+    /* 라이트모드: 밝은 배경 + 흰색 카드, 보이는 테두리 */
+    color-scheme: light;
+    --bg-main: #f8fafc;    /* slate-50: 배경 */
+    --bg-card: #ffffff;    /* pure white: 카드/섹션 */
+    --bg-header: #0d9488;   /* slate-200: 테이블 헤더행 */
+    --text-main: #0f172a;  /* slate-900: 주 텍스트 */
+    --text-muted: #64748b; /* slate-500: 보조 텍스트 */
+    --border-main: #cbd5e1; /* slate-300: 경계선 (선명하게) */
+    --accent-teal: #0d9488;/* teal-600: 라이트모드 짙은 초록 */
+    --input-bg: #ffffff;
+  }
+
+  .dark {
+    /* 다크모드: 1=전체배경, 2=카드/로우, 3=테이블 헤더행 */
+    color-scheme: dark;
+    --bg-main: #1A202C;    /* 첫 번째: 전체 배경 (짙은 다크 블루) */
+    --bg-card: #27313C;    /* 두 번째: 스탯카드·컴포넌트·로우 안쪽 */
+    --bg-header: #1A202C;  /* 세 번째: 테이블 기준행(헤더) */
+    --text-main: #f1f5f9;  /* slate-100 */
+    --text-muted: #94a3b8; /* slate-400 */
+    --border-main: #334155; /* slate-700: 구분선 */
+    --accent-teal: #14b8a6;/* teal-400 */
+    --input-bg: #1A202C;
+    /* 테두리 기본색: 상속되어 흰 테두리 대신 기존 다크 테두리(slate-700) 적용 */
+    border-color: var(--border-main);
+  }
+
+  /* 다크모드: 카드/테이블/버튼 등 기본 테두리를 --border-main으로 통일 (흰 테두리 제거) */
+  .dark *,
+  .dark *::before,
+  .dark *::after {
+    border-color: var(--border-main);
+  }
+
+  /* 다크모드 시 브라우저 기본 폼 스타일(흰 테두리 등) 덮어쓰기 */
+  .dark input,
+  .dark select,
+  .dark button,
+  .dark textarea {
+    border-color: var(--border-main) !important;
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  html {
+    overflow-y: scroll; /* 항상 스크롤바 공간 유지 */
+    scrollbar-gutter: stable; /* 스크롤바 공간 항상 확보 */
+  }
+
+  html, body {
     font-family: "Pretendard", sans-serif;
-    color: #333;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main);
+    width: 100%;
+    min-width: 600px; /* 전체 레이아웃 최소 너비 600px 유지 */
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* 커스텀 체크박스 스타일 */
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+  }
+
+  .custom-checkbox:checked {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .custom-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .custom-checkbox:hover:not(:checked) {
+    border-color: #5eead4;
+    background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+  }
+
+  .custom-checkbox:checked:hover {
+    background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+    border-color: #2dd4bf;
+  }
+}
+
+/* 메뉴 반응형 전용 CSS (1150px 기준) */
+.menu-desktop {
+  display: flex;
+}
+
+.menu-mobile-toggle {
+  display: none;
+}
+
+@media (max-width: 1150px) {
+  .menu-desktop {
+    display: none;
+  }
+
+  .menu-mobile-toggle {
+    display: inline-flex;
+  }
+}
+
+/* 대시보드 상단 카드 그리드: 1150px 이내에서는 2x2, 그 이상에서는 4개 한 줄 */
+.dashboard-top-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1150px) {
+  .dashboard-top-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 대시보드 메인 레이아웃:
+   - 기본: Tailwind lg:grid-cols-12 + lg:col-span-8/4 (넓은 화면에서 8/4 레이아웃)
+   - 1150px 이하일 때만 1열로 강제해서, 즉시조치 아래로 공지/오늘의 일정이 세로로 쌓이도록 조정 */
+@media (max-width: 1150px) {
+  /* 즉시조치/공지/일정이 들어있는 두 개의 메인 그리드(첫 번째, 두 번째 행 모두)에 적용 */
+  .grid.grid-cols-1.lg\:grid-cols-12 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  .grid.grid-cols-1.lg\:grid-cols-12 > * {
+    grid-column: span 1 / span 1 !important;
+  }
+}
+
+/* react-virtualized 스크롤바 스타일 (전역 스타일) */
+.ReactVirtualized__Grid,
+.ReactVirtualized__List,
+.ReactVirtualized__Grid__innerScrollContainer {
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important; /* light mode: slate-300 */
+}
+
+.dark .ReactVirtualized__Grid,
+.dark .ReactVirtualized__List,
+.dark .ReactVirtualized__Grid__innerScrollContainer {
+  scrollbar-color: #475569 #1e293b !important; /* dark mode: slate-600, slate-800 */
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar,
+.ReactVirtualized__List::-webkit-scrollbar,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar-track,
+.ReactVirtualized__List::-webkit-scrollbar-track,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-track {
+  background: #f1f5f9 !important; /* light mode: slate-100 */
+  border-radius: 4px;
+}
+
+.dark .ReactVirtualized__Grid::-webkit-scrollbar-track,
+.dark .ReactVirtualized__List::-webkit-scrollbar-track,
+.dark .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-track {
+  background: #1e293b !important; /* dark mode: slate-800 */
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar-thumb,
+.ReactVirtualized__List::-webkit-scrollbar-thumb,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important; /* light mode: slate-300 */
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .ReactVirtualized__Grid::-webkit-scrollbar-thumb,
+.dark .ReactVirtualized__List::-webkit-scrollbar-thumb,
+.dark .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* dark mode: slate-600 */
+  border: 1px solid #334155;
+}
+
+.ReactVirtualized__Grid::-webkit-scrollbar-thumb:hover,
+.ReactVirtualized__List::-webkit-scrollbar-thumb:hover,
+.ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important; /* light mode: slate-400 */
+}
+
+.dark .ReactVirtualized__Grid::-webkit-scrollbar-thumb:hover,
+.dark .ReactVirtualized__List::-webkit-scrollbar-thumb:hover,
+.dark .ReactVirtualized__Grid__innerScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important; /* dark mode: slate-500 */
+}
+
+/* 모달 스크롤바 스타일 */
+.modal-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.dark .modal-scrollbar {
+  scrollbar-color: #475569 #1e293b !important;
+}
+
+.modal-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9 !important; /* light mode */
+  border-radius: 4px;
+}
+
+.dark .modal-scrollbar::-webkit-scrollbar-track {
+  background: #1e293b !important; /* dark mode */
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important; /* light mode */
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* dark mode */
+  border: 1px solid #334155;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important; /* light mode */
+}
+
+.dark .modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important; /* dark mode */
+}
+
+/* 달력 셀 스크롤바 - 얇고 살짝 보이게 */
+.calendar-cell-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.dark .calendar-cell-scrollbar {
+  scrollbar-color: #64748b #334155 !important;
+}
+
+.calendar-cell-scrollbar::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+.calendar-cell-scrollbar::-webkit-scrollbar-track {
+  background: #f8fafc !important; /* light mode: slate-50 */
+  border-radius: 2px;
+}
+
+.dark .calendar-cell-scrollbar::-webkit-scrollbar-track {
+  background: #334155 !important; /* dark mode */
+}
+
+.calendar-cell-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important; /* light mode */
+  border-radius: 2px;
+}
+
+.dark .calendar-cell-scrollbar::-webkit-scrollbar-thumb {
+  background: #64748b !important; /* dark mode */
+}
+
+.calendar-cell-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important; /* light mode */
+}
+
+.dark .calendar-cell-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important; /* dark mode */
+}
+
+/* 통화 상세 모달 - 녹취 파일 오디오 플레이어 다크 테마 */
+.audio-dark {
+  background: #1e293b !important; /* slate-800 */
+  border-radius: 0.125rem;
+  color: #ffffff !important;
+  -webkit-font-smoothing: antialiased;
+}
+.audio-dark::-webkit-media-controls-panel {
+  background: #1e293b !important;
+  color: #ffffff !important;
+}
+.audio-dark::-webkit-media-controls-enclosure {
+  background: #1e293b !important;
+  border-radius: 0.125rem;
+}
+/* 재생 버튼 - 흰색 */
+.audio-dark::-webkit-media-controls-play-button {
+  filter: invert(1) brightness(1.1);
+  opacity: 1;
+}
+/* 재생 시간 텍스트 - 선명한 흰색, 번짐 방지 */
+.audio-dark::-webkit-media-controls-current-time-display,
+.audio-dark::-webkit-media-controls-time-remaining-display {
+  color: #ffffff !important;
+  text-shadow: none !important;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 500;
+  opacity: 1;
+}
+/* 재생 바 - 배경 없음, 재생 바(진행 표시)만 흰색 */
+.audio-dark::-webkit-media-controls-timeline {
+  background: transparent !important;
+  border-radius: 4px;
+  height: 6px;
+}
+.audio-dark {
+  accent-color: #ffffff; /* 재생 바만 흰색 */
+}
+/* 음소거/음량 - 흰색 */
+.audio-dark::-webkit-media-controls-mute-button,
+.audio-dark::-webkit-media-controls-volume-slider-container,
+.audio-dark::-webkit-media-controls-volume-slider {
+  filter: invert(1) brightness(1.1);
+  opacity: 1;
+}
+/* 우측 설정(⋮) 오버플로우 버튼 - 흰색 */
+.audio-dark::-webkit-media-controls-overflow-button {
+  filter: invert(1) brightness(1.1);
+  opacity: 1;
+}
+.audio-dark::-webkit-media-controls-enclosure {
+  color: #ffffff !important;
+}
+
+@layer components {
+  /* 모달 내용 박스: 라이트/다크 모두 불투명 배경 보장 (배경 투명화 방지) */
+  [class*="fixed"][class*="inset-0"] > div[class*="max-w"],
+  [class*="fixed"][class*="inset-0"] > div[class*="rounded"]:not([class*="blur"]) {
+    background-color: var(--bg-card) !important;
+  }
+
+  /* 다크/라이트 테마 공통 입력창 스타일 */
+  .cp-input {
+    @apply w-full p-2.5 border rounded-sm outline-none transition-all shadow-sm;
+    background-color: var(--input-bg);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-input:focus {
+    @apply ring-2 ring-teal-500/50 border-teal-500;
+  }
+  .cp-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* 다크/라이트 테마 공통 라벨 스타일 */
+  .cp-label {
+    @apply block text-sm font-semibold mb-1.5 ml-1;
+    color: var(--text-main);
+  }
+
+  /* 다크/라이트 테마 공통 셀렉트 박스 스타일 */
+  .cp-select {
+    @apply w-full p-2.5 border rounded-sm outline-none cursor-pointer;
+    background-color: var(--input-bg);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-select:focus {
+    @apply ring-2 ring-teal-500/50 border-teal-500;
+  }
+
+  /* 필터 바 전용 라벨 스타일 */
+  .cp-label-filter {
+    @apply text-xs font-semibold uppercase tracking-wider;
+    color: var(--text-muted);
+  }
+
+  /* 필터 바 전용 입력창 스타일 */
+  .cp-input-filter {
+    @apply rounded-sm border px-3 py-2 text-sm outline-none transition-all;
+    background-color: var(--input-bg);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-input-filter:focus {
+    @apply ring-2 ring-teal-500/50 border-teal-500;
+  }
+
+  /* 테마 메인 버튼 스타일 (Teal) */
+  .cp-btn-primary {
+    @apply bg-teal-600 border border-teal-500 text-white rounded-sm font-semibold hover:bg-teal-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:bg-slate-400 disabled:border-slate-400 disabled:text-slate-200 flex items-center justify-center gap-2;
+  }
+
+  /* 테마 서브 버튼 스타일 */
+  .cp-btn-secondary {
+    @apply border rounded-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    background-color: var(--bg-card);
+    border-color: var(--border-main);
+    color: var(--text-main);
+  }
+  .cp-btn-secondary:hover {
+    background-color: var(--bg-main);
+    border-color: var(--text-muted);
+  }
+
+  /* 위험/삭제 버튼 스타일 (Red) */
+  .cp-btn-danger {
+    @apply bg-red-600 border border-red-500 text-white rounded-sm font-semibold hover:bg-red-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 flex items-center justify-center gap-2;
+  }
+
+  /* 외곽선 버튼 스타일 (Outline) */
+  .cp-btn-outline-teal {
+    @apply bg-transparent border border-teal-500/50 text-teal-400 rounded-sm font-semibold hover:bg-teal-500/10 hover:border-teal-500 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2;
+  }
+
+  /* --- 링크형 텍스트 버튼 (통화 스케줄 스타일) --- */
+  .cp-link-blue {
+    @apply text-blue-400 hover:text-blue-300 underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
+  }
+  .cp-link-red {
+    @apply text-red-400 hover:text-red-300 underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
+  }
+  .cp-link-muted {
+    @apply underline text-sm font-bold transition-colors cursor-pointer bg-transparent border-0 px-0.5 py-1;
+    color: var(--text-muted);
+  }
+  .cp-link-muted:hover {
+    color: var(--text-main);
+  }
+}
+
+/* 라이트/다크 모드 모두 --accent-teal 적용 (Tailwind teal 유틸리티 강제) */
+@layer utilities {
+  .text-teal-300,
+  .text-teal-400,
+  .text-teal-500,
+  .text-teal-600,
+  .text-teal-700 {
+    color: var(--accent-teal) !important;
+  }
+  .bg-teal-300,
+  .bg-teal-400,
+  .bg-teal-500,
+  .bg-teal-600,
+  .bg-teal-700 {
+    background-color: var(--accent-teal) !important;
+  }
+  .border-teal-300,
+  .border-teal-400,
+  .border-teal-500,
+  .border-teal-600,
+  .border-teal-700 {
+    border-color: var(--accent-teal) !important;
+  }
+  .hover\:text-teal-400:hover,
+  .hover\:text-teal-500:hover {
+    color: var(--accent-teal) !important;
+  }
+  .hover\:bg-teal-500:hover {
+    background-color: var(--accent-teal) !important;
+  }
+  .hover\:border-teal-500:hover {
+    border-color: var(--accent-teal) !important;
+  }
+  /* ring, gradient 등 teal 참조 */
+  .ring-teal-500 {
+    --tw-ring-color: var(--accent-teal) !important;
+  }
+  .focus\:ring-teal-500:focus {
+    --tw-ring-color: var(--accent-teal) !important;
+  }
+  .from-teal-600,
+  .from-teal-500 {
+    --tw-gradient-from: var(--accent-teal) !important;
+  }
+  .to-teal-700,
+  .to-teal-600,
+  .to-teal-500 {
+    --tw-gradient-to: var(--accent-teal) !important;
   }
 }

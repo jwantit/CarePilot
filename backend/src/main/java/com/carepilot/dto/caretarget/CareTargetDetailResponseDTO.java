@@ -1,5 +1,6 @@
 package com.carepilot.dto.caretarget;
 
+import com.carepilot.dto.caretarget.caretargetgroup.CareGroupDetailResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,5 +26,7 @@ public class CareTargetDetailResponseDTO {
     private String aiMemo;
     private List<RiskTrendDTO> riskTrendDTOS;
     private List<CallHistoryDTO> callHistoryDTOS;
+    private List<PrescriptionHistoryDTO> prescriptionHistoryDTOS;
+    private List<CareGroupDetailResponseDTO> careGroups;
 
 }

@@ -13,7 +13,9 @@ const CallPage = lazy(() => import('../pages/call/CallPage'));
 const TaskPage = lazy(() => import('../pages/task/TaskPage'));
 const ReportPage = lazy(() => import('../pages/report/ReportPage'));
 const SettingPage = lazy(() => import('../pages/setting/SettingPage'));
-const NoticePage = lazy(() => import('../pages/notice/NoticePage'));
+const NoticeListPage = lazy(() => import('../pages/notice/NoticeListPage'));
+const NoticeFormPage = lazy(() => import('../pages/notice/NoticeFormPage'));
+const NoticeDetailPage = lazy(() => import('../pages/notice/NoticeDetailPage'));
 const NotificationPage = lazy(() => import('../pages/notification/NotificationPage'));
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const UserManagementPage = lazy(() => import('../pages/usermanagement/UserManagementPage'));
@@ -128,7 +130,31 @@ const router = createBrowserRouter([
         path: 'notice',
         element: (
           <SuspenseWrapper>
-            <NoticePage />
+            <NoticeListPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'notice/create',
+        element: (
+          <SuspenseWrapper>
+            <NoticeFormPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'notice/:id',
+        element: (
+          <SuspenseWrapper>
+            <NoticeDetailPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'notice/:id/edit',
+        element: (
+          <SuspenseWrapper>
+            <NoticeFormPage />
           </SuspenseWrapper>
         ),
       },

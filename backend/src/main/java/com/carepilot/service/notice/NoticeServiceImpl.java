@@ -1,16 +1,28 @@
 package com.carepilot.service.notice;
 
+import com.carepilot.domain.file.UploadTargetType;
 import com.carepilot.domain.notice.Notice;
+import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.carepilot.dto.notice.NoticeResponseDTO;
 import com.carepilot.dto.notice.NoticeSaveRequest;
+import com.carepilot.dto.upload.TargetFileDTO;
+import com.carepilot.dto.upload.UploadFileResponseDTO;
+import com.carepilot.repository.notice.NoticeCommentRepository;
 import com.carepilot.repository.notice.NoticeRepository;
+import com.carepilot.repository.organization.OrganizationRepository;
+import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.repository.user.UserRepository;
+import com.carepilot.service.upload.UploadFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,70 +31,223 @@ public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
+    private final UploadFileService uploadFileService;
+    private final UploadFileRepository uploadFileRepository;
+    private final NoticeCommentRepository noticeCommentRepository;
 
     // 모든 공지사항 조회
     @Override
-    public Page<NoticeResponseDTO> getAllNotices(Pageable pageable) {
-        return noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(pageable)
-                .map(NoticeResponseDTO::from);
+    public Page<NoticeResponseDTO> getAllNotices(Pageable pageable, Long organizationId) {
+        Page<Notice> notices = noticeRepository.findAllByOrderByIsPinnedDescCreatedAtDesc(organizationId, pageable);
+        
+        // User를 명시적으로 초기화하여 Lazy Loading 문제 해결
+        notices.getContent().forEach(notice -> {
+            if (notice.getUser() != null) {
+                notice.getUser().getName(); // Lazy 초기화
+            }
+        });
+        
+        // 각 Notice의 댓글 개수 계산
+        return notices.map(notice -> {
+            NoticeResponseDTO dto = NoticeResponseDTO.from(notice);
+            Long commentCount = noticeCommentRepository.countByNoticeId(notice.getNoticeId());
+            return NoticeResponseDTO.builder()
+                    .noticeId(dto.getNoticeId())
+                    .title(dto.getTitle())
+                    .content(dto.getContent())
+                    .writerId(dto.getWriterId())
+                    .writerName(dto.getWriterName())
+                    .viewCount(dto.getViewCount())
+                    .isPinned(dto.getIsPinned())
+                    .noticeType(dto.getNoticeType())
+                    .createdAt(dto.getCreatedAt())
+                    .updatedAt(dto.getUpdatedAt())
+                    .contentModifiedAt(dto.getContentModifiedAt())
+                    .files(dto.getFiles())
+                    .commentCount(commentCount != null ? commentCount.intValue() : 0)
+                    .build();
+        });
     }
 
     // 공지사항 상세 조회
     @Override
-    public NoticeResponseDTO getNoticeById(Long id) {
-        Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다. id=" + id));
-        return NoticeResponseDTO.from(notice);
+    public NoticeResponseDTO getNoticeById(Long noticeId) {
+        // JOIN FETCH를 사용하여 User와 UploadFiles 정보를 함께 로드
+        Notice notice = noticeRepository.findByIdWithUser(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다. noticeId=" + noticeId));
+        
+        NoticeResponseDTO dto = NoticeResponseDTO.from(notice);
+        Long commentCount = noticeCommentRepository.countByNoticeId(noticeId);
+        
+        return NoticeResponseDTO.builder()
+                .noticeId(dto.getNoticeId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .writerId(dto.getWriterId())
+                .writerName(dto.getWriterName())
+                .viewCount(dto.getViewCount())
+                .isPinned(dto.getIsPinned())
+                .noticeType(dto.getNoticeType())
+                .createdAt(dto.getCreatedAt())
+                .updatedAt(dto.getUpdatedAt())
+                .contentModifiedAt(dto.getContentModifiedAt())
+                .files(dto.getFiles())
+                .commentCount(commentCount != null ? commentCount.intValue() : 0)
+                .build();
     }
 
     // 새 글 생성 및 저장
     @Override
     @Transactional
-    public void saveNotice(NoticeSaveRequest request, Long userId) {
+    public void saveNotice(NoticeSaveRequest request, Long userId, Long organizationId, List<MultipartFile> files) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. id=" + userId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. userId=" + userId));
+
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new IllegalArgumentException("조직 정보를 찾을 수 없습니다."));
+
+        // noticeType 파싱
+        com.carepilot.domain.notice.NoticeType noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+        if (request.getNoticeType() != null) {
+            try {
+                noticeType = com.carepilot.domain.notice.NoticeType.valueOf(request.getNoticeType());
+            } catch (IllegalArgumentException e) {
+                noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+            }
+        }
+        
+        // noticeType이 NOTICE나 MANUAL이면 isPinned를 true로 설정
+        Boolean isPinned = request.getIsPinned() != null ? request.getIsPinned() : false;
+        if (noticeType == com.carepilot.domain.notice.NoticeType.NOTICE || 
+            noticeType == com.carepilot.domain.notice.NoticeType.MANUAL) {
+            isPinned = true;
+        }
 
         Notice notice = Notice.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isPinned(request.getIsPinned())
+                .isPinned(isPinned)
+                .noticeType(noticeType)
                 .user(user)
-                .organization(user.getOrganization())
+                .organization(organization)
+                .viewCount(0)
+                .isDeleted(false)
                 .build();
 
-        noticeRepository.save(notice);
+        Notice savedNotice = noticeRepository.save(notice);
+
+        if (files != null && !files.isEmpty()) {
+            TargetFileDTO fileDTO = TargetFileDTO.builder()
+                    .targetType(UploadTargetType.NOTICE)
+                    .targetId(savedNotice.getNoticeId())
+                    .organizationId(user.getOrganization().getOrganizationId())
+                    .userId(userId)
+                    .files(files)
+                    .build();
+
+            uploadFileService.saveFiles(fileDTO);
+        }
     }
 
     // 글 수정
     @Override
     @Transactional
-    public void updateNotice(Long id, NoticeSaveRequest request, Long userId) {
-        Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 공지사항이 없습니다. id=" + id));
+    public void updateNotice(Long noticeId, NoticeSaveRequest request, Long userId, Long organizationId, List<MultipartFile> files) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("수정할 공지사항이 없습니다. noticeId=" + noticeId));
 
         // 작성자와 요청자가 같은지 확인
         notice.validateWriter(userId);
+        
+        // noticeType 파싱
+        com.carepilot.domain.notice.NoticeType noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+        if (request.getNoticeType() != null) {
+            try {
+                noticeType = com.carepilot.domain.notice.NoticeType.valueOf(request.getNoticeType());
+            } catch (IllegalArgumentException e) {
+                noticeType = com.carepilot.domain.notice.NoticeType.NORMAL;
+            }
+        }
+        
+        // noticeType이 NOTICE나 MANUAL이면 isPinned를 true로 설정
+        Boolean isPinned = request.getIsPinned() != null ? request.getIsPinned() : false;
+        if (noticeType == com.carepilot.domain.notice.NoticeType.NOTICE || 
+            noticeType == com.carepilot.domain.notice.NoticeType.MANUAL) {
+            isPinned = true;
+        }
+        
+        notice.update(request.getTitle(), request.getContent(), isPinned, noticeType);
 
-        notice.update(request.getTitle(), request.getContent(), request.getIsPinned());
+        // 삭제할 파일들 처리
+        if (request.getDeletedFileIds() != null && !request.getDeletedFileIds().isEmpty()) {
+            // UploadFileRepository를 사용하여 직접 조회 (LAZY 로딩 문제 방지)
+            List<com.carepilot.domain.file.UploadFile> allFiles = uploadFileRepository.findByNoticeId(noticeId);
+            List<com.carepilot.domain.file.UploadFile> filesToDelete = allFiles.stream()
+                    .filter(file -> request.getDeletedFileIds().contains(file.getFileId()))
+                    .collect(Collectors.toList());
+            
+            if (!filesToDelete.isEmpty()) {
+                uploadFileService.deleteFiles(filesToDelete);
+            }
+        }
+
+        // 새 파일 추가
+        if (files != null && !files.isEmpty()) {
+            TargetFileDTO fileDTO = TargetFileDTO.builder()
+                    .targetType(UploadTargetType.NOTICE)
+                    .targetId(notice.getNoticeId())
+                    .organizationId(notice.getOrganization().getOrganizationId())
+                    .userId(userId)
+                    .files(files)
+                    .build();
+
+            uploadFileService.saveFiles(fileDTO);
+        }
     }
 
     // 글 삭제
     @Override
     @Transactional
-    public void deleteNotice(Long id, Long userId) {
-        Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("삭제할 공지사항이 없습니다. id=" + id));
+    public void deleteNotice(Long noticeId, Long userId) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 공지사항이 없습니다. noticeId=" + noticeId));
 
         notice.validateWriter(userId);
+
+        // 연결된 파일들도 삭제
+        List<com.carepilot.domain.file.UploadFile> uploadFiles = notice.getUploadFiles();
+        if (!uploadFiles.isEmpty()) {
+            uploadFileService.deleteFiles(uploadFiles);
+        }
 
         notice.changeDeletedStatus(true);
     }
 
     @Override
     @Transactional
-    public void incrementViewCount(Long id) {
-        Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 없습니다. id=" + id));
+    public void incrementViewCount(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 없습니다. noticeId=" + noticeId));
         notice.setViewCount(notice.getViewCount() + 1);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UploadFileResponseDTO> getAttachedFilesByNoticeId(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 없습니다. noticeId=" + noticeId));
+
+        return notice.getUploadFiles().stream()
+                .map(uploadFile -> UploadFileResponseDTO.builder()
+                        .fileId(uploadFile.getFileId())
+                        .originalName(uploadFile.getOriginalName())
+                        .contentType(uploadFile.getContentType())
+                        .fileSize(uploadFile.getFileSize())
+                        .uploadTargetType(uploadFile.getTargetType())
+                        .fileUrl("/api/notices/files/" + uploadFile.getFileId() + "/download")
+                        .thumbnailUrl(uploadFile.getThumbnailStoragePath() != null ? "/api/notices/files/" + uploadFile.getFileId() + "/thumbnail" : null)
+                        .build())
+                .collect(Collectors.toList());
     }
 }

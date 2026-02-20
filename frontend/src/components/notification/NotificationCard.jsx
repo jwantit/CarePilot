@@ -4,13 +4,13 @@
  */
 const getNotificationTypeInfo = (type) => {
   const typeMap = {
-    VITAL_SIGN: { color: 'bg-red-100 text-red-700', label: '생체신호' },
-    EMERGENCY: { color: 'bg-red-100 text-red-700', label: '긴급' },
-    MEDICATION: { color: 'bg-blue-100 text-blue-700', label: '약물' },
-    CALL: { color: 'bg-green-100 text-green-700', label: '통화' },
-    RISK_DETECTION: { color: 'bg-yellow-100 text-yellow-700', label: '위험감지' },
-    SCHEDULE: { color: 'bg-purple-100 text-purple-700', label: '스케줄' },
-    OTHER: { color: 'bg-gray-100 text-gray-700', label: '기타' },
+    VITAL_SIGN: { color: 'bg-red-500/20 text-red-400', label: '생체신호' },
+    EMERGENCY: { color: 'bg-red-500/20 text-red-400', label: '긴급' },
+    MEDICATION: { color: 'bg-blue-500/20 text-blue-400', label: '약물' },
+    CALL: { color: 'bg-green-500/20 text-green-400', label: '통화' },
+    RISK_DETECTION: { color: 'bg-yellow-500/20 text-yellow-400', label: '위험감지' },
+    SCHEDULE: { color: 'bg-purple-500/20 text-purple-400', label: '스케줄' },
+    OTHER: { color: 'bg-cp-bg/50 text-cp-text', label: '기타' },
   };
   return typeMap[type] || typeMap.OTHER;
 };
@@ -20,12 +20,12 @@ const getNotificationTypeInfo = (type) => {
  */
 const getSeverityColor = (severity) => {
   const severityMap = {
-    LOW: 'text-green-600',
-    MEDIUM: 'text-yellow-600',
-    HIGH: 'text-orange-600',
-    CRITICAL: 'text-red-600',
+    LOW: 'text-green-400',
+    MEDIUM: 'text-yellow-400',
+    HIGH: 'text-orange-400',
+    CRITICAL: 'text-red-400',
   };
-  return severityMap[severity] || 'text-gray-600';
+  return severityMap[severity] || 'text-cp-muted';
 };
 
 /**
@@ -71,10 +71,10 @@ function NotificationCard({ notification, onMarkAsRead, currentUserId }) {
 
   return (
     <div
-      className={`p-4 rounded-lg border transition-all cursor-pointer ${
+      className={`p-4 rounded-none border transition-all cursor-pointer ${
         isUnread
-          ? 'bg-teal-50 border-teal-200 hover:bg-teal-100 hover:shadow-md'
-          : 'bg-white border-gray-200 hover:bg-gray-50'
+          ? 'bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20 hover:shadow-md'
+          : 'bg-cp-card border-cp-border hover:bg-cp-bg/50'
       }`}
       onClick={handleClick}
     >
@@ -94,18 +94,18 @@ function NotificationCard({ notification, onMarkAsRead, currentUserId }) {
             )}
           </div>
           
-          <h3 className={`text-base font-semibold mb-1 ${isUnread ? 'text-gray-900' : 'text-gray-700'}`}>
+          <h3 className={`text-base font-semibold mb-1 text-cp-text`}>
             {notification.title}
           </h3>
           
-          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+          <p className="text-sm text-cp-muted mb-2 line-clamp-2">
             {notification.description}
           </p>
           
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-cp-muted">
             <span>{formatDate(notification.occurredAt)}</span>
             {notification.status === 'RESOLVED' && (
-              <span className="text-green-600">✓ 읽음</span>
+              <span className="text-green-400">✓ 읽음</span>
             )}
           </div>
         </div>
@@ -115,4 +115,3 @@ function NotificationCard({ notification, onMarkAsRead, currentUserId }) {
 }
 
 export default NotificationCard;
-

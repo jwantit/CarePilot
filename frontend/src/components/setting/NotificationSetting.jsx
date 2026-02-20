@@ -2,23 +2,21 @@ import { useState, useEffect } from "react";
 import {
   getNotificationConfig,
   updateNotificationConfig,
-} from "../../api/notificationConfigApi";
+} from "../../api/setting/notificationConfigApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import { Bell, ShieldAlert, MessageSquare, Mail, Save, AlertTriangle, PhoneCall } from 'lucide-react';
 
 function NotificationSetting() {
   const auth = useSelector((state) => state.auth);
   const userId = auth.user?.userId;
   const [loading, setLoading] = useState(false);
   const [notificationConfig, setNotificationConfig] = useState({
-    smsEnabled: false,
-    kakaoEnabled: false,
-    emailEnabled: false,
+    smsEnabled: true,
+    emailEnabled: true,
     riskDetectionEnabled: true,
     callFailureEnabled: true,
     emergencyEventEnabled: true,
-    nightRestrictionStart: null,
-    nightRestrictionEnd: null,
   });
 
   useEffect(() => {
@@ -30,17 +28,7 @@ function NotificationSetting() {
     try {
       setLoading(true);
       const config = await getNotificationConfig(userId);
-      // LocalTime을 HH:mm 형식으로 변환
-      const formattedConfig = {
-        ...config,
-        nightRestrictionStart: config.nightRestrictionStart
-          ? config.nightRestrictionStart.substring(0, 5)
-          : null,
-        nightRestrictionEnd: config.nightRestrictionEnd
-          ? config.nightRestrictionEnd.substring(0, 5)
-          : null,
-      };
-      setNotificationConfig(formattedConfig);
+      setNotificationConfig(config);
     } catch (error) {
       console.error("알림 설정 조회 실패:", error);
       toast.error("설정을 불러오는데 실패했습니다.");
@@ -59,17 +47,9 @@ function NotificationSetting() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      // 시간 형식을 LocalTime 형식으로 변환 (HH:mm -> HH:mm:ss)
-      const configToSave = {
-        ...notificationConfig,
-        nightRestrictionStart: notificationConfig.nightRestrictionStart
-          ? `${notificationConfig.nightRestrictionStart}:00`
-          : null,
-        nightRestrictionEnd: notificationConfig.nightRestrictionEnd
-          ? `${notificationConfig.nightRestrictionEnd}:00`
-          : null,
-      };
-      await updateNotificationConfig(userId, configToSave);
+      await updateNotificationConfig(userId, notificationConfig);
+      // 설정 저장 후 이벤트 발송 (WebSocketContext에서 구독)
+      window.dispatchEvent(new CustomEvent("notification-config-updated"));
       toast.success("설정이 저장되었습니다.");
     } catch (error) {
       console.error("설정 저장 실패:", error);
@@ -79,9 +59,17 @@ function NotificationSetting() {
     }
   };
 
-  const ToggleSwitch = ({ checked, onChange, label }) => (
-    <div className="flex items-center justify-between">
-      <label className="text-base font-medium text-gray-700">{label}</label>
+  const ToggleSwitch = ({ checked, onChange, label, icon: Icon, description }) => (
+    <div className="flex items-center justify-between p-4 bg-cp-bg/30 border border-cp-border/50 rounded-sm hover:border-teal-500/30 transition-all">
+      <div className="flex items-center gap-4">
+        <div className="p-2.5 bg-cp-bg rounded-sm border border-cp-border/50">
+          <Icon size={20} className="text-teal-400" />
+        </div>
+        <div>
+          <label className="text-base font-medium text-cp-text block">{label}</label>
+          <p className="text-xs text-cp-muted mt-0.5">{description}</p>
+        </div>
+      </div>
       <label className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
@@ -89,126 +77,106 @@ function NotificationSetting() {
           onChange={onChange}
           className="sr-only peer"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+        <div className="w-11 h-6 bg-cp-bg border border-cp-border peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-cp-muted after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600 peer-checked:after:bg-white"></div>
       </label>
     </div>
   );
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">알림 설정</h1>
-
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-8">
-        {/* 알림 수신 방식 섹션 */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            알림 수신 방식
-          </h2>
-          <ToggleSwitch
-            checked={notificationConfig.smsEnabled}
-            onChange={(e) => handleConfigChange("smsEnabled", e.target.checked)}
-            label="SMS 알림"
-          />
-
-          <ToggleSwitch
-            checked={notificationConfig.kakaoEnabled}
-            onChange={(e) =>
-              handleConfigChange("kakaoEnabled", e.target.checked)
-            }
-            label="카카오톡 알림"
-          />
-
-          <ToggleSwitch
-            checked={notificationConfig.emailEnabled}
-            onChange={(e) =>
-              handleConfigChange("emailEnabled", e.target.checked)
-            }
-            label="이메일 알림"
-          />
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl overflow-hidden">
+        {/* 헤더 */}
+        <div className="px-8 py-6 border-b border-cp-border flex items-center gap-3 bg-cp-bg/20">
+          <div className="p-2 bg-teal-500/10 rounded-sm">
+            <Bell className="text-teal-400" size={24} />
+          </div>
+          <h1 className="text-2xl font-bold text-cp-text tracking-tight uppercase">알림 설정</h1>
         </div>
 
-        {/* 구분선 */}
-        <div className="border-t border-gray-200"></div>
-
-        {/* 알림 유형 섹션 */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            알림 유형
-          </h2>
-          <ToggleSwitch
-            checked={notificationConfig.riskDetectionEnabled}
-            onChange={(e) =>
-              handleConfigChange("riskDetectionEnabled", e.target.checked)
-            }
-            label="위험 감지 알림"
-          />
-
-          <ToggleSwitch
-            checked={notificationConfig.callFailureEnabled}
-            onChange={(e) =>
-              handleConfigChange("callFailureEnabled", e.target.checked)
-            }
-            label="통화 실패 알림"
-          />
-
-          <ToggleSwitch
-            checked={notificationConfig.emergencyEventEnabled}
-            onChange={(e) =>
-              handleConfigChange("emergencyEventEnabled", e.target.checked)
-            }
-            label="긴급 상황 알림"
-          />
-        </div>
-
-        {/* 구분선 */}
-        <div className="border-t border-gray-200"></div>
-
-        {/* 알림 제한 시간 섹션 */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            알림 제한 시간
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                시작 시간
-              </label>
-              <input
-                type="time"
-                value={notificationConfig.nightRestrictionStart || ""}
-                onChange={(e) =>
-                  handleConfigChange("nightRestrictionStart", e.target.value)
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
+        <div className="p-8 space-y-10">
+          {/* 알림 수신 방식 섹션 */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
+              <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
+                알림 수신 방식
+              </h2>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                종료 시간
-              </label>
-              <input
-                type="time"
-                value={notificationConfig.nightRestrictionEnd || ""}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ToggleSwitch
+                checked={notificationConfig.smsEnabled}
+                onChange={(e) => handleConfigChange("smsEnabled", e.target.checked)}
+                label="SMS 알림"
+                icon={MessageSquare}
+                description="긴급 상황 시 SMS로 알림"
+              />
+
+              <ToggleSwitch
+                checked={notificationConfig.emailEnabled}
                 onChange={(e) =>
-                  handleConfigChange("nightRestrictionEnd", e.target.value)
+                  handleConfigChange("emailEnabled", e.target.checked)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                label="이메일 알림"
+                icon={Mail}
+                description="회원가입 승인 요청 이메일 알림"
               />
             </div>
           </div>
-          <p className="text-sm text-gray-500">
-            설정한 시간 동안 알림이 제한됩니다.
-          </p>
-        </div>
 
-        <div className="pt-4 border-t border-gray-200">
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="px-6 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "저장 중..." : "저장"}
-          </button>
+          {/* 알림 유형 섹션 */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2 pb-1 border-b border-cp-border/50">
+              <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
+              <h2 className="text-base font-bold text-cp-text uppercase tracking-widest">
+                알림 유형
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ToggleSwitch
+                checked={notificationConfig.riskDetectionEnabled}
+                onChange={(e) =>
+                  handleConfigChange("riskDetectionEnabled", e.target.checked)
+                }
+                label="위험 감지"
+                icon={ShieldAlert}
+                description="케어 대상자 위험 감지 알림"
+              />
+
+              <ToggleSwitch
+                checked={notificationConfig.callFailureEnabled}
+                onChange={(e) =>
+                  handleConfigChange("callFailureEnabled", e.target.checked)
+                }
+                label="통화 실패"
+                icon={PhoneCall}
+                description="정기 통화 실패 시 알림"
+              />
+
+              <ToggleSwitch
+                checked={notificationConfig.emergencyEventEnabled}
+                onChange={(e) =>
+                  handleConfigChange("emergencyEventEnabled", e.target.checked)
+                }
+                label="긴급 상황"
+                icon={AlertTriangle}
+                description="긴급 상황 시 즉시 알림"
+              />
+            </div>
+          </div>
+
+          {/* 저장 버튼 */}
+          <div className="pt-8 border-t border-cp-border flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-10 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-bold text-lg hover:from-teal-500 hover:to-teal-600 transition-all shadow-lg shadow-teal-900/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save size={20} />
+              {loading ? "저장 중..." : "설정 저장하기"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

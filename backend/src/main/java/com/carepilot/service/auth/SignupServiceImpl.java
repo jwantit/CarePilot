@@ -44,6 +44,10 @@ public class SignupServiceImpl implements SignupService {
         log.info("업체 회원가입 요청: organizationName={}, email={}, name={}", 
                 request.getOrganizationName(), request.getEmail(), request.getName());
         
+        if (request.getPhone() == null || request.getPhone().isBlank()) {
+            throw new ApiException(ErrorCode.PHONE_REQUIRED);
+        }
+        
         // 이메일 중복 체크
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("이메일 중복 시도: email={}", request.getEmail());
@@ -83,7 +87,7 @@ public class SignupServiceImpl implements SignupService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .phone(null)
+                .phone(formatPhone(request.getPhone()))
                 .role(UserRole.MANAGER)
                 .organization(organization)
                 .status(UserStatus.ACTIVE)
@@ -100,6 +104,10 @@ public class SignupServiceImpl implements SignupService {
     public UserSignupResponseDTO signupUser(UserSignupRequestDTO request) {
         log.info("직원 회원가입 요청: organizationNumber={}, email={}, name={}", 
                 request.getOrganizationNumber(), request.getEmail(), request.getName());
+        
+        if (request.getPhone() == null || request.getPhone().isBlank()) {
+            throw new ApiException(ErrorCode.PHONE_REQUIRED);
+        }
         
         // 이메일 중복 체크
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -122,7 +130,7 @@ public class SignupServiceImpl implements SignupService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .phone(null)
+                .phone(formatPhone(request.getPhone()))
                 .role(UserRole.USER)
                 .organization(organization)
                 .status(UserStatus.WAITING)
@@ -136,8 +144,8 @@ public class SignupServiceImpl implements SignupService {
         log.info("직원 회원가입 완료: userId={}, email={}, organizationId={}, status=WAITING", 
                 user.getUserId(), request.getEmail(), organization.getOrganizationId());
         
-        // 승인 요청 메일 발송
-        sendApprovalRequestEmail(organization, user);
+        // 승인 요청 알림 비동기 발송
+        approvalService.sendApprovalNotificationsAsync(user.getUserId());
         
         return new UserSignupResponseDTO(
                 "회원가입이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.",
@@ -176,12 +184,23 @@ public class SignupServiceImpl implements SignupService {
         log.info("USER 소셜 회원가입 완료: userId={}, organizationId={}, status=WAITING", 
                 user.getUserId(), organization.getOrganizationId());
         
-        // 승인 메일 발송
-        sendApprovalRequestEmail(organization, user);
+        // 승인 알림 비동기 발송
+        approvalService.sendApprovalNotificationsAsync(user.getUserId());
         
         return OAuth2LoginResponseDTO.waitingApproval();
     }
     
+    /** 숫자만 추출 후 010-XXXX-XXXX 형식으로 포맷 (null/blank면 null, 11자리 초과 시 앞 11자리만) */
+    private static String formatPhone(String phone) {
+        if (phone == null || phone.isBlank()) return null;
+        String digits = phone.replaceAll("\\D", "");
+        if (digits.isEmpty()) return null;
+        if (digits.length() > 11) digits = digits.substring(0, 11);
+        if (digits.length() <= 3) return digits;
+        if (digits.length() <= 7) return digits.substring(0, 3) + "-" + digits.substring(3);
+        return digits.substring(0, 3) + "-" + digits.substring(3, 7) + "-" + digits.substring(7);
+    }
+
     /**
      * ABC-12345 형식의 organization_number 생성
      * @return 생성된 organization_number
@@ -197,44 +216,4 @@ public class SignupServiceImpl implements SignupService {
         
         return prefix.toString() + "-" + numberStr;
     }
-    
-    /**
-     * 승인 요청 메일 발송
-     * @param organization 조직
-     * @param user 승인 요청한 사용자
-     */
-    private void sendApprovalRequestEmail(Organization organization, User user) {
-        try {
-            // 조직의 MANAGER 조회
-            var managers = userRepository.findByOrganizationAndRole(organization, UserRole.MANAGER);
-            
-            if (managers.isEmpty()) {
-                log.warn("조직에 MANAGER가 없음: organizationId={}, organizationNumber={}", 
-                        organization.getOrganizationId(), organization.getOrganizationNumber());
-                return;
-            }
-            
-            // 승인 토큰 생성
-            String token = approvalService.generateToken(user.getUserId());
-            
-            // 승인 링크 생성
-            String approvalLink = approvalService.generateApprovalLink(token);
-            
-            // 각 MANAGER에게 메일 발송
-            for (User manager : managers) {
-                approvalService.sendApprovalRequestEmail(
-                        manager.getEmail(),
-                        user.getName(),
-                        user.getEmail(),
-                        approvalLink
-                );
-                log.info("승인 요청 메일 발송 완료: managerEmail={}, userEmail={}", 
-                        manager.getEmail(), user.getEmail());
-            }
-        } catch (Exception e) {
-            log.error("승인 요청 메일 발송 실패: userId={}, error={}", user.getUserId(), e.getMessage(), e);
-            // 메일 발송 실패해도 회원가입은 성공 처리
-        }
-    }
 }
-

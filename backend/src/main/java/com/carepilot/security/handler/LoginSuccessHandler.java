@@ -13,6 +13,7 @@ import com.carepilot.dto.auth.LoginResponseDTO;
 import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.security.util.CookieUtil;
 import com.carepilot.service.auth.AuthService;
+import com.carepilot.service.auth.TokenRedisService;
 import com.google.gson.Gson;
 
 import jakarta.servlet.ServletException;
@@ -33,6 +34,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final AuthService authService;
     private final CookieUtil cookieUtil;
+    private final TokenRedisService tokenRedisService;
     private final Gson gson = new Gson();
 
     /**
@@ -66,6 +68,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // UserDTO에서 직접 토큰 생성 (불필요한 DB 조회 제거)
         LoginResponseDTO tokenResponse = authService.generateTokens(userDTO);
         authService.saveRefreshToken(userDTO.getUserId(), tokenResponse.getRefreshToken());
+
+        // 로그인 성공 시 실패 기록 초기화
+        tokenRedisService.resetLoginHistory(userDTO.getEmail());
 
         log.info("로그인 성공: userId={}, email={}, role={}, refreshToken Redis 저장 완료", 
                 userDTO.getUserId(), userDTO.getEmail(), userDTO.getRole());

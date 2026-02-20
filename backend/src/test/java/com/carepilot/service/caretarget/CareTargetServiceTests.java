@@ -68,7 +68,6 @@ public class CareTargetServiceTests {
                     .age(60 + i + 2)
                     .gender("남성")
                     .disease("당뇨병" + i)
-                    .careStatus(true)
                     .targetPhone("010-" + i + "333-0000" )
                     .guardianName("박찬욱" + i)
                     .guardianPhone("010-" + i + "444-0000")

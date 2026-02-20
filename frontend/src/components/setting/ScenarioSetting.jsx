@@ -5,9 +5,27 @@ import {
   updateScenario,
   deleteScenario,
   getScenarioById,
-} from "../../api/scenarioApi";
+} from "../../api/scenario/scenarioApi";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import { getRiskLevelLabel, getRiskLevelStyle } from "../../utils/riskLevelStyles";
+import { 
+  X, 
+  PlusCircle, 
+  FileText, 
+  ClipboardList, 
+  ShieldCheck, 
+  HelpCircle,
+  Trash2,
+  Plus,
+  RotateCcw
+} from "lucide-react";
+
+const inputClass =
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all";
+const labelClass = "block text-sm font-semibold text-cp-text mb-1.5";
+const selectClass =
+  "w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all";
 
 function ScenarioSetting() {
   const auth = useSelector((state) => state.auth);
@@ -62,6 +80,14 @@ function ScenarioSetting() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      status: "전체",
+      riskLevel: "전체",
+      category: "전체",
+    });
   };
 
   const handleOpenModal = async (scenario = null) => {
@@ -178,15 +204,6 @@ function ScenarioSetting() {
     }
   };
 
-  const getRiskLevelLabel = (riskLevel) => {
-    const levelMap = {
-      LOW: "낮음",
-      MEDIUM: "보통",
-      HIGH: "높음",
-      CRITICAL: "긴급",
-    };
-    return levelMap[riskLevel] || riskLevel;
-  };
 
   const handleToggleEnabled = async (scenarioId, newEnabledStatus) => {
     try {
@@ -252,117 +269,124 @@ function ScenarioSetting() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">시나리오 설정</h1>
+        <h1 className="text-2xl font-bold text-cp-text">시나리오 설정</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
+          className="px-4 py-2.5 bg-cp-input border border-teal-500/50 text-teal-400 rounded-sm hover:bg-cp-bg hover:border-teal-500 font-semibold shadow-md"
         >
           시나리오 등록
         </button>
       </div>
 
       {/* 필터 섹션 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg p-4 mb-6">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               상태
             </label>
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="전체">전체</option>
               <option value="활성">활성</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               위험 단계
             </label>
             <select
               value={filters.riskLevel}
               onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="전체">전체</option>
-              <option value="LOW">낮음</option>
-              <option value="MEDIUM">보통</option>
-              <option value="HIGH">높음</option>
-              <option value="CRITICAL">긴급</option>
+              <option value="LOW" className="bg-cp-card">낮음</option>
+              <option value="MEDIUM" className="bg-cp-card">보통</option>
+              <option value="HIGH" className="bg-cp-card">높음</option>
+              <option value="CRITICAL" className="bg-cp-card">긴급</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-sm font-semibold text-cp-muted mb-2">
               카테고리
             </label>
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange("category", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="h-9 px-3 w-full border border-cp-border rounded-none bg-cp-input text-cp-text text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer"
             >
               <option value="전체">전체</option>
-              <option value="정기 모니터링">정기 모니터링</option>
-              <option value="긴급 상황">긴급 상황</option>
-              <option value="질병별 모니터링">질병별 모니터링</option>
+              <option value="정기 모니터링" className="bg-cp-card">정기 모니터링</option>
+              <option value="긴급 상황" className="bg-cp-card">긴급 상황</option>
+              <option value="질병별 모니터링" className="bg-cp-card">질병별 모니터링</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="h-9 flex items-center gap-1.5 px-4 bg-cp-input border border-cp-border text-cp-muted text-sm font-semibold hover:bg-cp-bg hover:border-cp-border hover:text-cp-text transition-all whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <RotateCcw size={14} />
+            전체보기
+          </button>
         </div>
       </div>
 
       {/* 테이블 */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-cp-card border border-cp-border rounded-sm overflow-hidden shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="text-gray-500">로딩 중...</div>
+            <div className="text-cp-muted">로딩 중...</div>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  시나리오명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  설명
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  위험 레벨
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  사용 여부
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+          <div className="w-full">
+            {/* 헤더 - CareTarget 스타일 동일 적용 (5열) */}
+            <div className="grid grid-cols-5 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px]">
+              <div className="text-white dark:text-teal-400">시나리오명</div>
+              <div className="text-white dark:text-teal-400">설명</div>
+              <div className="text-white dark:text-teal-400">위험 레벨</div>
+              <div className="text-white dark:text-teal-400">사용 여부</div>
+              <div className="text-white dark:text-teal-400">관리</div>
+            </div>
+
+            {/* 데이터 행 */}
+            <div className="">
               {scenarios.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    등록된 시나리오가 없습니다.
-                  </td>
-                </tr>
+                <div className="py-20 text-center text-cp-muted bg-cp-card/30">
+                  등록된 시나리오가 없습니다.
+                </div>
               ) : (
                 scenarios.map((scenario) => (
-                  <tr key={scenario.scenarioId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {scenario.name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
-                      {scenario.description}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {getRiskLevelLabel(scenario.riskLevel)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div
+                    key={scenario.scenarioId}
+                    onClick={() => handleOpenDetailModal(scenario.scenarioId)}
+                    className="grid grid-cols-5 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-base truncate w-full">
+                        {scenario.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full px-2 overflow-hidden">
+                      <span className="text-cp-text text-sm truncate w-full" title={scenario.description}>
+                        {scenario.description || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      <span
+                        className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(scenario.riskLevel)}`}
+                      >
+                        {getRiskLevelLabel(scenario.riskLevel)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center h-full" onClick={(e) => e.stopPropagation()}>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -375,146 +399,179 @@ function ScenarioSetting() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                        <div className="w-11 h-6 bg-slate-200 dark:bg-cp-bg border border-slate-300 dark:border-cp-border peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-cp-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
                       </label>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    </div>
+                    <div className="flex items-center justify-center h-full gap-1">
                       <button
-                        onClick={() =>
-                          handleOpenDetailModal(scenario.scenarioId)
-                        }
-                        className="text-teal-600 hover:text-teal-900"
-                      >
-                        상세
-                      </button>
-                      <button
-                        onClick={() => handleOpenModal(scenario)}
-                        className="text-teal-600 hover:text-teal-900"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(scenario);
+                        }}
+                        className="cp-link-blue"
                       >
                         수정
                       </button>
                       <button
-                        onClick={() => handleDelete(scenario.scenarioId)}
-                        className="text-red-600 hover:text-red-900"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(scenario.scenarioId);
+                        }}
+                        className="cp-link-red"
                       >
                         삭제
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
       </div>
 
       {/* 등록/수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
-            <h2 className="text-2xl font-bold mb-4">
-              {editingScenario ? "시나리오 수정" : "시나리오 등록"}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  시나리오명
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+            {/* 헤더 */}
+            <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+              <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
+                {editingScenario ? (
+                  <FileText size={24} className="text-teal-400" />
+                ) : (
+                  <PlusCircle size={24} className="text-teal-400" />
+                )}
+                {editingScenario ? "시나리오 정보 수정" : "신규 시나리오 등록"}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  설명
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
+              <div className="grid grid-cols-2 gap-5">
+                {/* 섹션 1: 시나리오 기본 정보 */}
+                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
+                  <ClipboardList size={16} /> 시나리오 기본 정보
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className={labelClass}>시나리오명</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                    placeholder="시나리오 이름을 입력하세요"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>설명</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    rows="2"
+                    placeholder="시나리오에 대한 간단한 설명을 입력하세요"
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    카테고리
-                  </label>
+                  <label className={labelClass}>카테고리</label>
                   <input
                     type="text"
                     value={formData.category}
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="예: 정기 모니터링"
+                    className={inputClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    위험 레벨
-                  </label>
+                  <label className={labelClass}>위험 레벨</label>
                   <select
                     value={formData.riskLevel}
                     onChange={(e) =>
                       setFormData({ ...formData, riskLevel: e.target.value })
                     }
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className={selectClass}
                   >
-                    <option value="LOW">낮음</option>
-                    <option value="MEDIUM">보통</option>
-                    <option value="HIGH">높음</option>
-                    <option value="CRITICAL">긴급</option>
+                    <option value="LOW" className="bg-cp-card">낮음</option>
+                    <option value="MEDIUM" className="bg-cp-card">보통</option>
+                    <option value="HIGH" className="bg-cp-card">높음</option>
+                    <option value="CRITICAL" className="bg-cp-card">긴급</option>
                   </select>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  위험 기준
-                </label>
-                <textarea
-                  value={formData.riskCriteria}
-                  onChange={(e) =>
-                    setFormData({ ...formData, riskCriteria: e.target.value })
-                  }
-                  rows="2"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+                {/* 섹션 2: 위험 기준 정보 */}
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
+                  <ShieldCheck size={16} /> 위험 기준 설정
+                </div>
 
-              {/* 질문 리스트 */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    질문 리스트
-                  </label>
+                <div className="col-span-2">
+                  <label className={labelClass}>위험 판정 기준</label>
+                  <textarea
+                    value={formData.riskCriteria}
+                    onChange={(e) =>
+                      setFormData({ ...formData, riskCriteria: e.target.value })
+                    }
+                    rows="2"
+                    placeholder="위험으로 판정할 기준을 입력하세요"
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
+
+                {/* 섹션 3: 질문 리스트 */}
+                <div className="col-span-2 flex items-center justify-between mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle size={16} /> 질문 구성
+                  </div>
                   <button
                     type="button"
                     onClick={addQuestion}
-                    className="px-3 py-1 text-sm bg-teal-500 text-white rounded-md hover:bg-teal-600"
+                    className="flex items-center gap-1 px-2 py-0.5 text-xs bg-teal-500/10 border border-teal-500/50 text-teal-400 rounded-sm hover:bg-teal-500/20 transition-all"
                   >
-                    질문 추가
+                    <Plus size={14} /> 질문 추가
                   </button>
                 </div>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {formData.questions.map((question, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start space-x-2 p-2 border border-gray-200 rounded-md"
-                    >
-                      <div className="flex-1">
+
+                <div className="col-span-2 space-y-3">
+                  {formData.questions.length === 0 ? (
+                    <div className="text-center py-8 border border-dashed border-cp-border rounded-sm bg-cp-bg/50 text-cp-muted text-sm">
+                      등록된 질문이 없습니다. 질문을 추가해주세요.
+                    </div>
+                  ) : (
+                    formData.questions.map((question, index) => (
+                      <div
+                        key={index}
+                        className="p-4 border border-cp-border rounded-sm bg-cp-bg/50 space-y-3 relative group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-teal-500/70 bg-teal-500/5 px-2 py-0.5 rounded-sm border border-teal-500/20">
+                            질문 {index + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeQuestion(index)}
+                            className="p-1 text-cp-muted hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        
                         <input
                           type="text"
                           value={question.questionText}
@@ -525,66 +582,66 @@ function ScenarioSetting() {
                               e.target.value,
                             )
                           }
-                          placeholder="질문 내용"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 mb-2"
+                          placeholder="질문 내용을 입력하세요"
+                          className={inputClass}
                         />
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            value={question.questionOrder}
-                            onChange={(e) =>
-                              updateQuestion(
-                                index,
-                                "questionOrder",
-                                parseInt(e.target.value),
-                              )
-                            }
-                            placeholder="순서"
-                            className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                          />
-                          <label className="flex items-center text-sm text-gray-700">
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs font-semibold text-cp-muted">정렬 순서</label>
                             <input
-                              type="checkbox"
-                              checked={question.isRequired}
+                              type="number"
+                              value={question.questionOrder}
                               onChange={(e) =>
                                 updateQuestion(
                                   index,
-                                  "isRequired",
-                                  e.target.checked,
+                                  "questionOrder",
+                                  parseInt(e.target.value) || 0,
                                 )
                               }
-                              className="mr-1"
+                              className="w-16 p-1 text-xs border border-cp-border rounded-sm bg-cp-input text-cp-text outline-none focus:border-teal-500"
                             />
-                            필수
+                          </div>
+                          
+                          <label className="flex items-center gap-2 cursor-pointer group/label">
+                            <div className="relative inline-flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={question.isRequired}
+                                onChange={(e) =>
+                                  updateQuestion(
+                                    index,
+                                    "isRequired",
+                                    e.target.checked,
+                                  )
+                                }
+                                className="sr-only peer"
+                              />
+                              <div className="w-8 h-4 bg-slate-200 dark:bg-cp-bg border border-slate-300 dark:border-cp-border rounded-full peer peer-checked:bg-teal-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-cp-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                            </div>
+                            <span className="text-xs font-semibold text-cp-muted group-hover/label:text-cp-text transition-colors">필수 답변</span>
                           </label>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeQuestion(index)}
-                        className="px-2 py-1 text-sm text-red-600 hover:text-red-800"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex gap-3 mt-10">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 disabled:opacity-50"
+                  className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
                 >
-                  {loading ? "저장 중..." : "저장"}
+                  {loading ? "저장 중..." : (editingScenario ? "저장 완료" : "시나리오 등록 완료")}
                 </button>
               </div>
             </form>
@@ -594,97 +651,119 @@ function ScenarioSetting() {
 
       {/* 상세 모달 */}
       {showDetailModal && selectedScenario && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">시나리오 상세</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  시나리오명
-                </label>
-                <p className="text-base text-gray-900">
-                  {selectedScenario.name}
-                </p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
+            {/* 헤더 */}
+            <div className="flex justify-between items-center p-5 border-b border-cp-border bg-gradient-to-r from-cp-card to-cp-bg shrink-0">
+              <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
+                <FileText size={24} className="text-teal-400" />
+                시나리오 상세 정보
+              </h3>
+              <button
+                onClick={handleCloseDetailModal}
+                className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  설명
-                </label>
-                <p className="text-base text-gray-900">
-                  {selectedScenario.description}
-                </p>
-              </div>
+            <div className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
+              <div className="grid grid-cols-2 gap-5">
+                {/* 섹션 1: 시나리오 기본 정보 */}
+                <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
+                  <ClipboardList size={16} /> 시나리오 기본 정보
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className={labelClass}>시나리오명</label>
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text">
+                    {selectedScenario.name}
+                  </p>
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>설명</label>
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text min-h-[3rem]">
+                    {selectedScenario.description || "설명이 없습니다."}
+                  </p>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    카테고리
-                  </label>
-                  <p className="text-base text-gray-900">
+                  <label className={labelClass}>카테고리</label>
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text">
                     {selectedScenario.category || "-"}
                   </p>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    위험 레벨
-                  </label>
-                  <p className="text-base text-gray-900">
-                    {getRiskLevelLabel(selectedScenario.riskLevel)}
+                  <label className={labelClass}>위험 레벨</label>
+                  <div className="flex">
+                    <span
+                      className={`px-4 py-1.5 text-sm font-bold border rounded-sm shadow-sm ${getRiskLevelStyle(selectedScenario.riskLevel)}`}
+                    >
+                      {getRiskLevelLabel(selectedScenario.riskLevel)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 섹션 2: 위험 기준 정보 */}
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
+                  <ShieldCheck size={16} /> 위험 기준 설정
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>위험 판정 기준</label>
+                  <p className="p-2.5 border border-cp-border/50 rounded-sm bg-cp-bg/30 text-cp-text min-h-[3rem]">
+                    {selectedScenario.riskCriteria || "-"}
                   </p>
+                </div>
+
+                {/* 섹션 3: 질문 리스트 */}
+                <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
+                  <HelpCircle size={16} /> 질문 리스트
+                </div>
+
+                <div className="col-span-2 space-y-3">
+                  {selectedScenario.questions && selectedScenario.questions.length > 0 ? (
+                    selectedScenario.questions.map((question, index) => (
+                      <div
+                        key={question.questionId || index}
+                        className="p-4 border border-cp-border rounded-sm bg-cp-bg/30 space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-teal-500/70 bg-teal-500/5 px-2 py-0.5 rounded-sm border border-teal-500/20">
+                            질문 {index + 1}
+                          </span>
+                          {question.isRequired && (
+                            <span className="text-[10px] font-bold text-amber-500/70 bg-amber-500/5 px-1.5 py-0.5 rounded-sm border border-amber-500/20">
+                              필수 답변
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-cp-text leading-relaxed">
+                          {question.questionText}
+                        </p>
+                        <div className="text-[10px] text-cp-muted font-medium">
+                          정렬 순서: {question.questionOrder}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 border border-dashed border-cp-border rounded-sm bg-cp-bg/50 text-cp-muted text-sm">
+                      등록된 질문이 없습니다.
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  위험 기준
-                </label>
-                <p className="text-base text-gray-900">
-                  {selectedScenario.riskCriteria || "-"}
-                </p>
+              <div className="flex justify-end pt-10">
+                <button
+                  onClick={handleCloseDetailModal}
+                  className="px-8 py-3 bg-cp-input border border-cp-border text-cp-muted rounded-sm font-semibold hover:bg-cp-bg hover:text-cp-text transition-all shadow-md"
+                >
+                  닫기
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  질문 리스트
-                </label>
-                {selectedScenario.questions &&
-                selectedScenario.questions.length > 0 ? (
-                  <div className="space-y-2">
-                    {selectedScenario.questions.map((question, index) => (
-                      <div
-                        key={question.questionId || index}
-                        className="p-3 border border-gray-200 rounded-md"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-900">
-                              {index + 1}. {question.questionText}
-                            </p>
-                            <div className="mt-1 text-xs text-gray-500">
-                              순서: {question.questionOrder} |{" "}
-                              {question.isRequired ? "필수" : "선택"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    등록된 질문이 없습니다.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={handleCloseDetailModal}
-                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600"
-              >
-                닫기
-              </button>
             </div>
           </div>
         </div>

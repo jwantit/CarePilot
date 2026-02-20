@@ -1,5 +1,12 @@
 package com.carepilot.service.auth;
 
+import com.carepilot.domain.notification.NotificationType;
+import com.carepilot.domain.notification.RiskLevel;
+import com.carepilot.domain.organization.Organization;
+import com.carepilot.domain.user.User;
+import com.carepilot.domain.user.UserRole;
+import com.carepilot.repository.user.UserRepository;
+import com.carepilot.service.notification.NotificationService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +14,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -20,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ApprovalServiceImpl implements ApprovalService {
     
     private final JavaMailSender mailSender;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
     
     // TODO: 추후 Redis로 변경 (현재는 인메모리 저장)
     private final Map<String, TokenInfo> tokenStore = new ConcurrentHashMap<>();
@@ -131,6 +142,70 @@ public class ApprovalServiceImpl implements ApprovalService {
         }
     }
     
+    @Override
+    @Async
+    @Transactional(readOnly = true)
+    public void sendApprovalNotificationsAsync(Long userId) {
+        log.info("비동기 승인 알림 처리 시작: userId={}", userId);
+        try {
+            // 1. 사용자 및 조직 정보 조회
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                log.warn("사용자를 찾을 수 없음: userId={}", userId);
+                return;
+            }
+            
+            Organization organization = user.getOrganization();
+            if (organization == null) {
+                log.warn("사용자의 조직 정보가 없음: userId={}", userId);
+                return;
+            }
+
+            // 2. 조직의 MANAGER 조회
+            var managers = userRepository.findByOrganizationAndRole(organization, UserRole.MANAGER);
+            if (managers.isEmpty()) {
+                log.warn("조직에 MANAGER가 없음: organizationId={}, organizationNumber={}", 
+                        organization.getOrganizationId(), organization.getOrganizationNumber());
+                return;
+            }
+            
+            // 3. 승인 토큰 및 링크 생성
+            String token = generateToken(user.getUserId());
+            String approvalLink = generateApprovalLink(token);
+            
+            // 4. 조직 공유 알림 생성 및 WebSocket 발송 (DB 저장 포함)
+            String title = "회원가입 승인 요청";
+            String text = user.getName() + "(" + user.getEmail() + ")님이 회원가입 승인을 요청했습니다.";
+            
+            notificationService.createOrganizationNotification(
+                organization.getOrganizationId(),
+                NotificationType.SIGNUP_APPROVAL,
+                title,
+                text,
+                RiskLevel.MEDIUM,
+                null,
+                null
+            );
+
+            // 5. 각 MANAGER에게 메일 발송
+            for (User manager : managers) {
+                // 메일 발송
+                sendApprovalRequestEmail(
+                        manager.getEmail(),
+                        user.getName(),
+                        user.getEmail(),
+                        approvalLink
+                );
+                
+                log.debug("회원가입 승인 요청 메일 발송 완료: managerId={}, managerEmail={}", 
+                        manager.getUserId(), manager.getEmail());
+            }
+            log.info("비동기 승인 알림 처리 완료: userId={}", userId);
+        } catch (Exception e) {
+            log.error("비동기 승인 알림 처리 중 오류 발생: userId={}, error={}", userId, e.getMessage(), e);
+        }
+    }
+
     /**
      * 이메일 본문 HTML 생성
      */

@@ -3,8 +3,10 @@ package com.carepilot.security.service;
 import com.carepilot.domain.user.User;
 import com.carepilot.dto.auth.UserDTO;
 import com.carepilot.repository.user.UserRepository;
+import com.carepilot.service.auth.TokenRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,11 +19,18 @@ import org.springframework.stereotype.Service;
 public class AuthUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final TokenRedisService tokenRedisService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         log.info("----------------loadUserByUsername-----------------------------");
+
+        // 1. Redis에서 로그인 차단 여부 먼저 확인 (Brute Force 방지)
+        if (tokenRedisService.isLoginBlocked(username)) {
+            log.warn("차단된 계정의 로그인 시도: email={}", username);
+            throw new LockedException("TOO_MANY_ATTEMPTS");
+        }
 
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() ->

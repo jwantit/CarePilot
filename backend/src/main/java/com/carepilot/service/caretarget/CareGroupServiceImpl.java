@@ -1,11 +1,12 @@
 package com.carepilot.service.caretarget;
 
 
+import com.carepilot.common.exception.ApiException;
+import com.carepilot.common.exception.ErrorCode;
 import com.carepilot.domain.call.*;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.caretarget.CareTargetGroup;
 import com.carepilot.domain.caretarget.CareTargetGroupMap;
-import com.carepilot.domain.caretarget.GroupType;
 import com.carepilot.domain.config.Scenario;
 
 import com.carepilot.domain.notification.RiskLevel;
@@ -13,7 +14,7 @@ import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
 import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
 import com.carepilot.dto.caretarget.caretargetgroup.*;
-import com.carepilot.dto.upload.UploadFileResponseDTO;
+import com.carepilot.dto.config.RiskConfigDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.call.RiskScoreRepository;
@@ -23,15 +24,15 @@ import com.carepilot.repository.caretarget.CareTargetRepository;
 import com.carepilot.repository.config.ScenarioRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
+import com.carepilot.service.sms.ScheduleNotificationService;
+import com.carepilot.service.config.risk.RiskConfigService;
 import com.carepilot.service.upload.UploadFileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Proxy;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -46,6 +47,7 @@ public class CareGroupServiceImpl implements CareGroupService {
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final CareTargetGroupMapRepository careTargetGroupMapRepository;
+    private final ScheduleNotificationService scheduleNotificationService;
     private final CareTargetGroupRepository careTargetGroupRepository;
     private final CareTargetRepository careTargetRepository;
     private final RiskScoreRepository riskScoreRepository;
@@ -53,6 +55,7 @@ public class CareGroupServiceImpl implements CareGroupService {
     private final UploadFileService uploadFileService;
     private final CallRepository callRepository;
     private final CallScheduleRepository callScheduleRepository;
+    private final RiskConfigService riskConfigService;
 
     
     
@@ -75,14 +78,14 @@ public class CareGroupServiceImpl implements CareGroupService {
 //            private Long userId;
 //        }
         Scenario scenario = scenarioRepository.findById(dto.getScenarioId())
-                .orElseThrow(() -> new RuntimeException("해당 시나리오를 찾을 수 없담: " + dto.getScenarioId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.SCENARIO_NOT_FOUND));
 
         log.info("scenario" + scenario.getName());
 
         Organization organization = organizationRepository.findById(dto.getOrganizationId())
-                .orElseThrow(() -> new RuntimeException("해당 조직을 찾을 수 없습니다: " + dto.getOrganizationId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND, "조직 ID를 찾을 수 없습니다."));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다: " + dto.getUserId()));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
         log.info("성공1");
 
         CareTargetGroup careTargetGroup = CareTargetGroup.builder()
@@ -164,23 +167,6 @@ public class CareGroupServiceImpl implements CareGroupService {
 
 
 
-
-    //그룹 상세정보------------------------------------------------------------------
-    @Override
-    public CareGroupDetailResponseDTO getAllCareGroup(Long organizationId) {
-        return null;
-    }
-    //-------------------------------------------------------------------------
-
-    //케데 선택 리스트------------------------------------------------
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CareTargetListResponseDTO> getCareTargetList(Long organizationId) {
-        return careTargetRepository.findCareTargetList(organizationId);
-    }
-    //-------------------------------------------------------------
-
     //시나리오 선택 리스트 ------------------------------------------------
     @Override
     @Transactional(readOnly = true)
@@ -200,11 +186,14 @@ public class CareGroupServiceImpl implements CareGroupService {
         List<CareTargetGroupMap> ctgms = careTargetGroupMapRepository.findGroupDetails(organizationId, careGroupId);
 
         if (ctgms.isEmpty()) {
-            throw new EntityNotFoundException("해당 그룹 정보가 존재하지 않습니다.");
+            throw new ApiException(ErrorCode.CARE_TARGET_GROUP_NOT_FOUND);
         }
 
         // 공통 그룹 정보 추출
         CareTargetGroup group = ctgms.get(0).getGroup();
+        
+        // 조직의 RiskConfig 조회 (케어대상 페이지와 동일한 로직)
+        RiskConfigDTO riskConfig = riskConfigService.getRiskConfig(organizationId);
 
         //위험도 카운트
         int low = 0, medium = 0, high = 0, critical = 0;
@@ -215,10 +204,17 @@ public class CareGroupServiceImpl implements CareGroupService {
         for (CareTargetGroupMap map : ctgms) {
             CareTarget ct = map.getCareTarget();
 
-            // 최신 위험도 점수 및 레벨
-            RiskLevel riskLevel = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId())
-                    .map(RiskScore::getRiskLevel)
-                    .orElse(RiskLevel.LOW);
+            // 최신 위험도 기록 조회
+            Optional<com.carepilot.domain.call.RiskScore> latestRiskOpt = riskScoreRepository.findLatestByCareTargetId(ct.getCareTargetId());
+
+            // 최신 위험도 점수를 기반으로 레벨 계산 (케어대상 페이지와 동일한 로직)
+            RiskLevel riskLevel = latestRiskOpt
+                    .map(rs -> riskConfigService.resolveLevel(rs.getRiskScore(), riskConfig))
+                    .orElse(null);
+
+            int riskScore = latestRiskOpt
+                    .map(com.carepilot.domain.call.RiskScore::getRiskScore)
+                    .orElse(0);
 
             // 위험도 카운트 증가
             switch (riskLevel) {
@@ -236,6 +232,7 @@ public class CareGroupServiceImpl implements CareGroupService {
                     .disease(ct.getDisease())
                     .careTargetPhone(ct.getTargetPhone())
                     .riskLevel(riskLevel)
+                    .riskScore(riskScore)
                     .build());
         }
 
@@ -243,6 +240,7 @@ public class CareGroupServiceImpl implements CareGroupService {
                 .groupId(group.getGroupId())
                 .groupName(group.getGroupName())
                 .groupDescription(group.getGroupDescription())
+                .scenarioId(group.getScenario() != null ? group.getScenario().getScenarioId() : null)
                 .scenarioName(group.getScenario() != null ? group.getScenario().getName() : "미지정")
                 .scenarioDescription(group.getScenario() != null ? group.getScenario().getDescription() : "")
                 .careTargetCount(String.valueOf(careList.size()))
@@ -263,6 +261,7 @@ public class CareGroupServiceImpl implements CareGroupService {
 
     @Transactional
     public void deleteGroup(Long groupId) {
+        callScheduleRepository.deleteByGroupGroupId(groupId);
         careTargetGroupMapRepository.deleteByGroupId(groupId);
         careTargetGroupRepository.deleteById(groupId);
     }
@@ -276,7 +275,14 @@ public class CareGroupServiceImpl implements CareGroupService {
     @Transactional
     public CareGroupOneDetailResponseDTO updateCareTargetGroup(CareGroupUpdateRequestDTO dto) {
         CareTargetGroup ctg = careTargetGroupRepository.findById(dto.getCareGroupId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 그룹을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_NOT_FOUND));
+
+        // 시나리오 업데이트 처리
+        if (dto.getScenarioId() != null) {
+            Scenario scenario = scenarioRepository.findById(dto.getScenarioId())
+                    .orElseThrow(() -> new ApiException(ErrorCode.SCENARIO_NOT_FOUND));
+            ctg.updateScenario(scenario);
+        }
 
         ctg.updateInfo(dto.getGroupName(), dto.getGroupDescription(), dto.getGroupStatus());
 
@@ -296,7 +302,7 @@ public class CareGroupServiceImpl implements CareGroupService {
     @Override
     public CareGroupOneDetailResponseDTO addCareTargetInGroup(CareGroupUpdateRequestDTO dto) {
         CareTargetGroup ctg = careTargetGroupRepository.findById(dto.getCareGroupId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 그룹을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_GROUP_NOT_FOUND));
 
 
         List<CareTarget> careTargets = careTargetRepository.findAllById(dto.getCareTargetIds());
@@ -321,11 +327,11 @@ public class CareGroupServiceImpl implements CareGroupService {
     public List<CareGroupCallScheduleResponseDTO> saveOrUpdateCareGroupCallSchedule(CareGroupScheduleRequestDTO dto, Long userId) {
 
         Organization ogz = organizationRepository.findById(dto.getOrganizationId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 조직을 찾을 수 없습니다"));
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND, "조직ID를 찾을 수 없습니다."));
         CareTargetGroup ctg = careTargetGroupRepository.findById(dto.getGroupId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 그룹을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.CARE_TARGET_GROUP_NOT_FOUND, "그룹ID를 찾을 수 없습니다."));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
         // 날짜 파싱 로직
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -337,7 +343,7 @@ public class CareGroupServiceImpl implements CareGroupService {
         if (dto.getScheduleId() != null) {
             // 1. 수정 모드
             callSchedule = callScheduleRepository.findById(dto.getScheduleId())
-                    .orElseThrow(() -> new IllegalArgumentException("수정할 스케줄을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ApiException(ErrorCode.SCHEDULE_NOT_FOUND));
 
             // 필드 업데이트 (Dirty Checking 활용)
             callSchedule.updateSchedule(
@@ -348,6 +354,15 @@ public class CareGroupServiceImpl implements CareGroupService {
                     dto.getPriority(),
                     dto.getMemo()
             );
+             // 스케줄링 폴링용: SCHEDULED 상태일 때 수정된 scheduledTime으로 next_run_at 동기화
+             if (scheduledTime != null && callSchedule.getStatus() == ScheduleStatus.SCHEDULED) {
+                 callSchedule.rescheduleNextRunAt(scheduledTime);
+             }
+             try {
+                 scheduleNotificationService.sendScheduleConfirmationSms(callSchedule);
+             } catch (Exception e) {
+                 log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", callSchedule.getScheduleId(), e.getMessage());
+             }
         } else {
             // 2. 등록 모드
             callSchedule = CallSchedule.builder()
@@ -355,6 +370,7 @@ public class CareGroupServiceImpl implements CareGroupService {
                     .targetType(ScheduleTargetType.GROUP)
                     .group(ctg)
                     .scheduledTime(scheduledTime)
+                    .nextRunAt(scheduledTime)
                     .type(dto.getType())
                     .recurrence(dto.getRecurrence())
                     .recurrenceEndDate(recurrenceEndDate)
@@ -363,7 +379,11 @@ public class CareGroupServiceImpl implements CareGroupService {
                     .memo(dto.getMemo())
                     .build();
             callScheduleRepository.save(callSchedule);
-
+            try {
+                scheduleNotificationService.sendScheduleConfirmationSms(callSchedule);
+            } catch (Exception e) {
+                log.warn("예약확인 문자 발송 실패 scheduleId={}: {}", callSchedule.getScheduleId(), e.getMessage());
+            }
         }
 
         return getCareGroupCallScheduleList(ctg.getGroupId(), dto.getOrganizationId());
@@ -406,7 +426,7 @@ public class CareGroupServiceImpl implements CareGroupService {
     @Transactional
     public void deleteGroupCallSchedule(Long groupId, Long scheduleId) {
         CallSchedule schedule = callScheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 스케줄을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.SCENARIO_NOT_FOUND));
         if (!schedule.getGroup().getGroupId().equals(groupId)) {
             throw new IllegalArgumentException("해당 그룹의 스케줄이 아닙니다.");
         }

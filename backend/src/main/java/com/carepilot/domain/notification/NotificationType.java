@@ -17,6 +17,7 @@ public enum NotificationType {
     CALL,
     RISK_DETECTION,
     SCHEDULE,
+    SIGNUP_APPROVAL,
     OTHER
 }
 

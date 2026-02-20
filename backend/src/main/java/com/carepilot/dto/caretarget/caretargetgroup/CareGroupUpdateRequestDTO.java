@@ -13,6 +13,7 @@ public class CareGroupUpdateRequestDTO {
     private List<Long> careTargetIds;
     private Long organizationId;
     private Long careGroupId;
+    private Long scenarioId;
     private String groupName;
     private String groupDescription;
     private Boolean groupStatus;

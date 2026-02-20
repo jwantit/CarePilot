@@ -11,6 +11,8 @@ import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.config.ScenarioQuestion;
 import com.carepilot.dto.call.*;
 import com.carepilot.dto.callanalysis.CallAnalyzeResponseDTO;
+import com.carepilot.dto.PageRequestDTO;
+import com.carepilot.dto.PageResponseDTO;
 import com.carepilot.repository.call.CallRepository;
 import com.carepilot.repository.call.CallScheduleRepository;
 import com.carepilot.repository.caretarget.CareTargetRepository;
@@ -18,6 +20,7 @@ import com.carepilot.repository.config.ScenarioQuestionRepository;
 import com.carepilot.service.call.CallService;
 import com.carepilot.service.call.TwilioService;
 import com.carepilot.service.callanalysis.CallAnalysisService;
+import com.carepilot.util.PhoneNumberUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,61 +48,82 @@ public class CallController {
     private final ScenarioQuestionRepository scenarioQuestionRepository;
 
     private final CallAnalysisService callAnalysisService;
+    private final com.carepilot.service.call.emergency.EmergencyDetectionService emergencyDetectionService;
+    private final com.carepilot.service.notification.NotificationService notificationService;
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
 
     // [탭 1] 통화 이력 리스트 조회
-    @GetMapping("/history")
-    public ResponseEntity<List<CallResponseDTO>> getCallHistory() {
-        return ResponseEntity.ok(callService.getCallHistory());
+    @GetMapping("/{organizationId}/history")
+    public ResponseEntity<List<CallResponseDTO>> getCallHistory(
+            @PathVariable Long organizationId) {
+        return ResponseEntity.ok(callService.getCallHistory(organizationId));
+    }
+
+    @GetMapping("/{organizationId}/history/paged")
+    public ResponseEntity<PageResponseDTO<CallResponseDTO>> getCallHistoryWithPaging(
+            @PathVariable Long organizationId,
+            PageRequestDTO pageRequestDTO) {
+        return ResponseEntity.ok(callService.getCallHistoryWithPaging(organizationId, pageRequestDTO));
     }
 
     // [탭 1] 실시간 또는 상세 통화 내용 조회 (사진 2 상단 STT 뷰)
-    @GetMapping("/{callId}")
-    public ResponseEntity<CallDetailResponseDTO> getCallDetail(@PathVariable Long callId) {
-        return ResponseEntity.ok(callService.getCallDetail(callId));
+    @GetMapping("/{organizationId}/{callId}")
+    public ResponseEntity<CallDetailResponseDTO> getCallDetail(
+            @PathVariable Long organizationId,
+            @PathVariable Long callId) {
+        return ResponseEntity.ok(callService.getCallDetail(organizationId, callId));
     }
 
     // [탭 2] 예약된 통화 일정 조회 (하단 리스트)
-    @GetMapping("/schedules/upcoming")
-    public ResponseEntity<List<ScheduleResponseDTO>> getUpcomingSchedules() {
-        return ResponseEntity.ok(callService.getUpcomingSchedules());
+    @GetMapping("/{organizationId}/schedules/upcoming")
+    public ResponseEntity<List<ScheduleResponseDTO>> getUpcomingSchedules(
+            @PathVariable Long organizationId) {
+        return ResponseEntity.ok(callService.getUpcomingSchedules(organizationId));
     }
 
     // [탭 2] 캘린더용 월별 일정 조회
-    @GetMapping("/schedules/calendar")
+    @GetMapping("/{organizationId}/schedules/calendar")
     public ResponseEntity<List<ScheduleResponseDTO>> getCalendarSchedules(
+            @PathVariable Long organizationId,
             @RequestParam int year, @RequestParam int month) {
-        return ResponseEntity.ok(callService.getSchedulesByMonth(year, month));
+        return ResponseEntity.ok(callService.getSchedulesByMonth(organizationId, year, month));
     }
 
     // [탭 2] 일정 추가
-    @PostMapping("/schedules")
-    public ResponseEntity<Long> createSchedule(@RequestBody ScheduleCreateRequestDTO dto) {
-        return ResponseEntity.ok(callService.createSchedule(dto));
+    @PostMapping("/{organizationId}/schedules")
+    public ResponseEntity<Long> createSchedule(
+            @PathVariable Long organizationId,
+            @RequestBody ScheduleCreateRequestDTO dto) {
+        return ResponseEntity.ok(callService.createSchedule(organizationId, dto));
     }
 
     // [탭 2] 일정 수정
-    @PutMapping("/schedules/{scheduleId}")
+    @PutMapping("/{organizationId}/schedules/{scheduleId}")
     public ResponseEntity<Void> updateSchedule(
+            @PathVariable Long organizationId,
             @PathVariable Long scheduleId,
             @RequestBody ScheduleUpdateRequestDTO dto) {
-        callService.updateSchedule(scheduleId, dto);
+        callService.updateSchedule(organizationId, scheduleId, dto);
         return ResponseEntity.ok().build();
     }
 
     // [탭 2] 일정 삭제 (Soft delete)
-    @DeleteMapping("/schedules/{scheduleId}")
-    public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId) {
-        callService.deleteSchedule(scheduleId);
+    @DeleteMapping("/{organizationId}/schedules/{scheduleId}")
+    public ResponseEntity<Void> deleteSchedule(
+            @PathVariable Long organizationId,
+            @PathVariable Long scheduleId) {
+        callService.deleteSchedule(organizationId, scheduleId);
         return ResponseEntity.ok().build();
     }
 
     // [탭 2] 일정 복구
-    @PostMapping("/schedules/{scheduleId}/restore")
-    public ResponseEntity<Void> restoreSchedule(@PathVariable Long scheduleId) {
-        callService.restoreSchedule(scheduleId);
+    @PostMapping("/{organizationId}/schedules/{scheduleId}/restore")
+    public ResponseEntity<Void> restoreSchedule(
+            @PathVariable Long organizationId,
+            @PathVariable Long scheduleId) {
+        callService.restoreSchedule(organizationId, scheduleId);
         return ResponseEntity.ok().build();
     }
 
@@ -112,7 +136,7 @@ public class CallController {
         log.info("입력 전화번호: {}", phoneNumber);
         
         // 전화번호 정규화
-        String normalizedPhone = normalizePhoneNumber(phoneNumber);
+        String normalizedPhone = PhoneNumberUtil.normalizePhoneNumber(phoneNumber);
         result.put("inputPhone", phoneNumber);
         result.put("normalizedPhone", normalizedPhone);
         log.info("정규화된 전화번호: {}", normalizedPhone);
@@ -207,10 +231,10 @@ public class CallController {
     @Transactional
     public ResponseEntity<MakeCallResponseDTO> makeCall(@RequestBody MakeCallRequestDTO request) {
         // 010-0000-0000 형식을 +8210... 형식으로 파싱
-        String parsedPhoneNumber = parsePhoneNumber(request.getTo());
+        String parsedPhoneNumber = PhoneNumberUtil.parsePhoneNumber(request.getTo());
         
         // 전화번호 정규화 (010-0000-0000 -> 01000000000)
-        String normalizedPhone = normalizePhoneNumber(request.getTo());
+        String normalizedPhone = PhoneNumberUtil.normalizePhoneNumber(request.getTo());
         
         // 전화번호로 CareTarget 찾기
         CareTarget careTarget = findCareTargetByPhone(normalizedPhone);
@@ -239,7 +263,7 @@ public class CallController {
                 .callSchedule(callSchedule)
                 .direction(CallDirection.OUTBOUND)
                 .callType(CallType.REGULAR_MONITORING)
-                .status(CallStatus.NO_ANSWER) // 초기 상태는 무응답 (통화 완료 시 업데이트됨)
+                .status(null) // 초기 상태는 null (통화 완료 시 Twilio callback에서 업데이트됨)
                 .startTime(LocalDateTime.now())
                 .callerId(normalizedPhone)
                 .callSid(callSid)
@@ -256,51 +280,6 @@ public class CallController {
                 .callSid(callSid)
                 .build();
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * 한국 전화번호를 Twilio 형식으로 파싱
-     * 010-0000-0000 → +82100000000
-     * 
-     * @param phoneNumber 입력 전화번호 (010-0000-0000, 01000000000 등)
-     * @return Twilio 형식 전화번호 (+82100000000)
-     */
-    private String parsePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("전화번호가 입력되지 않았습니다.");
-        }
-
-        // 하이픈, 공백 제거
-        String cleaned = phoneNumber.replaceAll("[\\s-]", "");
-        
-        // 이미 +82로 시작하면 그대로 반환
-        if (cleaned.startsWith("+82")) {
-            return cleaned;
-        }
-        
-        // 010으로 시작하면 0을 제거하고 +82 추가
-        if (cleaned.startsWith("010")) {
-            return "+82" + cleaned.substring(1);
-        }
-        
-        // 0으로 시작하면 0을 제거하고 +82 추가
-        if (cleaned.startsWith("0")) {
-            return "+82" + cleaned.substring(1);
-        }
-        
-        // 그 외의 경우는 +82를 앞에 추가
-        return "+82" + cleaned;
-    }
-
-    /**
-     * 전화번호 정규화 (하이픈, 공백 제거)
-     * 010-0000-0000 → 01000000000
-     */
-    private String normalizePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            return "";
-        }
-        return phoneNumber.replaceAll("[\\s-]", "");
     }
 
     /**
@@ -326,12 +305,6 @@ public class CallController {
         return schedules.stream()
                 .filter(s -> s.getCareTarget() != null && 
                         s.getCareTarget().getCareTargetId().equals(careTarget.getCareTargetId()))
-//                .filter(s -> {
-//                    // 예약 시간이 현재 시간 기준 1시간 이내인 경우만
-//                    LocalDateTime now = LocalDateTime.now();
-//                    return s.getScheduledTime().isAfter(now.minusHours(1)) &&
-//                           s.getScheduledTime().isBefore(now.plusHours(1));
-//                })
                 .findFirst()
                 .orElse(null); // 예약이 없으면 null 반환 (정상 동작)
     }
@@ -346,14 +319,190 @@ public class CallController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // [테스트용] scheduledTime에 전화 발신 로그만 남기는 API
+    // [테스트용] scheduledTime에 전화 발신 로그만 남기는 API (실행 로직은 CallService.executeScheduledCall과 동일)
     @PostMapping("/make-call-test")
     public ResponseEntity<Void> makeCallTest(@RequestBody MakeCallTestRequestDTO request) {
-        log.info("테스트 발신 - scheduledTime={}, to={}",
+        callService.executeScheduledCall(
+                request.getTo(),
                 request.getScheduledTime(),
-                request.getTo());
-
-        // 실제 전화 발신은 하지 않고, 로그만 남김
+                null);
         return ResponseEntity.ok().build();
+    }
+
+    // [테스트용] 긴급 상황 감지 및 알림 발생 테스트 API (Postman용)
+    @PostMapping("/test/emergency")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> testEmergencyDetection(
+            @RequestParam Long careTargetId,
+            @RequestParam String answer,
+            @RequestParam(required = false, defaultValue = "일상 건강 체크") String scenarioPurpose) {
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // CareTarget 조회
+            CareTarget careTarget = careTargetRepository.findById(careTargetId)
+                    .orElseThrow(() -> new RuntimeException("CareTarget not found: " + careTargetId));
+            
+            com.carepilot.domain.organization.Organization organization = careTarget.getOrganization();
+            if (organization == null) {
+                result.put("success", false);
+                result.put("error", "CareTarget의 Organization이 없습니다.");
+                return ResponseEntity.badRequest().body(result);
+            }
+            
+            // Call 생성 (테스트용 - 항상 새로 생성)
+            String shortCallSid = "TEST_EMG_" + UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+            Call testCall = callRepository.save(Call.builder()
+                    .organization(organization)
+                    .careTarget(careTarget)
+                    .direction(CallDirection.OUTBOUND)
+                    .callType(CallType.REGULAR_MONITORING)
+                    .status(CallStatus.SUCCESS)
+                    .startTime(java.time.LocalDateTime.now())
+                    .callSid(shortCallSid)
+                    .callerId(careTarget.getTargetPhone())
+                    .build());
+            
+            // 긴급 상황 감지
+            com.carepilot.service.call.emergency.EmergencyDetectionResult detectionResult = 
+                    emergencyDetectionService.detectEmergency(answer, scenarioPurpose);
+            
+            result.put("detectionResult", Map.of(
+                    "isEmergency", detectionResult.isEmergency(),
+                    "emergencyMessage", detectionResult.getEmergencyMessage() != null ? detectionResult.getEmergencyMessage() : ""
+            ));
+            
+            // 긴급 상황인 경우 알림 생성
+            if (detectionResult.isEmergency()) {
+                String title = String.format("긴급 상황 발생: %s", careTarget.getName());
+                String description = String.format(
+                        "케어대상자 '%s'의 통화 중 긴급 상황이 감지되었습니다.\n\n" +
+                        "감지된 답변: %s\n" +
+                        "대응 메시지: %s",
+                        careTarget.getName(), answer, detectionResult.getEmergencyMessage());
+                
+                com.carepilot.domain.notification.Notification notification = 
+                        notificationService.createOrganizationNotification(
+                                organization.getOrganizationId(),
+                                com.carepilot.domain.notification.NotificationType.EMERGENCY,
+                                title,
+                                description,
+                                com.carepilot.domain.notification.RiskLevel.CRITICAL,
+                                testCall,
+                                careTarget
+                        );
+                
+                result.put("notification", Map.of(
+                        "notificationId", notification.getNotificationId(),
+                        "title", notification.getTitle(),
+                        "type", notification.getType().name(),
+                        "severity", notification.getSeverity().name(),
+                        "status", notification.getStatus().name(),
+                        "organizationId", notification.getOrganization().getOrganizationId(),
+                        "userId", notification.getUser() == null ? "null (조직 공유)" : notification.getUser().getUserId()
+                ));
+                
+                result.put("success", true);
+                result.put("message", "긴급 알림이 생성되었습니다.");
+            } else {
+                result.put("success", true);
+                result.put("message", "정상 답변으로 판단되었습니다. 알림이 생성되지 않았습니다.");
+            }
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("긴급 상황 테스트 실패: careTargetId={}, answer={}, error={}", 
+                    careTargetId, answer, e.getMessage(), e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
+    // [테스트용] 위험 감지 알림 생성 테스트 API (Postman용)
+    @PostMapping("/test/risk-detection")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> testRiskDetectionNotification(
+            @RequestParam Long careTargetId,
+            @RequestParam(required = false, defaultValue = "75") Integer riskScore,
+            @RequestParam(required = false, defaultValue = "HIGH") String riskLevelStr) {
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // CareTarget 조회
+            CareTarget careTarget = careTargetRepository.findById(careTargetId)
+                    .orElseThrow(() -> new RuntimeException("CareTarget not found: " + careTargetId));
+            
+            com.carepilot.domain.organization.Organization organization = careTarget.getOrganization();
+            if (organization == null) {
+                result.put("success", false);
+                result.put("error", "CareTarget의 Organization이 없습니다.");
+                return ResponseEntity.badRequest().body(result);
+            }
+            
+            // RiskLevel 파싱
+            com.carepilot.domain.notification.RiskLevel riskLevel;
+            try {
+                riskLevel = com.carepilot.domain.notification.RiskLevel.valueOf(riskLevelStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                result.put("success", false);
+                result.put("error", "Invalid riskLevel: " + riskLevelStr + " (가능한 값: LOW, MEDIUM, HIGH, CRITICAL)");
+                return ResponseEntity.badRequest().body(result);
+            }
+            
+            // Call 생성 (테스트용 - 항상 새로 생성)
+            String shortCallSid = "TEST_RISK_" + UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+            Call testCall = callRepository.save(Call.builder()
+                    .organization(organization)
+                    .careTarget(careTarget)
+                    .direction(CallDirection.OUTBOUND)
+                    .callType(CallType.REGULAR_MONITORING)
+                    .status(CallStatus.SUCCESS)
+                    .startTime(java.time.LocalDateTime.now())
+                    .callSid(shortCallSid)
+                    .callerId(careTarget.getTargetPhone())
+                    .build());
+            
+            // 위험 감지 알림 생성
+            com.carepilot.domain.notification.Notification notification = 
+                    notificationService.createRiskDetectionNotification(
+                            organization.getOrganizationId(),
+                            testCall,
+                            careTarget,
+                            riskScore,
+                            riskLevel
+                    );
+            
+            result.put("success", true);
+            result.put("message", "위험 감지 알림이 생성되었습니다.");
+            result.put("notification", Map.of(
+                    "notificationId", notification.getNotificationId(),
+                    "title", notification.getTitle(),
+                    "description", notification.getDescription(),
+                    "type", notification.getType().name(),
+                    "severity", notification.getSeverity().name(),
+                    "status", notification.getStatus().name(),
+                    "organizationId", notification.getOrganization().getOrganizationId(),
+                    "userId", notification.getUser() == null ? "null (조직 공유)" : notification.getUser().getUserId(),
+                    "callId", testCall.getCallId(),
+                    "careTargetId", careTarget.getCareTargetId()
+            ));
+            result.put("testData", Map.of(
+                    "riskScore", riskScore,
+                    "riskLevel", riskLevel.name()
+            ));
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("위험 감지 알림 테스트 실패: careTargetId={}, riskScore={}, riskLevel={}, error={}", 
+                    careTargetId, riskScore, riskLevelStr, e.getMessage(), e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(result);
+        }
     }
 }

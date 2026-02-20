@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
         // 개인정보 수정
         if (request.getName() != null) user.setName(request.getName());
         if (request.getEmail() != null) user.setEmail(request.getEmail());
-        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getPhone() != null) user.setPhone(formatPhone(request.getPhone()));
         
         userRepository.save(user);
         
@@ -153,5 +153,16 @@ public class UserServiceImpl implements UserService {
         } catch (IllegalArgumentException e) {
             throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR, "유효하지 않은 권한값입니다.");
         }
+    }
+
+    /** 숫자만 추출 후 010-XXXX-XXXX 형식으로 포맷 (null/blank면 null, 11자리 초과 시 앞 11자리만) */
+    private static String formatPhone(String phone) {
+        if (phone == null || phone.isBlank()) return null;
+        String digits = phone.replaceAll("\\D", "");
+        if (digits.isEmpty()) return null;
+        if (digits.length() > 11) digits = digits.substring(0, 11);
+        if (digits.length() <= 3) return digits;
+        if (digits.length() <= 7) return digits.substring(0, 3) + "-" + digits.substring(3);
+        return digits.substring(0, 3) + "-" + digits.substring(3, 7) + "-" + digits.substring(7);
     }
 }

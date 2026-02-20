@@ -66,7 +66,7 @@ public class CallServiceTests {
     Call secondCall =
         persistDummyCall(LocalDateTime.now().minusMinutes(5), CallStatus.FAILED, "두번째 통화송출");
 
-    List<CallResponseDTO> history = callService.getCallHistory();
+    List<CallResponseDTO> history = callService.getCallHistory(testOrg.getOrganizationId());
 
     assertThat(history)
         .hasSizeGreaterThanOrEqualTo(2)
@@ -82,7 +82,7 @@ public class CallServiceTests {
   void getCallDetail_includesRecordingAndStatusLabel() {
     Call call = persistDummyCall(LocalDateTime.now(), CallStatus.SUCCESS, "dummy-transcript");
 
-    CallDetailResponseDTO detail = callService.getCallDetail(call.getCallId());
+    CallDetailResponseDTO detail = callService.getCallDetail(testOrg.getOrganizationId(), call.getCallId());
 
     assertThat(detail.getTranscript()).contains("dummy-transcript");
     assertThat(detail.getStatusLabel()).isEqualTo("성공");
@@ -102,7 +102,7 @@ public class CallServiceTests {
             .memo("일회성 정기 상담")
             .build();
 
-    Long scheduleId = callService.createSchedule(request);
+    Long scheduleId = callService.createSchedule(testOrg.getOrganizationId(), request);
 
     assertThat(scheduleId).isNotNull();
     log.info("생성된 스케줄 ID: {}", scheduleId);

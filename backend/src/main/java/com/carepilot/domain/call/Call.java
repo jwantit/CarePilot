@@ -3,6 +3,7 @@ package com.carepilot.domain.call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.common.BaseEntity;
 import com.carepilot.domain.organization.Organization;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "calls")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Call extends BaseEntity {
 
     @Id
@@ -100,13 +102,21 @@ public class Call extends BaseEntity {
     }
 
     /**
-     * 통화 종료 시 end_time과 duration을 업데이트합니다.
+     * 통화 상태를 업데이트합니다.
+     */
+    public void updateStatus(CallStatus status) {
+        this.status = status;
+    }
+
+    /**
+     * 통화 종료 시 end_time과 duration을 업데이트하고 상태를 SUCCESS로 변경합니다.
      */
     public void completeCall() {
         this.endTime = LocalDateTime.now();
         if (this.startTime != null && this.endTime != null) {
             this.duration = (int) Duration.between(this.startTime, this.endTime).getSeconds();
         }
+        this.status = CallStatus.SUCCESS;
     }
 
     // AI 분석 결과(요약, 메모, 시그널)를 반영. 통화 분석 파이프라인에서 호출.
@@ -114,6 +124,27 @@ public class Call extends BaseEntity {
         this.summary = summary;
         this.aiMemo = aiMemo;
         this.signals = signals;
+    }
+
+    /**
+     * AI 메모에 내용을 추가합니다. 기존 내용이 있으면 줄바꿈 후 추가합니다.
+     */
+    public void appendAiMemo(String additionalMemo) {
+        if (additionalMemo == null || additionalMemo.isBlank()) {
+            return;
+        }
+        if (this.aiMemo == null || this.aiMemo.isBlank()) {
+            this.aiMemo = additionalMemo;
+        } else {
+            this.aiMemo = this.aiMemo + "\n\n" + additionalMemo;
+        }
+    }
+
+    /**
+     * AI 메모를 새로운 내용으로 교체합니다.
+     */
+    public void updateAiMemo(String newMemo) {
+        this.aiMemo = newMemo;
     }
 }
 

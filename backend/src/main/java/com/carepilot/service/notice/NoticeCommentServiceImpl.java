@@ -34,17 +34,17 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. id=" + request.getUserId()));
 
-        NoticeComment parent = null;
-        if (request.getParentId() != null) {
-            parent = commentRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글이 없습니다. id=" + request.getParentId()));
+        NoticeComment parentComment = null;
+        if (request.getParentCommentId() != null) {
+            parentComment = commentRepository.findById(request.getParentCommentId())
+                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글이 없습니다. id=" + request.getParentCommentId()));
         }
 
         NoticeComment comment = NoticeComment.builder()
                 .notice(notice)
                 .user(user)
                 .content(request.getContent())
-                .parentComment(parent)
+                .parentComment(parentComment)
                 .isDeleted(false)
                 .build();
 
@@ -53,7 +53,8 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
 
     @Override
     public List<CommentResponseDTO> getCommentsByNoticeId(Long noticeId) {
-        List<NoticeComment> comments = commentRepository.findAllByNotice_NoticeIdOrderByCreatedAtAsc(noticeId);
+        // JOIN FETCH를 사용하여 User 정보를 함께 로드
+        List<NoticeComment> comments = commentRepository.findAllByNoticeIdWithUser(noticeId);
 
         List<CommentResponseDTO> rootComments = new ArrayList<>();
         Map<Long, CommentResponseDTO> map = new HashMap<>();
@@ -77,11 +78,11 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
 
     @Override
     @Transactional
-    public void updateComment(Long commentId, CommentSaveRequest request) {
+    public void updateComment(Long commentId, CommentSaveRequest request, Long userId) {
         NoticeComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 없습니다. id=" + commentId));
 
-        comment.validateWriter(request.getUserId());
+        comment.validateWriter(userId);
 
         comment.updateContent(request.getContent());
     }

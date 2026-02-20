@@ -63,25 +63,42 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case '예약됨': return 'bg-teal-50 text-teal-600 border-teal-100';
-      case '완료됨': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case '취소됨': return 'bg-slate-50 text-slate-400 border-slate-200';
-      default: return 'bg-amber-50 text-amber-600 border-amber-100';
+      case '예약됨': return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50';
+      case '완료됨': return 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/50';
+      case '취소됨': return 'bg-cp-bg text-cp-muted border-cp-border/50 dark:bg-cp-bg/50 dark:text-cp-muted dark:border-cp-border/50';
+      default: return 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/50';
     }
   };
 
+  const getPriorityStyle = (priority) => {
+    const p = priority?.toUpperCase();
+    if (p === 'CRITICAL' || p === 'URGENT' || p === '긴급') return 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/50';
+    if (p === 'HIGH' || p === '위험') return 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50';
+    if (p === 'MEDIUM' || p === '보통') return 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/50';
+    return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/50';
+  };
+
+  const getRecurrenceLabel = (s) => {
+    if (s.type !== '반복') return '일회성';
+    const recurrenceMap = {
+      'DAILY': '일간 반복',
+      'WEEKLY': '주간 반복',
+      'MONTHLY': '월간 반복'
+    };
+    return recurrenceMap[s.recurrence] || `${s.recurrence || ''} 반복`;
+  };
+
   return (
-    <>
-      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px]">
+    <div className="flex flex-col">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border shadow-lg hover:shadow-xl transition-shadow overflow-hidden flex flex-col h-[600px] rounded-sm">
         {/* 헤더 */}
-        <div className="p-7 border-b border-slate-50 flex justify-between items-center bg-white sticky top-0 z-10">
+        <div className="p-6 border-b border-cp-border flex justify-between items-center bg-cp-bg/30 sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-teal-50 rounded-2xl">
-              <CalendarDays className="text-teal-600" size={22} />
+            <div className="p-2 rounded-sm bg-gradient-to-br from-teal-500/20 to-teal-600/20 text-teal-400 border border-teal-500/50 shadow-sm">
+              <CalendarDays size={20} />
             </div>
             <div className="text-left">
-              <h2 className="text-xl font-black text-slate-800 tracking-tight">그룹 통화 스케줄</h2>
-              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Group Call Management</p>
+              <h2 className="text-xl font-bold text-cp-text tracking-tight">그룹 통화 스케줄</h2>
             </div>
           </div>
           
@@ -89,7 +106,7 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
           {(role === 'ADMIN' || role === 'MANAGER') && (
             <button 
               onClick={() => setIsModalOpen(true)} 
-              className="px-6 py-3.5 bg-teal-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-teal-100 active:scale-95 transition-all hover:bg-teal-700"
+              className="px-5 py-2.5 bg-cp-input hover:bg-cp-bg text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 shadow-md hover:shadow-lg hover:-translate-y-0.5 rounded-sm"
             >
               스케줄 추가
             </button>
@@ -97,93 +114,98 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
         </div>
 
         {/* 테이블 영역 */}
-        <div className="overflow-y-auto flex-1 custom-scrollbar relative">
+        <div className="overflow-y-auto flex-1 modal-scrollbar relative">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-20">
-              <Loader2 className="animate-spin text-teal-600" size={32} />
+            <div className="absolute inset-0 flex items-center justify-center bg-cp-bg/60 z-20">
+              <div className="w-12 h-12 border-4 border-cp-border border-t-teal-400 rounded-full animate-spin" />
             </div>
           ) : schedules.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-300">
-              <Calendar size={48} className="opacity-10 mb-4"/>
-              <p className="font-bold text-slate-400">등록된 스케줄이 없습니다.</p>
+            <div className="flex flex-col items-center justify-center h-full text-cp-muted">
+              <div className="w-20 h-20 bg-cp-bg border-2 border-cp-border rounded flex items-center justify-center mb-5">
+                <Calendar size={32} className="text-cp-muted/40"/>
+              </div>
+              <p className="text-cp-text font-bold text-xl tracking-tight">
+                    등록된 스케줄이 없습니다.
+              </p>
             </div>
           ) : (
-            <table className="w-full border-separate border-spacing-0">
-              <thead className="sticky top-0 bg-slate-50/80 backdrop-blur-md z-10">
-                <tr className="text-slate-400 text-[11px] font-black uppercase tracking-widest text-left">
-                  <th className="px-8 py-4 border-b border-slate-100">유형 / 반복 정보</th>
-                  <th className="px-8 py-4 border-b border-slate-100">시작 일시</th>
-                  <th className="px-8 py-4 border-b border-slate-100">우선도</th>
-                  <th className="px-8 py-4 border-b border-slate-100">메모</th>
-                  <th className="px-8 py-4 border-b border-slate-100">상태</th>
-                  <th className="px-8 py-4 text-right border-b border-slate-100">관리</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-left">
+            <div className="w-full">
+              {/* 헤더 - CareTarget 스타일 동일 적용 (6열) */}
+              <div className="grid grid-cols-6 bg-cp-header border-b-2 border-teal-500/30 py-3.5 px-4 text-sm font-semibold text-white dark:text-cp-text text-center items-center min-h-[48px] sticky top-0 z-10">
+                <div className="text-white dark:text-teal-400">유형 / 반복 정보</div>
+                <div className="text-white dark:text-teal-400">시작 일시</div>
+                <div className="text-white dark:text-teal-400">우선도</div>
+                <div className="text-white dark:text-teal-400">메모</div>
+                <div className="text-white dark:text-teal-400">상태</div>
+                <div className="text-white dark:text-teal-400">관리</div>
+              </div>
+
+              {/* 데이터 행 */}
+              <div className="">
                 {schedules.map((s, idx) => (
-                  <tr key={s.scheduleId || idx} className="hover:bg-slate-50/50 transition-colors group">
+                  <div
+                    key={s.scheduleId || idx}
+                    onClick={() => { setSelectedSchedule(s); setIsModalOpen(true); }}
+                    className="grid grid-cols-6 py-3 px-4 text-sm text-center items-center min-h-[60px] bg-cp-card/30 hover:bg-cp-bg/50 transition border-b border-cp-border cursor-pointer group"
+                  >
                     {/* 유형 및 반복상세 */}
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col gap-1">
-                        <span className={`text-[11px] font-black flex items-center gap-1.5 ${s.type === '반복' ? 'text-teal-600' : 'text-slate-500'}`}>
-                          {s.type === '반복' ? <RefreshCcw size={12} strokeWidth={3}/> : <Clock size={12} strokeWidth={3}/>}
-                          {s.type}
-                        </span>
-                        {s.type === '반복' && (
-                          <div className="flex flex-col text-[10px] font-bold text-slate-400">
-                            <span>주기: {s.recurrence || '-'}</span>
-                            <span className="text-[9px] text-slate-300 font-medium">종료: {s.recurrenceEndDate || '기한없음'}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
+                    <div className="flex items-center justify-center h-full">
+                      <span className={`text-xs ${s.type === '반복' ? 'text-teal-400' : 'text-cp-muted'}`}>
+                        {getRecurrenceLabel(s)}
+                      </span>
+                    </div>
+
                     {/* 시작 일시 */}
-                    <td className="px-8 py-5">
-                      <span className="text-sm font-bold text-slate-700 block">{s.scheduledTime}</span>
-                    </td>
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-sm text-cp-text">{s.scheduledTime}</span>
+                    </div>
+
                     {/* 우선도 */}
-                    <td className="px-8 py-5">
-                      <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                    <div className="flex items-center justify-center h-full">
+                      <span className={`px-4 py-1.5 rounded-sm text-sm font-bold border shadow-sm ${getPriorityStyle(s.priority)}`}>
                         {s.priority}
                       </span>
-                    </td>
+                    </div>
+
                     {/* 메모 */}
-                    <td className="px-8 py-5">
-                      <p className="text-sm text-slate-500 truncate max-w-[180px] font-medium" title={s.memo}>
-                        {s.memo || <span className="text-slate-200">-</span>}
+                    <div className="flex items-center justify-center h-full px-2">
+                      <p className="text-sm text-cp-muted truncate w-full" title={s.memo}>
+                        {s.memo || <span className="text-cp-muted/40">-</span>}
                       </p>
-                    </td>
+                    </div>
+
                     {/* 상태 */}
-                    <td className="px-8 py-5">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black border ${getStatusStyle(s.scheduleStatus)}`}>
+                    <div className="flex items-center justify-center h-full">
+                      <span className={`px-4 py-1.5 rounded-sm text-sm font-bold border ${getStatusStyle(s.scheduleStatus)} shadow-sm`}>
                         {s.scheduleStatus}
                       </span>
-                    </td>
-                    {/* 관리 버튼: ADMIN 혹은 MANAGER일 때만 노출 */}
-                    <td className="px-8 py-5 text-right">
+                    </div>
+
+                    {/* 관리 버튼 */}
+                    <div className="flex justify-center gap-1.5">
                       {(role === 'ADMIN' || role === 'MANAGER') ? (
-                        <div className="flex justify-end gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-center gap-1.5">
                           <button 
-                            onClick={() => { setSelectedSchedule(s); setIsModalOpen(true); }} 
-                            className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+                            onClick={(e) => { e.stopPropagation(); setSelectedSchedule(s); setIsModalOpen(true); }} 
+                            className="cp-link-blue"
                           >
-                            <Edit2 size={16} />
+                            수정
                           </button>
                           <button 
-                            onClick={() => handleDelete(s.scheduleId)} 
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(s.scheduleId); }} 
+                            className="cp-link-red"
                           >
-                            <Trash2 size={16} />
+                            삭제
                           </button>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-slate-300 font-bold italic">권한 없음</span>
+                        <span className="text-xs text-cp-muted italic">권한 없음</span>
                       )}
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -197,7 +219,7 @@ const CareGroupCallSchedule = ({ organizationId, groupId }) => {
           initialData={selectedSchedule} 
         />
       )}
-    </>
+    </div>
   );
 };
 

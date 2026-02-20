@@ -6,6 +6,10 @@ import com.carepilot.domain.notification.NotificationType;
 import com.carepilot.domain.notification.RiskLevel;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.user.User;
+import com.carepilot.domain.user.UserRole;
+import com.carepilot.domain.call.Call;
+import com.carepilot.domain.call.CallStatus;
+import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.repository.notification.NotificationRepository;
 import com.carepilot.repository.organization.OrganizationRepository;
 import com.carepilot.repository.user.UserRepository;
@@ -19,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -68,9 +73,11 @@ public class NotificationServiceImpl implements NotificationService {
         message.put("severity", severity != null ? severity.name() : null);
         message.put("occurredAt", savedNotification.getOccurredAt().toString());
 
-        // 특정 사용자에게만 전송 (userId 기반)
-        messagingTemplate.convertAndSend("/topic/notifications", message);
-        log.info("Notification sent via WebSocket to user: {}", userId);
+        // 조직별 토픽으로 브로드캐스트: /topic/org/{organizationId}
+        Long orgId = organization.getOrganizationId();
+        String topic = "/topic/org/" + orgId;
+        messagingTemplate.convertAndSend(topic, message);
+        log.info("Notification sent via WebSocket to topic: {}, userId: {}", topic, userId);
 
         return savedNotification;
     }
@@ -78,14 +85,44 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<Notification> getNotificationsByUserId(Long userId) {
-        return notificationRepository.findByUserIdOrderByOccurredAtDesc(userId);
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        Long organizationId = user.getOrganization().getOrganizationId();
+        
+        // 개인 알림 + 조직 공유 알림 (user가 null인 것)
+        List<Notification> notifications = notificationRepository.findByOrganizationIdAndUserIdOrShared(organizationId, userId);
+        
+        // 일반 직원(USER)은 회원가입 승인 알림을 볼 수 없음
+        if (user.getRole() == UserRole.USER) {
+            return notifications.stream()
+                    .filter(n -> n.getType() != NotificationType.SIGNUP_APPROVAL)
+                    .collect(Collectors.toList());
+        }
+        
+        return notifications;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Notification> getUnreadNotificationsByUserId(Long userId) {
-        return notificationRepository.findByUserIdAndStatusOrderByOccurredAtDesc(
-                userId, NotificationStatus.ACTIVE);
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        Long organizationId = user.getOrganization().getOrganizationId();
+        
+        // 개인 알림 + 조직 공유 알림 중 읽지 않은 것
+        List<Notification> notifications = notificationRepository.findByOrganizationIdAndUserIdOrSharedAndStatus(
+                organizationId, userId, NotificationStatus.ACTIVE);
+        
+        // 일반 직원(USER)은 회원가입 승인 알림을 볼 수 없음
+        if (user.getRole() == UserRole.USER) {
+            return notifications.stream()
+                    .filter(n -> n.getType() != NotificationType.SIGNUP_APPROVAL)
+                    .collect(Collectors.toList());
+        }
+        
+        return notifications;
     }
 
     @Override
@@ -105,7 +142,123 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public long getUnreadCount(Long userId) {
-        return notificationRepository.countByUserIdAndStatus(userId, NotificationStatus.ACTIVE);
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        Long organizationId = user.getOrganization().getOrganizationId();
+        
+        // 일반 직원(USER)은 회원가입 승인 알림을 제외한 개수를 반환
+        if (user.getRole() == UserRole.USER) {
+            return notificationRepository.findByOrganizationIdAndUserIdOrSharedAndStatus(
+                    organizationId, userId, NotificationStatus.ACTIVE).stream()
+                    .filter(n -> n.getType() != NotificationType.SIGNUP_APPROVAL)
+                    .count();
+        }
+        
+        // 개인 알림 + 조직 공유 알림 중 읽지 않은 개수
+        return notificationRepository.countByOrganizationIdAndUserIdOrSharedAndStatus(
+                organizationId, userId, NotificationStatus.ACTIVE);
+    }
+
+    @Override
+    @Transactional
+    public Notification createOrganizationNotification(Long organizationId, NotificationType type,
+                                                       String title, String description, RiskLevel severity,
+                                                       Call call,
+                                                       CareTarget careTarget) {
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new RuntimeException("Organization not found with id: " + organizationId));
+        
+        // 조직 공유 알림 생성 (user = null)
+        Notification notification = Notification.builder()
+                .organization(organization)
+                .careTarget(careTarget)
+                .call(call)
+                .user(null)  // 조직 공유 알림
+                .type(type)
+                .title(title)
+                .description(description)
+                .severity(severity)
+                .status(NotificationStatus.ACTIVE)
+                .occurredAt(LocalDateTime.now())
+                .build();
+
+        // DB에 저장
+        Notification savedNotification = notificationRepository.save(notification);
+        log.info("Organization notification saved: notificationId={}, organizationId={}", 
+                savedNotification.getNotificationId(), organizationId);
+
+        // WebSocket으로 조직별 브로드캐스트 전송
+        Map<String, Object> message = new HashMap<>();
+        message.put("id", savedNotification.getNotificationId());
+        message.put("type", type.name());
+        message.put("title", title);
+        message.put("text", description);
+        message.put("severity", severity != null ? severity.name() : null);
+        message.put("occurredAt", savedNotification.getOccurredAt().toString());
+
+        // 조직별 토픽으로 전송: /topic/org/{organizationId}
+        String topic = "/topic/org/" + organizationId;
+        messagingTemplate.convertAndSend(topic, message);
+        log.info("Organization notification sent via WebSocket to topic: {}", topic);
+
+        return savedNotification;
+    }
+
+    @Override
+    @Transactional
+    public Notification createCallFailureNotification(Long organizationId, Call call,
+                                                     CareTarget careTarget,
+                                                     CallStatus status) {
+        String statusText = "";
+        if (status == CallStatus.FAILED) {
+            statusText = "실패";
+        } else if (status == CallStatus.NO_ANSWER) {
+            statusText = "무응답";
+        } else if (status == CallStatus.CANCELLED) {
+            statusText = "취소";
+        }
+
+        String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
+        String title = String.format("통화 %s: %s", statusText, careTargetName);
+        String description = String.format("케어대상자 '%s'의 통화가 %s되었습니다.",
+                careTargetName, statusText);
+
+        return createOrganizationNotification(
+                organizationId,
+                NotificationType.CALL,
+                title,
+                description,
+                RiskLevel.MEDIUM,
+                call,
+                careTarget
+        );
+    }
+
+    @Override
+    @Transactional
+    public Notification createRiskDetectionNotification(Long organizationId, Call call,
+                                                       CareTarget careTarget,
+                                                       Integer riskScore, RiskLevel riskLevel) {
+        String careTargetName = careTarget != null ? careTarget.getName() : "알 수 없음";
+        String title = String.format("위험 감지: %s (위험도 %d점)", careTargetName, riskScore);
+        String description = String.format("케어대상자 '%s'의 통화 분석 결과 위험도가 %d점으로 감지되었습니다.\n위험 수준: %s",
+                careTargetName, riskScore, riskLevel.name());
+
+        // 위험도에 따라 severity 결정
+        RiskLevel severity = (riskLevel == RiskLevel.CRITICAL) ? RiskLevel.CRITICAL :
+                (riskLevel == RiskLevel.HIGH) ? RiskLevel.HIGH :
+                        RiskLevel.MEDIUM;
+
+        return createOrganizationNotification(
+                organizationId,
+                NotificationType.RISK_DETECTION,
+                title,
+                description,
+                severity,
+                call,
+                careTarget
+        );
     }
 }
 

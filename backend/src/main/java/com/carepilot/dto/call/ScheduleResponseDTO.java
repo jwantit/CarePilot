@@ -10,6 +10,7 @@ import com.carepilot.domain.enums.Priority;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Getter
@@ -17,11 +18,14 @@ import java.time.format.DateTimeFormatter;
 public class ScheduleResponseDTO {
     private Long scheduleId;
     private Long careTargetId;
+    private Long groupId;        // 그룹 ID (그룹 스케줄인 경우)
     private String scheduledTime;
+    private String nextRunAt;  // 다음 실행 시각 (캘린더 표시용)
     private String careTargetName;
     private String targetType;
     private String targetTypeLabel;
     private String targetGroupName;
+    private Long scenarioId;     // 통화 시 사용 시나리오 (선택)
     private String type;         // 인희성, 반복 등
     private String typeLabel;    // 한국어
     private String priority;     // 높음(Orange), 보통(Blue), 긴급(Red)
@@ -39,15 +43,31 @@ public class ScheduleResponseDTO {
         ScheduleTargetType targetType = schedule.getTargetType();
         CareTargetGroup group = schedule.getGroup();
 
+        // nextRunAt이 있으면 사용, 없으면 scheduledTime 사용
+        LocalDateTime nextRunAtValue = schedule.getNextRunAt();
+        if (nextRunAtValue == null) {
+            nextRunAtValue = schedule.getScheduledTime();
+        }
+
+        // careTargetName: 개인 대상자면 이름, 그룹이면 그룹 이름
+        String careTargetNameValue = null;
+        if (schedule.getCareTarget() != null) {
+            careTargetNameValue = schedule.getCareTarget().getName();
+        } else if (group != null) {
+            careTargetNameValue = group.getGroupName();
+        }
+
         return ScheduleResponseDTO.builder()
                 .scheduleId(schedule.getScheduleId())
                 .careTargetId(schedule.getCareTarget() != null ? schedule.getCareTarget().getCareTargetId() : null)
-                .scheduledTime(schedule.getScheduledTime().format(formatter))
-                .careTargetName(
-                        schedule.getCareTarget() != null ? schedule.getCareTarget().getName() : "그룹대상")
+                .groupId(group != null ? group.getGroupId() : null)
+                .scheduledTime(schedule.getScheduledTime() != null ? schedule.getScheduledTime().format(formatter) : null)
+                .nextRunAt(nextRunAtValue != null ? nextRunAtValue.format(formatter) : null)
+                .careTargetName(careTargetNameValue)
                 .targetType(targetType != null ? targetType.name() : null)
                 .targetTypeLabel(mapTargetTypeLabel(targetType))
                 .targetGroupName(group != null ? group.getGroupName() : null)
+                .scenarioId(schedule.getScenario() != null ? schedule.getScenario().getScenarioId() : null)
                 .type(schedule.getType().name())
                 .typeLabel(mapTypeLabel(schedule.getType()))
                 .priority(schedule.getPriority().name())
@@ -71,6 +91,7 @@ public class ScheduleResponseDTO {
             case COMPLETED -> "완료됨";
             case CANCELLED -> "취소됨";
             case FAILED -> "실패";
+            case RUNNING -> "실행중";
         };
     }
 

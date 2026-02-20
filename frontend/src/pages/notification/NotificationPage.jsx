@@ -5,10 +5,40 @@ import {
   getUnreadCount,
   markAsRead,
   createTestNotification,
-} from "../../api/notificationApi";
+} from "../../api/notification/notificationApi";
+import { testRiskDetectionNotification } from "../../api/call/callApi";
 import NotificationTable from "../../components/notification/NotificationTable";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import Breadcrumb from "../../components/common/Breadcrumb";
+// import { getSeverityBadge } from "../../utils/riskLevelStyles";
+
+function getSeverityBadge(severity) {
+  const map = {
+    LOW: {
+      label: "낮음",
+      color: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+    },
+    MEDIUM: {
+      label: "보통",
+      color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+    },
+    HIGH: {
+      label: "위험",
+      color: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+    },
+    CRITICAL: {
+      label: "긴급",
+      color: "bg-red-500/10 text-red-400 border-red-500/30",
+    },
+  };
+  return (
+    map[severity] || {
+      label: severity,
+      color: "bg-cp-bg text-cp-text border-cp-border",
+    }
+  );
+}
 
 function NotificationPage() {
   const auth = useSelector((state) => state.auth);
@@ -21,6 +51,7 @@ function NotificationPage() {
   const [warningCount, setWarningCount] = useState(0);
   const [resolvedCount, setResolvedCount] = useState(0);
   const [filter, setFilter] = useState("active"); // 'active', 'all'
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   // 알림 목록 조회
   const fetchNotifications = async () => {
@@ -87,6 +118,11 @@ function NotificationPage() {
     }
   };
 
+  // 상세 모달 닫기
+  const closeModal = () => {
+    setSelectedNotification(null);
+  };
+
   // WebSocket Context 사용 (전역 알림은 WebSocketContext에서 처리)
   const { sendMessage } = useWebSocketContext();
 
@@ -119,9 +155,9 @@ function NotificationPage() {
     try {
       await createTestNotification(
         currentUserId,
-        "RISK_DETECTION",
-        "낙상 위험 감지",
-        "환자의 낙상 위험이 감지되었습니다.",
+        "EMERGENCY",
+        "긴급 알림 테스트",
+        "긴급 상황이 발생했습니다.",
         "CRITICAL",
       );
       toast.success("테스트 알림이 생성되었습니다.");
@@ -129,6 +165,40 @@ function NotificationPage() {
     } catch (error) {
       console.error("테스트 알림 생성 실패:", error);
       toast.error("테스트 알림 생성에 실패했습니다.");
+    }
+  };
+
+  // 위험 감지 알림 테스트 (개발용)
+  const handleTestRiskDetection = async () => {
+    const careTargetId = prompt("케어대상자 ID를 입력하세요:");
+    if (!careTargetId) {
+      return;
+    }
+
+    const riskScore = prompt("위험도 점수를 입력하세요 (기본값: 75):", "75");
+    const riskLevel = prompt(
+      "위험 수준을 입력하세요 (LOW/MEDIUM/HIGH/CRITICAL, 기본값: HIGH):",
+      "HIGH",
+    );
+
+    try {
+      const result = await testRiskDetectionNotification(
+        parseInt(careTargetId),
+        riskScore ? parseInt(riskScore) : 75,
+        riskLevel || "HIGH",
+      );
+
+      if (result.success) {
+        toast.success("위험 감지 알림이 생성되었습니다.");
+        fetchNotifications();
+      } else {
+        toast.error(result.error || "위험 감지 알림 생성에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("위험 감지 알림 테스트 실패:", error);
+      toast.error(
+        error.response?.data?.error || "위험 감지 알림 생성에 실패했습니다.",
+      );
     }
   };
 
@@ -147,120 +217,275 @@ function NotificationPage() {
     }
   };
 
+  // 알림 상세 정보를 위한 헬퍼 함수들 (NotificationTable과 동일)
+
+  const getTypeLabel = (type) => {
+    const typeMap = {
+      VITAL_SIGN: "생체신호",
+      EMERGENCY: "긴급",
+      MEDICATION: "약물",
+      CALL: "통화",
+      RISK_DETECTION: "위험감지",
+      SCHEDULE: "스케줄",
+      SIGNUP_APPROVAL: "회원가입",
+      OTHER: "기타",
+    };
+    return typeMap[type] || type;
+  };
+
+  const getStatusLabel = (status) => {
+    const statusMap = {
+      ACTIVE: "활성",
+      PROCESSING: "처리중",
+      RESOLVED: "해결됨",
+    };
+    return statusMap[status] || status;
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">알림 관리</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter("active")}
-            className={`px-4 py-2 rounded-md font-semibold transition-colors ${
-              filter === "active"
-                ? "bg-teal-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            활성 알림
-          </button>
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-md font-semibold transition-colors ${
-              filter === "all"
-                ? "bg-teal-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            전체
-          </button>
-          <button
-            onClick={handleCreateTestNotification}
-            className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 font-semibold"
-          >
-            테스트 알림 생성
-          </button>
-        </div>
-      </div>
+    <>
+      <div className="space-y-6">
+        <Breadcrumb items={["알림 관리"]} />
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* 왼쪽: 활성 알림 목록 */}
-        <div className="col-span-2">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
-              활성 알림 목록
-            </h2>
-          </div>
-          {loading ? (
-            <div className="flex justify-center items-center py-12 bg-white rounded-lg border border-gray-200">
-              <div className="text-gray-500">알림을 불러오는 중...</div>
-            </div>
-          ) : (
-            <NotificationTable
-              notifications={notifications}
-              onMarkAsRead={handleMarkAsRead}
-              currentUserId={currentUserId}
-            />
-          )}
-        </div>
-
-        {/* 오른쪽: 통계 + 최근 해결된 알림 */}
-        <div className="space-y-6">
-          {/* 알림 통계 요약 */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              알림 통계 요약
-            </h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">활성 알림 수</span>
-                <span className="text-lg font-semibold text-red-600">
-                  {activeCount}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">주의 알림 수</span>
-                <span className="text-lg font-semibold text-orange-600">
-                  {warningCount}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">해결된 알림 수</span>
-                <span className="text-lg font-semibold text-green-600">
-                  {resolvedCount}
-                </span>
-              </div>
-            </div>
+        {/* 탭 메뉴 */}
+        <div className="flex justify-between items-end border-b border-cp-border mb-4">
+          <div className="flex -mb-px">
+            <button
+              className={`px-4 py-2 font-medium text-base transition-colors ${
+                filter === "active"
+                  ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                  : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
+              }`}
+              onClick={() => setFilter("active")}
+            >
+              활성 알림
+            </button>
+            <button
+              className={`px-4 py-2 font-medium text-base transition-colors ${
+                filter === "all"
+                  ? "border-b-2 border-teal-500 text-teal-400 font-bold"
+                  : "text-cp-muted hover:text-cp-text border-b-2 border-transparent"
+              }`}
+              onClick={() => setFilter("all")}
+            >
+              전체 알림
+            </button>
           </div>
 
-          {/* 최근 해결된 알림 */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              최근 해결된 알림
-            </h2>
-            {resolvedNotifications.length === 0 ? (
-              <div className="text-sm text-gray-500">
-                해결된 알림이 없습니다.
+          <div className="flex gap-2 mb-2 hidden">
+            <button
+              onClick={handleCreateTestNotification}
+              className="px-4 py-2 bg-cp-input hover:bg-cp-bg text-teal-400 text-sm font-semibold transition-all border border-teal-500/50 hover:border-teal-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            >
+              테스트 알림 생성
+            </button>
+            <button
+              onClick={handleTestRiskDetection}
+              className="px-4 py-2 bg-cp-input hover:bg-cp-bg text-orange-400 text-sm font-semibold transition-all border border-orange-500/50 hover:border-orange-500 whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            >
+              위험 감지 알림 테스트
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-6 items-stretch">
+          <div className="col-span-2 flex flex-col">
+            {loading ? (
+              <div className="flex-1 flex justify-center items-center py-12 bg-cp-card rounded-sm border border-cp-border">
+                <div className="text-cp-muted">로딩 중...</div>
               </div>
             ) : (
-              <div className="space-y-3">
-                {resolvedNotifications.map((notification) => (
-                  <div
-                    key={notification.notificationId}
-                    className="border-b border-gray-100 pb-3 last:border-0"
-                  >
-                    <div className="text-sm font-medium text-gray-900 mb-1">
-                      {notification.title || "-"}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      해결 시간: {formatResolvedDate(notification.resolvedAt)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <NotificationTable
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                currentUserId={currentUserId}
+              />
             )}
+          </div>
+
+          {/* 오른쪽: 통계 + 최근 해결된 알림 */}
+          <div className="flex flex-col gap-6">
+            <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg rounded-sm border border-cp-border p-4 shadow-lg">
+              <h2 className="text-xl font-semibold text-cp-text mb-4">
+                알림 통계 요약
+              </h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-cp-muted">활성 알림 수</span>
+                  <span className="text-lg font-semibold text-red-400">
+                    {activeCount}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-cp-muted">주의 알림 수</span>
+                  <span className="text-lg font-semibold text-orange-400">
+                    {warningCount}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-cp-muted">해결된 알림 수</span>
+                  <span className="text-lg font-semibold text-emerald-400">
+                    {resolvedCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg rounded-sm border border-cp-border p-4 shadow-lg overflow-hidden flex flex-col">
+              <h2 className="text-xl font-semibold text-cp-text mb-4">
+                최근 해결된 알림
+              </h2>
+              {resolvedNotifications.length === 0 ? (
+                <div className="text-sm text-cp-muted">
+                  해결된 알림이 없습니다.
+                </div>
+              ) : (
+                <div className="space-y-3 overflow-y-auto pr-1 flex-1 modal-scrollbar">
+                  {resolvedNotifications.map((notification) => (
+                    <div
+                      key={notification.notificationId}
+                      className="border-b border-cp-border pb-3 last:border-0 cursor-pointer hover:bg-cp-bg/50 p-2 rounded-sm transition-colors"
+                      onClick={() => setSelectedNotification(notification)}
+                    >
+                      <div className="text-sm font-medium text-cp-text mb-1">
+                        {notification.title || "-"}
+                      </div>
+                      <div className="text-xs text-cp-muted">
+                        해결 시간: {formatResolvedDate(notification.resolvedAt)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* 상세 보기 모달 (NotificationTable의 모달과 동일한 로직) */}
+      {selectedNotification && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="px-6 py-4 border-b border-cp-border flex justify-between items-center bg-cp-bg/50">
+              <h3 className="text-lg font-bold text-cp-text">알림 상세 내역</h3>
+              <button
+                onClick={closeModal}
+                className="text-cp-muted hover:text-cp-text transition-colors text-2xl p-1"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`px-2.5 py-1 rounded-sm text-xs font-bold border ${getSeverityBadge(selectedNotification.severity).color}`}
+                >
+                  {getSeverityBadge(selectedNotification.severity).label}
+                </span>
+                <span className="px-2.5 py-1 bg-cp-bg text-cp-text rounded-sm text-xs font-bold border border-cp-border">
+                  {getTypeLabel(selectedNotification.type)}
+                </span>
+                <span className="text-xs text-cp-muted ml-auto">
+                  {formatDateTime(selectedNotification.occurredAt)}
+                </span>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">
+                  알림 제목
+                </label>
+                <p className="text-lg font-bold text-cp-text leading-tight">
+                  {selectedNotification.title}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-teal-400 uppercase tracking-wider block mb-1.5">
+                  상세 내용
+                </label>
+                <div className="bg-cp-bg/50 p-4 rounded-sm border border-cp-border text-sm text-cp-text whitespace-pre-wrap leading-relaxed min-h-[120px]">
+                  {selectedNotification.description}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 pt-2">
+                <div>
+                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">
+                    케어대상자
+                  </label>
+                  <p className="text-sm font-bold text-cp-text">
+                    {selectedNotification.careTarget?.name || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-cp-muted uppercase tracking-wider block mb-1">
+                    상태
+                  </label>
+                  <p className="text-sm font-bold text-cp-text">
+                    {getStatusLabel(selectedNotification.status)}
+                  </p>
+                </div>
+              </div>
+
+              {selectedNotification.status === "RESOLVED" && (
+                <div className="mt-6 p-4 bg-emerald-500/10 rounded-sm border border-emerald-500/30">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-emerald-400 font-bold">
+                      ✓ 확인 완료
+                    </span>
+                    <span className="text-emerald-400/80">
+                      {formatDateTime(selectedNotification.resolvedAt)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-emerald-300 mt-1 font-medium">
+                    {selectedNotification.resolvedBy?.name} 님이 확인하였습니다.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-cp-bg/50 border-t border-cp-border flex justify-end gap-3">
+              {selectedNotification.status === "ACTIVE" && (
+                <button
+                  onClick={async () => {
+                    await handleMarkAsRead(
+                      selectedNotification.notificationId,
+                      currentUserId,
+                    );
+                    closeModal();
+                  }}
+                  className="px-5 py-2.5 bg-teal-600 text-white rounded-sm hover:bg-teal-500 border border-teal-500 font-bold shadow-sm transition-all"
+                >
+                  확인 처리하기
+                </button>
+              )}
+              <button
+                onClick={closeModal}
+                className="px-5 py-2.5 bg-cp-bg border border-cp-border rounded-sm hover:bg-cp-card font-bold text-cp-text transition-all"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

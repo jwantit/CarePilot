@@ -3,6 +3,8 @@ package com.carepilot.dto.call;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.call.CallDirection;
 import com.carepilot.domain.call.CallStatus;
+import com.carepilot.domain.call.RiskScore;
+import com.carepilot.domain.notification.RiskLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,23 +22,39 @@ public class CallResponseDTO {
     private String statusLabel; // 한글 라벨
     private String duration;    // "3분 0초" 형식
     private String resultStatus; // 테이블의 '상태' 컬럼
+    private Integer riskScore;   // 위험도 점수
+    private String riskLevel;    // 위험도 레벨 (LOW, MEDIUM, HIGH, CRITICAL) - 계산된 값
 
     public static CallResponseDTO from(Call call) {
+        return from(call, null, null);
+    }
+
+    public static CallResponseDTO from(Call call, RiskScore riskScore, RiskLevel calculatedRiskLevel) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        int totalSeconds = call.getDuration() != null ? call.getDuration() : 0;
-        String durationStr = String.format("%d분 %d초", totalSeconds / 60, totalSeconds % 60);
+        // duration 처리: null이거나 0이면 "-" 표시, 그 외에는 "X분 Y초" 형식
+        String durationStr;
+        if (call.getDuration() == null || call.getDuration() == 0) {
+            durationStr = "-";
+        } else {
+            int totalSeconds = call.getDuration();
+            int minutes = totalSeconds / 60;
+            int seconds = totalSeconds % 60;
+            durationStr = String.format("%d분 %d초", minutes, seconds);
+        }
 
         return CallResponseDTO.builder()
                 .callId(call.getCallId())
-                .startTime(call.getStartTime().format(formatter))
-                .careTargetName(call.getCareTarget().getName())
+                .startTime(call.getStartTime() != null ? call.getStartTime().format(formatter) : "-")
+                .careTargetName(call.getCareTarget() != null ? call.getCareTarget().getName() : "-")
                 .direction(call.getDirection() == CallDirection.INBOUND ? "수신" : "발신")
                 .callType(call.getCallType() != null ? call.getCallType().name() : "-")
                 .status(call.getStatus() != null ? call.getStatus().name() : "-")
                 .statusLabel(mapStatusLabel(call.getStatus()))
                 .duration(durationStr)
                 .resultStatus("성공")
+                .riskScore(riskScore != null ? riskScore.getRiskScore() : null)
+                .riskLevel(calculatedRiskLevel != null ? calculatedRiskLevel.name() : null)
                 .build();
     }
 

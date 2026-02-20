@@ -4,6 +4,7 @@ import RiskSetting from '../../components/setting/RiskSetting';
 import AISetting from '../../components/setting/AISetting';
 import DoctorManagement from '../../components/setting/DoctorManagement';
 import ScenarioSetting from '../../components/setting/ScenarioSetting';
+import Breadcrumb from '../../components/common/Breadcrumb';
 
 function SettingPage() {
   const [activeMenu, setActiveMenu] = useState('scenario');
@@ -19,19 +20,21 @@ function SettingPage() {
   const ActiveComponent = menuItems.find(item => item.id === activeMenu)?.component || NotificationSetting;
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="space-y-6">
+      <Breadcrumb items={["설정"]} />
+      <div className="flex min-h-[500px]">
       {/* 왼쪽 사이드바 */}
-      <div className="w-64 bg-white border-r border-gray-200 p-4">
-        <h2 className="text-xl font-semibold mb-4">설정</h2>
+      <div className="w-64 flex-shrink-0 bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none p-4 mr-4 shadow-lg">
+        <h2 className="text-xl font-semibold mb-4 text-cp-text">설정</h2>
         <div className="space-y-1">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveMenu(item.id)}
-              className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
+              className={`w-full text-left px-4 py-2 rounded-sm transition-colors ${
                 activeMenu === item.id
-                  ? 'bg-teal-50 text-teal-600 font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? "bg-teal-500/20 text-teal-400 font-semibold border border-teal-500/50"
+                  : "text-cp-muted hover:bg-cp-bg/50 hover:text-cp-text border border-transparent"
               }`}
             >
               {item.label}
@@ -41,8 +44,9 @@ function SettingPage() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 overflow-auto bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-none shadow-lg">
         <ActiveComponent />
+      </div>
       </div>
     </div>
   );

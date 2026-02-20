@@ -2,6 +2,7 @@ package com.carepilot.service.call;
 
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Call;
+import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,11 @@ public class TwilioService {
 
     @Value("${twilio.from-number}")
     private String fromNumber;
+
+    /** 발신 SMS 저장 시 발신 번호로 사용 */
+    public String getFromNumber() {
+        return fromNumber;
+    }
 
     @Value("${app.ngrok.base-url}")
     private String ngrokBaseUrl;
@@ -49,6 +55,8 @@ public class TwilioService {
                     .setRecord(true)  // 통화 녹음 활성화
                     .setRecordingStatusCallback(ngrokBaseUrl + "/api/twilio/recording/status")
                     .setRecordingStatusCallbackMethod(com.twilio.http.HttpMethod.POST)
+                    .setStatusCallback(ngrokBaseUrl + "/api/twilio/voice/status")
+                    .setStatusCallbackMethod(com.twilio.http.HttpMethod.POST)
                     .create();
 
             log.info("전화 발신 성공: from={}, to={}, callSid={}", fromNumber, to, call.getSid());
@@ -56,6 +64,28 @@ public class TwilioService {
         } catch (Exception e) {
             log.error("전화 발신 실패: to={}, error={}", to, e.getMessage(), e);
             throw new RuntimeException("전화 발신 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Twilio를 통해 SMS를 발송합니다. (테스트용)
+     *
+     * @param to 수신자 번호 (예: +821012345678)
+     * @param body 발송할 메시지 내용
+     * @return Twilio Message SID
+     */
+    public String sendSms(String to, String body) {
+        try {
+            PhoneNumber from = new PhoneNumber(fromNumber);
+            PhoneNumber toNumber = new PhoneNumber(to);
+
+            Message message = Message.creator(toNumber, from, body).create();
+
+            log.info("SMS 발송 성공: from={}, to={}, messageSid={}", fromNumber, to, message.getSid());
+            return message.getSid();
+        } catch (Exception e) {
+            log.error("SMS 발송 실패: to={}, error={}", to, e.getMessage(), e);
+            throw new RuntimeException("SMS 발송 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
 

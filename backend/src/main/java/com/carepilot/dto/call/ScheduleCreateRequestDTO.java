@@ -1,7 +1,10 @@
 package com.carepilot.dto.call;
 
 import com.carepilot.domain.call.CallSchedule;
+import com.carepilot.domain.call.ScheduleTargetType;
+import com.carepilot.domain.config.Scenario;
 import com.carepilot.domain.caretarget.CareTarget;
+import com.carepilot.domain.caretarget.CareTargetGroup;
 import com.carepilot.domain.user.User;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.call.ScheduleRecurrence;
@@ -21,7 +24,9 @@ import java.time.LocalDateTime;
 @Builder
 public class ScheduleCreateRequestDTO {
     private Long organizationId;
-    private Long careTargetId;
+    private Long careTargetId;  // 개인 대상자 (targetType이 CARE_TARGET일 때)
+    private Long groupId;        // 그룹 (targetType이 GROUP일 때)
+    private Long scenarioId;    // 선택 시나리오 (통화 시 사용)
     private LocalDateTime scheduledTime;
     private String type;         // ScheduleType Enum 매핑용
     private String priority;     // Priority Enum 매핑용
@@ -29,11 +34,17 @@ public class ScheduleCreateRequestDTO {
     private LocalDateTime recurrenceEndDate;  // 반복 종료일
     private String memo;
 
-    public CallSchedule toEntity(Organization org, CareTarget target, User user) {
+    public CallSchedule toEntity(Organization org, CareTarget target, CareTargetGroup group, User user, Scenario scenario) {
+        ScheduleTargetType targetType = group != null ? ScheduleTargetType.GROUP : ScheduleTargetType.CARE_TARGET;
+        
         return CallSchedule.builder()
                 .organization(org)
+                .targetType(targetType)
                 .careTarget(target)
+                .group(group)
+                .scenario(scenario)
                 .scheduledTime(this.scheduledTime)
+                .nextRunAt(this.scheduledTime)
                 .type(ScheduleType.valueOf(this.type))
                 .priority(Priority.valueOf(this.priority))
                 .recurrence(this.recurrence != null ? ScheduleRecurrence.valueOf(this.recurrence) : null)

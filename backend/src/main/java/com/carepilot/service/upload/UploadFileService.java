@@ -1,6 +1,8 @@
 package com.carepilot.service.upload;
 
 
+import com.carepilot.common.exception.ApiException;
+import com.carepilot.common.exception.ErrorCode;
 import com.carepilot.domain.call.Call;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.file.UploadFileType;
@@ -19,6 +21,7 @@ import com.carepilot.repository.upload.UploadFileRepository;
 import com.carepilot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,12 +31,16 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -170,6 +177,127 @@ public class UploadFileService {
     }
 
 
+    /**
+     * URL에서 이미지를 다운로드하여 로컬 저장 및 UploadFile 등록 (수신 문자 URL용)
+     *
+     * @param imageUrl      다운로드할 이미지 URL (직접 이미지 링크)
+     * @param organizationId 조직 ID
+     * @param targetId      InboundSms ID (저장 경로용)
+     * @return 저장된 storagePath (실패 시 null)
+     */
+    public String saveFromUrl(String imageUrl, Long organizationId, Long targetId) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; CarePilot/1.0)");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode < 200 || responseCode >= 300) {
+                log.warn("[FILE][SAVE_FROM_URL] HTTP {} for url={}", responseCode, imageUrl);
+                return null;
+            }
+
+            String contentType = connection.getContentType();
+            if (contentType != null && !contentType.toLowerCase().contains("image")) {
+                log.warn("[FILE][SAVE_FROM_URL] Not image content-type: {} for url={}", contentType, imageUrl);
+                return null;
+            }
+            String ext = ".jpg";
+            if (contentType != null) {
+                if (contentType.toLowerCase().contains("png")) ext = ".png";
+                else if (contentType.toLowerCase().contains("gif")) ext = ".gif";
+                else if (contentType.toLowerCase().contains("webp")) ext = ".webp";
+            } else if (imageUrl.toLowerCase().matches(".*\\.(png|gif|webp)(\\?.*)?$")) {
+                if (imageUrl.toLowerCase().contains(".png")) ext = ".png";
+                else if (imageUrl.toLowerCase().contains(".gif")) ext = ".gif";
+                else if (imageUrl.toLowerCase().contains(".webp")) ext = ".webp";
+            }
+
+            String originalName = "image" + ext;
+            String storageKey = generateStorageKey(UploadTargetType.INBOUND_SMS, targetId, originalName, "");
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                saveToLocalFromStream(storageKey, inputStream);
+            }
+
+            long fileSize = 0;
+            try {
+                Path path = Paths.get(BASE_DIR, storageKey);
+                if (Files.exists(path)) fileSize = Files.size(path);
+            } catch (IOException ignored) {}
+
+            String thumbnailStorageKey = null;
+            if (isImageFile(contentType != null ? contentType : "image/jpeg")) {
+                try {
+                    thumbnailStorageKey = generateThumbnail(storageKey, UploadTargetType.INBOUND_SMS, targetId, originalName);
+                } catch (Exception e) {
+                    log.warn("[FILE][SAVE_FROM_URL] Thumbnail failed for {}", imageUrl, e);
+                }
+            }
+
+            Organization organization = organizationRepository.findById(organizationId)
+                    .orElseThrow(() -> new IllegalArgumentException("조직 정보가 없습니다."));
+
+            UploadFile saved = uploadFileRepository.save(UploadFile.builder()
+                    .organization(organization)
+                    .targetType(UploadTargetType.INBOUND_SMS)
+                    .fileType(UploadFileType.IMAGE)
+                    .notice(null)
+                    .careTarget(null)
+                    .call(null)
+                    .originalName(originalName)
+                    .storagePath(storageKey)
+                    .contentType(contentType != null ? contentType : "image/jpeg")
+                    .thumbnailStoragePath(thumbnailStorageKey)
+                    .fileSize(fileSize)
+                    .uploadedBy(null)
+                    .build());
+
+            log.info("[FILE][SAVE_FROM_URL] success url={}, path={}", imageUrl, storageKey);
+            return saved.getStoragePath();
+        } catch (Exception e) {
+            log.error("[FILE][SAVE_FROM_URL] failed url={}, error={}", imageUrl, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 이미 디스크에 저장된 파일(MMS 등)에 대한 UploadFile 레코드 생성
+     * prescription 등에서 upload_file_id 참조용
+     */
+    public UploadFile createUploadFileForExistingPath(String storagePath, Long organizationId, String contentType) {
+        if (storagePath == null || organizationId == null) return null;
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new IllegalArgumentException("조직 정보가 없습니다."));
+        long fileSize = 0;
+        try {
+            Path path = Paths.get(BASE_DIR, storagePath);
+            if (Files.exists(path)) fileSize = Files.size(path);
+        } catch (IOException ignored) {}
+        return uploadFileRepository.save(UploadFile.builder()
+                .organization(organization)
+                .targetType(UploadTargetType.INBOUND_SMS)
+                .fileType(UploadFileType.IMAGE)
+                .notice(null)
+                .careTarget(null)
+                .call(null)
+                .originalName(storagePath.substring(storagePath.lastIndexOf('/') + 1))
+                .storagePath(storagePath)
+                .contentType(contentType != null ? contentType : "image/jpeg")
+                .thumbnailStoragePath(null)
+                .fileSize(fileSize)
+                .uploadedBy(null)
+                .build());
+    }
+
+    public Optional<UploadFile> findUploadFileByStoragePath(String storagePath) {
+        return storagePath == null ? Optional.empty() : uploadFileRepository.findFirstByStoragePath(storagePath);
+    }
+
     //저장후 반환-------------------
     UploadFileResponseDTO toDTO(UploadFile file){
         return UploadFileResponseDTO.builder()
@@ -186,10 +314,10 @@ public class UploadFileService {
     private UploadFileType determineFileType(UploadTargetType targetType, String contentType) {
         if (targetType == UploadTargetType.CARE_TARGET) return UploadFileType.IMAGE;
         if (targetType == UploadTargetType.CALL_LOG) return UploadFileType.AUDIO;
+        if (targetType == UploadTargetType.INBOUND_SMS) return UploadFileType.IMAGE;
 
         if (contentType.contains("image")) return UploadFileType.IMAGE;
-        if (contentType.contains("pdf") || contentType.contains("word") || contentType.contains("text")) return UploadFileType.DOCUMENT;
-
+        if (contentType.contains("pdf") || contentType.contains("word") || contentType.contains("haansoftdocx")) return UploadFileType.DOCUMENT;
         throw new IllegalArgumentException("지원하지 않는 형식입니다.");
     }
     //---------------------------
@@ -251,6 +379,14 @@ public class UploadFileService {
         } catch (Exception e) {
             throw new RuntimeException("File save failed", e);
         }
+    }
+
+    /** URL에서 InputStream으로 로컬 저장 (saveFromUrl 전용) */
+    private void saveToLocalFromStream(String storageKey, InputStream inputStream) throws IOException {
+        Path path = Paths.get(BASE_DIR, storageKey);
+        Files.createDirectories(path.getParent());
+        Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+        log.info("[FILE][UPLOAD_FROM_URL] {}", path.toAbsolutePath());
     }
     //-------------------------------------------------------------------------------------------------
 
@@ -374,7 +510,25 @@ public class UploadFileService {
     public void deletecareTargetFiles(Long organizationId, Long careTargetId){
         UploadTargetType uploadTargetType = UploadTargetType.CARE_TARGET;
         List<UploadFile> uploadFiles = uploadFileRepository.findByCareTargetAndType(careTargetId, organizationId, uploadTargetType);
-        deleteFiles(organizationId,careTargetId,uploadFiles);
+        // 2. 결과 확인 로그 추가
+        log.info("======= [파일 삭제 조회 결과] =======");
+        log.info("조회 조건 - orgId: {}, targetId: {}, type: {}", organizationId, careTargetId, uploadTargetType);
+
+        if (uploadFiles == null) {
+            log.error("결과: 리스트 자체가 null입니다. (리포지토리 오류 가능성)");
+        } else if (uploadFiles.isEmpty()) {
+            log.warn("결과: 조회된 파일이 0건입니다. DB에 조건에 맞는 데이터가 있는지 확인하세요.");
+        } else {
+            log.info("결과: 총 {}건의 파일이 조회되었습니다.", uploadFiles.size());
+            // 상세 데이터 확인 (첫 번째 파일 경로만 샘플로 출력)
+            uploadFiles.forEach(file ->
+                    log.info("조회된 파일 상세 - ID: {}, 경로: {}", file.getFileId(), file.getStoragePath())
+            );
+        }
+        log.info("==================================");
+
+
+        deleteFiles(uploadFiles);
     }
 
 
@@ -383,14 +537,16 @@ public class UploadFileService {
 
     //삭제 로직
     //------------------------------------------------------------------
-    public void deleteFiles(Long organizationId, Long targetId, List<UploadFile> uploadFiles) {
+    public void deleteFiles(List<UploadFile> uploadFiles) {
         if (uploadFiles != null && !uploadFiles.isEmpty()) {
             for (UploadFile uploadFile : uploadFiles) {
 
-                String storagePath = BASE_DIR + File.separator + uploadFile.getStoragePath();
+                String storagePath = BASE_DIR + "/" + uploadFile.getStoragePath();
                 String thStoragePath = (uploadFile.getThumbnailStoragePath() != null)
-                        ? BASE_DIR + File.separator + uploadFile.getThumbnailStoragePath()
+                        ? BASE_DIR + "/" + uploadFile.getThumbnailStoragePath()
                         : null;
+
+                log.info("삭제경로 확인" + storagePath);
 
                 try {
                     File file = new File(storagePath);
@@ -413,4 +569,82 @@ public class UploadFileService {
     }
     //------------------------------------------------------------------
 
-}
+    //챗봇 선 임시 파일 등록-------------------------------------------------------------------
+    public Long temporaryFile(MultipartFile file, Long userId,Long organizationId){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND, "사용자 ID를 찾을 수 없습니다."));
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ORGANIZATION_NOT_FOUND, "조직 ID를 찾을 수 없습니다."));
+
+
+        //원본파일명 null일 경우 unknown
+        String originalName = Optional.ofNullable(file.getOriginalFilename())
+                .filter(s -> !s.isBlank())
+                .orElse("unknown");
+
+        //타입 null일시 기본 타입
+        String contentType = Optional.ofNullable(file.getContentType())
+                .filter(s -> !s.isBlank())
+                .orElse("application/octet-stream");
+
+        String uuid = UUID.randomUUID().toString();
+        String storedFileName = "temporary/" + uuid + "_" + originalName;
+
+        saveToLocal(storedFileName, file);
+
+        UploadFile fileSave = uploadFileRepository.save(
+                UploadFile.builder()
+                        .organization(organization) //업체엔티티
+                        .originalName(originalName)
+                        .storagePath(storedFileName)
+                        .contentType(contentType)
+                        .uploadedBy(user)
+                        .build()
+        );
+        return fileSave.getFileId();
+    }
+    //챗봇 선 임시 파일 삭제-------------------------------------------------------------------
+    public void temporaryDelFile(Long fileId){
+        // Optional을 List로 변환하는 깔끔한 방법
+        log.info("임시파일 삭제 진행");
+        List<UploadFile> files = uploadFileRepository.findById(fileId)
+                .map(List::of)
+                .orElse(List.of());
+
+        if (!files.isEmpty()) {
+            // deleteFiles 메서드 내부에서 물리 파일 삭제 + DB deleteAll을 수행하므로 이것만 호출하면 끝!
+            deleteFiles(files);
+            log.info("[TEMP_DELETE] 파일 ID {} 삭제 완료", fileId);
+        }
+    }
+
+    //임시파일꺼내오기-------------------------------------------------------------------
+    public MultipartFile temporaryfind(Long fileId) {
+        // 1. DB에서 파일 정보 조회
+        UploadFile getFile = uploadFileRepository.findById(fileId)
+                .orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND, "파일 ID를 찾을 수 없습니다."));
+
+        // 2. 실제 파일 경로 생성
+        Path path = Paths.get(BASE_DIR, getFile.getStoragePath());
+
+        try {
+            // 3. 파일의 메타데이터 및 바이트 읽기
+            String originalFileName = getFile.getOriginalName(); // DB에 저장된 원본 파일명
+            String contentType = Files.probeContentType(path);   // 파일 타입 (image/png 등) 자동 감지
+            byte[] content = Files.readAllBytes(path);           // 실제 파일 데이터 읽기
+
+            // 4. MockMultipartFile에 담아서 반환
+            return new MockMultipartFile(
+                    "file",              // 필드명
+                    originalFileName,    // 원본 파일명
+                    contentType,         // 컨텐츠 타입
+                    content              // 파일 바이트 데이터
+            );
+
+        } catch (IOException e) {
+            log.error("파일 로드 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("서버에서 파일을 읽을 수 없습니다.", e);
+        }
+    }
+    }

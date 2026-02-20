@@ -87,37 +87,36 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-cp-card bg-gradient-to-br from-cp-card to-cp-bg border border-cp-border rounded-sm shadow-xl w-full max-w-2xl overflow-hidden">
         {/* 헤더 */}
-        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <PlusCircle size={24} className="text-[#008080]" />
+        <div className="flex justify-between items-center p-5 border-b border-cp-border bg-cp-bg/30">
+          <h3 className="text-xl font-bold text-cp-text flex items-center gap-2">
+            <PlusCircle size={24} className="text-teal-400" />
             신규 Care대상자 등록
           </h3>
-          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:bg-gray-200 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-sm text-cp-muted hover:bg-cp-bg hover:text-cp-text transition-all">
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh]">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] modal-scrollbar">
           
           {/* 사진 업로드 */}
           <div className="mb-8">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Care대상자 프로필 사진</label>
+            <label className="block text-sm font-semibold text-cp-text mb-2">Care대상자 프로필 사진</label>
             <div 
               onClick={() => fileInputRef.current.click()}
-              className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:bg-gray-100 hover:border-[#008080] transition-all cursor-pointer group"
+              className="flex items-center gap-3 p-4 border-2 border-dashed border-cp-border rounded-sm bg-cp-input/20 hover:border-teal-500/50 transition-all cursor-pointer group shadow-md"
             >
-              <div className="p-3 bg-white rounded-lg shadow-sm group-hover:text-[#008080]">
-                {formData.image ? <FileImage size={24} /> : <UploadCloud size={24} />}
+              <div className="p-3 bg-cp-card rounded-sm shadow-md group-hover:text-teal-400 transition-colors">
+                {formData.image ? <FileImage size={24} className="text-teal-400" /> : <UploadCloud size={24} className="text-cp-muted group-hover:text-teal-400" />}
               </div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-medium text-gray-700 truncate">
+                <p className="text-sm font-medium text-cp-text truncate">
                   {formData.image ? formData.image.name : "사진 파일을 선택해주세요 (jpg, png...)"}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-cp-muted">
                   {formData.image ? `${(formData.image.size / 1024).toFixed(1)} KB` : "클릭하여 파일 탐색기 열기"}
                 </p>
               </div>
@@ -126,31 +125,35 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
           </div>
 
           <div className="grid grid-cols-2 gap-5">
-            <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b text-[#008080] font-bold text-sm">
+            <div className="col-span-2 flex items-center gap-2 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
               <User size={16} /> 기본 정보
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">성함</label>
-                <input name="name" value={formData.name} required onChange={handleChange} placeholder="환자 성함" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">성함</label>
+                <input name="name" value={formData.name} required onChange={handleChange} placeholder="환자 성함" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">나이</label>
-                <input name="age" type="number" value={formData.age} required onChange={handleChange} placeholder="나이 입력" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">나이</label>
+                <input name="age" type="number" value={formData.age} required onChange={handleChange} placeholder="나이 입력" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">성별</label>
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">성별</label>
                 <div className="flex gap-2">
                   {['남성', '여성'].map((g) => (
                     <button 
                       key={g} 
                       type="button" 
                       onClick={() => setFormData(prev => ({ ...prev, gender: g }))} 
-                      className={`flex-1 py-2.5 rounded-lg font-medium border transition-all ${formData.gender === g ? 'bg-slate-700 text-white border-slate-700' : 'bg-white text-gray-500 border-gray-300'}`}
+                      className={`flex-1 py-2.5 rounded-sm font-medium border transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 ${
+                        formData.gender === g 
+                          ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white border-teal-500 hover:from-teal-500 hover:to-teal-600' 
+                          : 'bg-cp-input text-cp-muted border-cp-border hover:border-cp-border hover:bg-cp-bg'
+                      }`}
                     >
                       {g}
                     </button>
@@ -158,51 +161,51 @@ function CareTargetInsertModal({ isOpen, onClose, organizationId, onInsert, isUp
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">질환명</label>
-                <input name="disease" value={formData.disease} onChange={handleChange} placeholder="예: 고혈압, 경증 치매" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">질환명</label>
+                <input name="disease" value={formData.disease} onChange={handleChange} placeholder="예: 고혈압, 경증 치매" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
             </div>
 
-            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b text-[#008080] font-bold text-sm">
+            <div className="col-span-2 flex items-center gap-2 mt-4 mb-1 pb-1 border-b border-cp-border text-teal-400 font-bold text-sm">
               <ShieldCheck size={16} /> 비상 연락망 및 담당자
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">보호자 성함</label>
-                <input name="guardianName" value={formData.guardianName} onChange={handleChange} placeholder="보호자 성함" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">보호자 성함</label>
+                <input name="guardianName" value={formData.guardianName} onChange={handleChange} placeholder="보호자 성함" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">보호자 관계</label>
-                <input name="guardianRelationship" value={formData.guardianRelationship} onChange={handleChange} placeholder="예: 자녀, 배우자" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">보호자 관계</label>
+                <input name="guardianRelationship" value={formData.guardianRelationship} onChange={handleChange} placeholder="예: 자녀, 배우자" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Care 대상자 연락처</label>
-                <input name="targetPhone" value={formData.targetPhone} onChange={handleChange} maxLength={13} placeholder="010-0000-0000" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">Care 대상자 연락처</label>
+                <input name="targetPhone" value={formData.targetPhone} onChange={handleChange} maxLength={13} placeholder="010-0000-0000" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">보호자 연락처</label>
-                <input name="guardianPhone" value={formData.guardianPhone} onChange={handleChange} maxLength={13} placeholder="010-0000-0000" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] outline-none" />
+                <label className="block text-sm font-semibold text-cp-text mb-1.5">보호자 연락처</label>
+                <input name="guardianPhone" value={formData.guardianPhone} onChange={handleChange} maxLength={13} placeholder="010-0000-0000" className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text placeholder:text-cp-muted focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all" />
               </div>
             </div>
 
             <div className="col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">담당 의료진 (선택)</label>
-              <select name="doctorId" value={formData.doctorId} onChange={handleChange} className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-[#008080] outline-none cursor-pointer">
-                <option value="">의료진 미지정</option>
+              <label className="block text-sm font-semibold text-cp-text mb-1.5">담당 의료진 (선택)</label>
+              <select name="doctorId" value={formData.doctorId} onChange={handleChange} className="w-full p-2.5 border border-cp-border rounded-sm bg-cp-input text-cp-text focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none cursor-pointer transition-all">
+                <option value="" className="bg-cp-input">의료진 미지정</option>
                 {doctors.map((doc) => (
-                  <option key={doc.doctorId} value={doc.doctorId}>{doc.doctorName} ({doc.doctorSpecialty})</option>
+                  <option key={doc.doctorId} value={doc.doctorId} className="bg-cp-input">{doc.doctorName} ({doc.doctorSpecialty})</option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="flex gap-3 mt-10">
-            <button type="button" onClick={onClose} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200">취소</button>
-            <button type="submit" disabled={isUploading} className="flex-1 py-3 bg-[#008080] text-white rounded-xl font-bold hover:bg-[#006666] disabled:bg-gray-300">
+            <button type="button" onClick={onClose} className="flex-1 py-3 bg-cp-input border border-cp-border text-cp-text rounded-sm font-semibold hover:bg-cp-bg hover:border-cp-border transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">취소</button>
+            <button type="submit" disabled={isUploading} className="flex-1 py-3 bg-gradient-to-br from-teal-600 to-teal-700 border border-teal-500 text-white rounded-sm font-semibold hover:from-teal-500 hover:to-teal-600 disabled:bg-cp-bg/50 disabled:border-cp-border disabled:text-cp-muted transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:hover:translate-y-0">
               {isUploading ? "등록 중..." : "환자 등록 완료"}
             </button>
           </div>

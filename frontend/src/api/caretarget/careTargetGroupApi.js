@@ -1,4 +1,4 @@
-import apiClient from '../apiClient'; 
+import { apiClient } from '../apiClient'; 
 
 const host = `/caregroup`; 
 
@@ -20,19 +20,6 @@ export const getCareGroupList = async (organizationId) => {
     },
   };
   const res = await apiClient.get(`${host}/list`, config);
-  return res.data; 
-};
-
-/**
- * 대상자 목록 조회
- */
-export const getCareTargetList = async (organizationId) => {
-  const config = {
-    params: { 
-      organizationId: organizationId,
-    },
-  };
-  const res = await apiClient.get(`${host}/target/list`, config);
   return res.data; 
 };
 

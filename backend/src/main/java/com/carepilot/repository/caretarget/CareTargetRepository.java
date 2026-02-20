@@ -3,6 +3,7 @@ package com.carepilot.repository.caretarget;
 import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.dto.caretarget.CareTargetListResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -39,6 +40,32 @@ public interface CareTargetRepository extends JpaRepository<CareTarget, Long> {
     List<CareTargetListResponseDTO> findCareTargetList(
             @Param("organizationId") Long organizationId
     );
+
+    @Query("SELECT ct.careTargetId FROM CareTarget ct WHERE ct.organization.organizationId = :organizationId")
+    List<Long> findIdsByOrganizationId(@Param("organizationId") Long organizationId);
+    
+    // 통계용: 위험 환자 수 (최신 위험 점수가 특정 레벨 이상인 환자)
+    @Query("SELECT COUNT(DISTINCT rs.careTarget.careTargetId) FROM RiskScore rs " +
+           "WHERE rs.organization.organizationId = :organizationId " +
+           "AND rs.riskLevel IN ('HIGH', 'CRITICAL') " +
+           "AND rs.calculatedAt >= :startDate AND rs.calculatedAt < :endDate")
+    Long countRiskPatients(@Param("organizationId") Long organizationId,
+                          @Param("startDate") java.time.LocalDateTime startDate,
+                          @Param("endDate") java.time.LocalDateTime endDate);
+    
+    // 통계용: 질환 목록 조회
+    @Query("SELECT DISTINCT c.disease FROM CareTarget c " +
+           "WHERE c.organization.organizationId = :organizationId " +
+           "AND c.disease IS NOT NULL AND c.disease != ''")
+    List<String> findDistinctDiseases(@Param("organizationId") Long organizationId);
+
+    @Query("SELECT c.name FROM CareTarget c WHERE c.careTargetId = :careTargetId AND c.deletedAt IS NULL")
+    String findNameByCareTargetId(@Param("careTargetId") Long careTargetId);
+
+
+    @Modifying
+    @Query("UPDATE CareTarget ct SET ct.doctor = NULL WHERE ct.doctor.doctorId = :doctorId")
+    void clearCareTargetDoctor(@Param("doctorId") Long doctorId);
 
 
 }

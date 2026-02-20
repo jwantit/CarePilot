@@ -11,6 +11,7 @@ import { getStaffList } from '../../api/user/userApi';
 import { toast } from 'react-hot-toast';
 
 const defaultFilters = {
+  sourceType: 'USER',
   status: '',
   priority: '',
   type: '',
@@ -25,6 +26,7 @@ export const useTaskList = () => {
 
   const buildParams = useCallback(() => {
     const params = {};
+    if (filters.sourceType) params.sourceType = filters.sourceType;
     if (filters.status) params.status = filters.status;
     if (filters.priority) params.priority = filters.priority;
     if (filters.type) params.type = filters.type;
@@ -91,7 +93,7 @@ export const useTaskList = () => {
     }
   };
 
-  const handleUpdateStatus = async (taskId, status) => {
+  const handleUpdateStatus = useCallback(async (taskId, status) => {
     try {
       await updateTaskStatus(taskId, status);
       toast.success('상태가 변경되었습니다.');
@@ -100,20 +102,59 @@ export const useTaskList = () => {
       const msg = err?.response?.data?.message || err?.message || '상태 변경에 실패했습니다.';
       toast.error(msg);
     }
-  };
+  }, [fetchTasks]);
 
-  const handleUpdateAssign = async (taskId, assignedToUserId) => {
+  /** 시작: PROGRESS로 변경 (백엔드에서 자동으로 CALL/SMS 자동화 분기 처리) */
+  const handleStart = useCallback(async (task) => {
+    if (!task || !task.taskId) {
+      toast.error('작업 정보가 올바르지 않습니다.');
+      return;
+    }
+    
+    // AI가 감지한 Task인지 확인 (SCHEDULE_CHANGE 타입이고 CALL 또는 SMS 연결됨)
+    const isAiDetectedTask = task?.type === 'SCHEDULE_CHANGE' && (task?.callId || task?.inboundSmsId);
+    
+    try {
+      await updateTaskStatus(task.taskId, 'PROGRESS');
+      
+      // Task 타입에 따라 적절한 메시지 표시
+      if (isAiDetectedTask) {
+        toast.success('AI가 예약 변경을 처리하고 있습니다.');
+      } else {
+        toast.success('상태가 변경되었습니다.');
+      }
+      
+      fetchTasks();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || '상태 변경에 실패했습니다.';
+      toast.error(msg);
+    }
+  }, [fetchTasks]);
+
+  const handleUpdateAssign = useCallback(async (taskId, assignedToUserId) => {
+    // 낙관적 업데이트: 즉시 UI 업데이트
+    setTaskList((prevList) =>
+      prevList.map((task) =>
+        task.taskId === taskId
+          ? { ...task, assignedToUserId: assignedToUserId || null }
+          : task
+      )
+    );
+
     try {
       await updateTaskAssign(taskId, assignedToUserId);
       toast.success('할당자가 변경되었습니다.');
+      // 서버에서 최신 데이터 다시 가져오기
       fetchTasks();
     } catch (err) {
+      // 실패 시 원래 상태로 복구
+      fetchTasks();
       const msg = err?.response?.data?.message || err?.message || '할당 변경에 실패했습니다.';
       toast.error(msg);
     }
-  };
+  }, [fetchTasks]);
 
-  const handleDeleteTask = async (taskId) => {
+  const handleDeleteTask = useCallback(async (taskId) => {
     try {
       await deleteTask(taskId);
       toast.success('삭제되었습니다.');
@@ -122,10 +163,14 @@ export const useTaskList = () => {
       const msg = err?.response?.data?.message || err?.message || '삭제에 실패했습니다.';
       toast.error(msg);
     }
-  };
+  }, [fetchTasks]);
 
   const updateFilter = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetFilters = () => {
+    setFilters({ ...defaultFilters });
   };
 
   return {
@@ -135,10 +180,12 @@ export const useTaskList = () => {
     filters,
     setFilters,
     updateFilter,
+    resetFilters,
     fetchTasks,
     handleCreateTask,
     handleUpdateTask,
     handleUpdateStatus,
+    handleStart,
     handleUpdateAssign,
     handleDeleteTask,
   };

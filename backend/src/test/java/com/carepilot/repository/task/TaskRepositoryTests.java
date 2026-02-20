@@ -4,6 +4,7 @@ import com.carepilot.domain.caretarget.CareTarget;
 import com.carepilot.domain.enums.Priority;
 import com.carepilot.domain.organization.Organization;
 import com.carepilot.domain.task.Task;
+import com.carepilot.domain.task.TaskSourceType;
 import com.carepilot.domain.task.TaskStatus;
 import com.carepilot.domain.task.TaskType;
 import com.carepilot.domain.user.User;
@@ -46,13 +47,14 @@ class TaskRepositoryTests {
         CareTarget target = targets.isEmpty() ? null : targets.get(0);
 
         String[] titles = { "혈당 수치 재확인", "긴급 알림 처리", "약물 복용 일정 확인", "후속 방문 연락" };
-        TaskType[] types = { TaskType.RISK_FOLLOWUP, TaskType.NORMAL, TaskType.CARE, TaskType.OTHER };
+        TaskType[] types = { TaskType.RISK_FOLLOWUP, TaskType.OTHER, TaskType.CARE, TaskType.OTHER };
         Priority[] priorities = { Priority.HIGH, Priority.URGENT, Priority.MEDIUM, Priority.LOW };
         TaskStatus[] statuses = { TaskStatus.WAITING, TaskStatus.PROGRESS, TaskStatus.DONE };
 
         for (int i = 0; i < titles.length; i++) {
             Task task = Task.builder()
                     .organization(org)
+                    .sourceType(TaskSourceType.USER)
                     .careTarget(target)
                     .title(titles[i])
                     .description("더미 설명 " + (i + 1))
@@ -66,6 +68,34 @@ class TaskRepositoryTests {
                     .build();
             taskRepository.save(task);
             log.info("Task 더미 생성: taskId={}, title={}", task.getTaskId(), task.getTitle());
+        }
+    }
+
+    @Test
+    void insertAITaskDummy() {
+        Organization org = organizationRepository.findById(1L).orElseThrow();
+        List<CareTarget> targets = careTargetRepository.findByOrganizationIdAndFilterAndKeyword(
+                org.getOrganizationId(), null);
+        CareTarget target = targets.isEmpty() ? null : targets.get(0);
+
+        TaskType[] types = { TaskType.CALL_INIT, TaskType.SCHEDULE_CHANGE, TaskType.RISK_ALERT, TaskType.AUTOMATION, TaskType.OTHER };
+        TaskStatus[] statuses = { TaskStatus.WAITING, TaskStatus.SUCCESS, TaskStatus.FAILED };
+
+        for (int i = 0; i < types.length; i++) {
+            LocalDateTime started = LocalDateTime.now().minusHours(i + 1);
+            LocalDateTime completed = statuses[i % statuses.length] != TaskStatus.WAITING ? LocalDateTime.now() : null;
+            Task task = Task.builder()
+                    .organization(org)
+                    .sourceType(TaskSourceType.AI)
+                    .type(types[i])
+                    .careTarget(target)
+                    .status(statuses[i % statuses.length])
+                    .result("AI 처리 결과 더미 " + (i + 1))
+                    .startedAt(started)
+                    .completedAt(completed)
+                    .build();
+            taskRepository.save(task);
+            log.info("AITask 더미 생성: taskId={}, type={}, status={}", task.getTaskId(), task.getType(), task.getStatus());
         }
     }
 }

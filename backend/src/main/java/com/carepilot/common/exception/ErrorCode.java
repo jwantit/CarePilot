@@ -17,6 +17,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("사용자를 찾을 수 없습니다."),
     EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다."),
     USER_ALREADY_APPROVED("이미 승인된 사용자입니다."),
+    PHONE_REQUIRED("전화번호를 입력해주세요."),
     
     // 조직 관련
     ORGANIZATION_NOT_FOUND("존재하지 않는 업체 번호입니다."),
@@ -24,10 +25,18 @@ public enum ErrorCode {
 
     // 작업 관련
     TASK_NOT_FOUND("작업을 찾을 수 없습니다."),
-    AI_TASK_NOT_FOUND("AI 처리 내역을 찾을 수 없습니다."),
     CARE_TARGET_NOT_FOUND("케어 대상을 찾을 수 없습니다."),
+    CARE_TARGET_GROUP_NOT_FOUND("그룹을 찾을 수 없습니다."),
+    SCENARIO_NOT_FOUND("시나리오를 찾을 수 없습니다."),
+    SCHEDULE_NOT_FOUND("스케줄을 찾을 수 없습니다."),
+
+
+    //파일 관련
+    FILE_NOT_FOUND("파일ID를 찾을 수 없습니다."),
 
     // 기타
+    BAD_REQUEST("잘못된 요청입니다."),
+    CALL_RECORDING_NOT_FOUND("통화 녹취를 찾을 수 없습니다."),
     INTERNAL_SERVER_ERROR("서버 오류가 발생했습니다.");
 
     private final String message;

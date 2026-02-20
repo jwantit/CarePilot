@@ -5,6 +5,7 @@ import com.carepilot.dto.callanalysis.CallSummaryResultDTO;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -29,11 +30,11 @@ public class CallSummaryServiceImpl implements CallSummaryService {
             .map(s -> String.format("  - %s: %s", s.name(), s.getMatchingExamples()))
             .collect(Collectors.joining("\n"));
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final ChatClient chatClient;
 
     public CallSummaryServiceImpl(
-            @Autowired(required = false) ChatClient.Builder chatClientBuilder) {
-        this.chatClientBuilder = chatClientBuilder;
+            @Autowired(required = false) @Qualifier("openaiChatClient") ChatClient chatClient) {
+        this.chatClient = chatClient;
     }
 
     @Override
@@ -46,16 +47,14 @@ public class CallSummaryServiceImpl implements CallSummaryService {
                     .build();
         }
 
-        if (chatClientBuilder == null) {
-            log.warn("ChatClient not configured (missing api-key?). Returning empty summary.");
+        if (chatClient == null) {
+            log.warn("ChatClient not configured (openaiChatClient). Returning empty summary.");
             return CallSummaryResultDTO.builder()
                     .summary(null)
                     .aiMemo(null)
                     .signalsJson("[]")
                     .build();
         }
-
-        ChatClient chatClient = chatClientBuilder.build();
 
         String systemPrompt = """
                 당신은 케어 대상자와의 통화 내용을 분석하는 어시스턴트입니다.
@@ -95,17 +94,33 @@ public class CallSummaryServiceImpl implements CallSummaryService {
 
         String userPrompt = "다음 통화 전문을 분석해 주세요.\n\n---\n" + transcript;
 
-        String response = chatClient.prompt()
-                .system(systemPrompt)
-                .user(userPrompt)
-                .call()
-                .content();
+        try {
+            String response = chatClient.prompt()
+                    .system(systemPrompt)
+                    .user(userPrompt)
+                    .call()
+                    .content();
 
-        log.info("[시그널 디버그] LLM 원문 응답 길이={} chars", response != null ? response.length() : 0);
-        if (response != null && !response.isBlank()) {
-            log.info("[시그널 디버그] LLM 원문 응답 본문:\n{}", response);
+            log.info("[시그널 디버그] LLM 원문 응답 길이={} chars", response != null ? response.length() : 0);
+            if (response != null && !response.isBlank()) {
+                log.info("[시그널 디버그] LLM 원문 응답 본문:\n{}", response);
+            }
+            return parseSummaryResponse(response);
+        } catch (org.springframework.ai.retry.NonTransientAiException e) {
+            log.error("OpenAI API 호출 실패: {}", e.getMessage());
+            return CallSummaryResultDTO.builder()
+                    .summary("AI 분석을 수행할 수 없습니다. (API 할당량 초과)")
+                    .aiMemo("AI 분석 서비스를 일시적으로 사용할 수 없습니다.")
+                    .signalsJson("[]")
+                    .build();
+        } catch (Exception e) {
+            log.error("통화 요약 분석 중 오류 발생: {}", e.getMessage(), e);
+            return CallSummaryResultDTO.builder()
+                    .summary("AI 분석을 수행할 수 없습니다.")
+                    .aiMemo("AI 분석 중 오류가 발생했습니다.")
+                    .signalsJson("[]")
+                    .build();
         }
-        return parseSummaryResponse(response);
     }
 
     private CallSummaryResultDTO parseSummaryResponse(String response) {
